@@ -46,13 +46,13 @@ internal actual fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode
 }
 
 @ExperimentalForeignApi
-internal actual fun closeLib(lib: SharedLibraryHandle) {
-    require(lib is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
-    FreeLibrary(lib.handle)
+internal actual fun closeLib(handle: SharedLibraryHandle) {
+    require(handle is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
+    FreeLibrary(handle.handle)
 }
 
 @ExperimentalForeignApi
-internal actual fun getFunctionAddress(lib: SharedLibraryHandle, name: String): COpaquePointer? {
-    require(lib is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
-    return GetProcAddress(lib.handle, name)
+internal actual fun getFunctionAddress(handle: SharedLibraryHandle, name: String): COpaquePointer? {
+    require(handle is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
+    return GetProcAddress(handle.handle, name)
 }

@@ -52,14 +52,14 @@ internal actual fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode
 }
 
 @ExperimentalForeignApi
-internal actual fun closeLib(lib: SharedLibraryHandle) {
-    require(lib is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
-    dlclose(lib.address)
-    if (lib.fd != -1) close(lib.fd)
+internal actual fun closeLib(handle: SharedLibraryHandle) {
+    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
+    dlclose(handle.address)
+    if (handle.fd != -1) close(handle.fd)
 }
 
 @ExperimentalForeignApi
-internal actual fun getFunctionAddress(lib: SharedLibraryHandle, name: String): COpaquePointer? {
-    require(lib is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
-    return dlsym(lib.address, name)
+internal actual fun getFunctionAddress(handle: SharedLibraryHandle, name: String): COpaquePointer? {
+    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
+    return dlsym(handle.address, name)
 }

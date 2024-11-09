@@ -42,7 +42,7 @@ internal expect fun openLib(name: String, mode: LinkMode): SharedLibraryHandle?
 internal expect fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle?
 
 @ExperimentalForeignApi
-internal expect fun closeLib(lib: SharedLibraryHandle)
+internal expect fun closeLib(handle: SharedLibraryHandle)
 
 @ExperimentalForeignApi
-internal expect fun getFunctionAddress(lib: SharedLibraryHandle, name: String): COpaquePointer?
+internal expect fun getFunctionAddress(handle: SharedLibraryHandle, name: String): COpaquePointer?
