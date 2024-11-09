@@ -18,62 +18,45 @@
 
 package io.karma.dlfcn
 
-import dlfcn.RTLD_LAZY
-import dlfcn.RTLD_NOW
-import dlfcn.dlclose
-import dlfcn.dlopen
-import dlfcn.dlsym
 import kotlinx.cinterop.CFunction
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.CValuesRef
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.reinterpret
-
-internal expect val C_STD_LIB: Array<String>
-
-enum class LinkMode(internal val flag: Int) {
-    // @formatter:off
-    IMMEDIATE(RTLD_NOW),
-    LAZY     (RTLD_LAZY)
-    // @formatter:on
-}
 
 class SharedLibrary internal constructor(
     val name: String,
     val linkMode: LinkMode,
-    val handle: CValuesRef<*>,
+    @property:ExperimentalForeignApi val handle: COpaquePointer,
 ) : AutoCloseable {
     companion object {
         fun open(
-            names: Array<String>,
-            linkMode: LinkMode = LinkMode.LAZY
+            names: Array<String>, linkMode: LinkMode = LinkMode.LAZY
         ): SharedLibrary? {
             if (names.isEmpty()) return null
 
             val nameIterator = names.iterator()
             var name = nameIterator.next()
-            var handle = dlopen(name, linkMode.flag)
+            var handle = openLib(name, linkMode)
             while (nameIterator.hasNext() && handle == null) {
                 name = nameIterator.next()
-                handle = dlopen(name, linkMode.flag)
+                handle = openLib(name, linkMode)
             }
 
             return if (handle == null) null
             else SharedLibrary(name, linkMode, handle)
         }
 
-        fun open(name: String, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? =
-            open(arrayOf(name), linkMode)
+        fun open(name: String, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? = open(arrayOf(name), linkMode)
 
         fun openCStdLib(): SharedLibrary? = open(C_STD_LIB)
     }
 
     override fun close() {
-        dlclose(handle)
+        closeLib(handle)
     }
 
-    fun findFunctionOrNull(name: String): COpaquePointer? = dlsym(handle, name)
+    fun findFunctionOrNull(name: String): COpaquePointer? = getFunctionAddress(handle, name)
 
     inline fun <reified T : Function<*>> findFunctionOrNull(name: String): CPointer<CFunction<T>>? {
         return findFunctionOrNull(name)?.reinterpret()

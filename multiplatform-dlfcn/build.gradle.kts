@@ -29,32 +29,17 @@ java {
 }
 
 kotlin {
-    mingwX64 {
-        compilations.configureEach {
-            cinterops {
-                val dlfcn by creating {}
-            }
-        }
-    }
-    listOf(linuxX64(), linuxArm64()).forEach { target ->
-        target.apply {
-            compilations.configureEach {
-                cinterops {
-                    val dlfcn by creating
-                }
-            }
-        }
-    }
-    listOf(macosX64(), macosArm64()).forEach { target ->
-        target.apply {
-            compilations.configureEach {
-                cinterops {
-                    val dlfcn by creating
-                }
-            }
-        }
-    }
+    mingwX64()
+    linuxX64()
+    linuxArm64()
+    macosX64()
+    macosArm64()
     applyDefaultHierarchyTemplate()
+    sourceSets {
+        val posixMain by creating { dependsOn(nativeMain.get()) }
+        linuxMain { dependsOn(posixMain) }
+        macosMain { dependsOn(posixMain) }
+    }
 }
 
 val dokkaJar by tasks.registering(Jar::class) {
