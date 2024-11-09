@@ -54,13 +54,6 @@ fun `Load and unload libc`() {
 }
 
 @Test
-fun `Load and unload testlib`() {
-    SharedLibrary.open("testlib/testlib-$platformPair.$libraryExtension").use {
-        assertNotNull(it)
-    }
-}
-
-@Test
 fun `Call into libc to use memcpy`() = memScoped {
     SharedLibrary.openCStdLib().use {
         assertNotNull(it)
@@ -73,5 +66,30 @@ fun `Call into libc to use memcpy`() = memScoped {
             (value.length + 1).convert()
         )
         assertEquals(value, destBuffer.toKString())
+    }
+}
+
+@Test
+fun `Load and unload testlib`() {
+    SharedLibrary.open("testlib/testlib-$platformPair.$libraryExtension").use {
+        assertNotNull(it)
+    }
+}
+
+@Test
+fun `Call into testlib to use testlib_test1`() {
+    SharedLibrary.open("testlib/testlib-$platformPair.$libraryExtension").use {
+        assertNotNull(it)
+        assertEquals(1337, it.findFunction<() -> Int>("testlib_test1")())
+    }
+}
+
+@Test
+fun `Call into testlib to use testlib_test2`() {
+    SharedLibrary.open("testlib/testlib-$platformPair.$libraryExtension").use {
+        assertNotNull(it)
+        val function = it.findFunction<(Int, Int) -> Int>("testlib_test2")
+        assertEquals(1, function(44, 44))
+        assertEquals(0, function(10, 20))
     }
 }
