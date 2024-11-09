@@ -17,6 +17,8 @@
 @file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 import io.karma.dlfcn.SharedLibrary
+import io.karma.mman.AccessFlags
+import io.karma.mman.MemoryRegion
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
@@ -28,6 +30,7 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.invoke
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
+import kotlinx.io.files.Path
 import platform.posix.size_t
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.test.Test
@@ -36,7 +39,7 @@ import kotlin.test.assertNotNull
 
 private val platformPair: String = "${Platform.osFamily.name.lowercase()}-${Platform.cpuArchitecture.name.lowercase()}"
 
-private val libraryExtension: String = when(Platform.osFamily) {
+private val libraryExtension: String = when (Platform.osFamily) {
     OsFamily.WINDOWS -> "dll"
     OsFamily.MACOSX -> "dylib"
     else -> "so"
@@ -61,9 +64,7 @@ fun `Call into libc to use memcpy`() = memScoped {
         val sourceBuffer = allocCString(value)
         val destBuffer = allocArray<ByteVar>(value.length + 1)
         it.findFunction<(COpaquePointer?, COpaquePointer?, size_t) -> COpaquePointer?>("memcpy")(
-            destBuffer,
-            sourceBuffer,
-            (value.length + 1).convert()
+            destBuffer, sourceBuffer, (value.length + 1).convert()
         )
         assertEquals(value, destBuffer.toKString())
     }
@@ -91,5 +92,36 @@ fun `Call into testlib to use testlib_test2`() {
         val function = it.findFunction<(Int, Int) -> Int>("testlib_test2")
         assertEquals(1, function(44, 44))
         assertEquals(0, function(10, 20))
+    }
+}
+
+@Test
+fun `Load and unload testlib from memory`() {
+    MemoryRegion.map(Path("testlib/testlib-$platformPair.$libraryExtension"), AccessFlags.READ).use { memory ->
+        SharedLibrary.create(memory.address, memory.size).use {
+            assertNotNull(it)
+        }
+    }
+}
+
+@Test
+fun `Call into testlib to use testlib_test1 from memory`() {
+    MemoryRegion.map(Path("testlib/testlib-$platformPair.$libraryExtension"), AccessFlags.READ).use { memory ->
+        SharedLibrary.create(memory.address, memory.size).use {
+            assertNotNull(it)
+            assertEquals(1337, it.findFunction<() -> Int>("testlib_test1")())
+        }
+    }
+}
+
+@Test
+fun `Call into testlib to use testlib_test2 from memory`() {
+    MemoryRegion.map(Path("testlib/testlib-$platformPair.$libraryExtension"), AccessFlags.READ).use { memory ->
+        SharedLibrary.create(memory.address, memory.size).use {
+            assertNotNull(it)
+            val function = it.findFunction<(Int, Int) -> Int>("testlib_test2")
+            assertEquals(1, function(44, 44))
+            assertEquals(0, function(10, 20))
+        }
     }
 }

@@ -39,6 +39,11 @@ kotlin {
         val posixMain by creating { dependsOn(nativeMain.get()) }
         linuxMain { dependsOn(posixMain) }
         macosMain { dependsOn(posixMain) }
+        commonMain {
+            dependencies {
+                implementation(libs.benasherUuid)
+            }
+        }
     }
 }
 

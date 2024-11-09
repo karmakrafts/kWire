@@ -46,5 +46,6 @@ allprojects {
         mavenLocal()
         mavenCentral()
         google()
+        maven("https://git.karmakrafts.dev/api/v4/projects/332/packages/maven") // multiplatform-mman
     }
 }

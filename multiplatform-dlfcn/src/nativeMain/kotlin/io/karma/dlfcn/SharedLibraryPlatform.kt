@@ -39,7 +39,7 @@ internal expect val C_STD_LIB: Array<String>
 internal expect fun openLib(name: String, mode: LinkMode): SharedLibraryHandle?
 
 @ExperimentalForeignApi
-internal expect fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle?
+internal expect fun createLib(name: String, address: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle?
 
 @ExperimentalForeignApi
 internal expect fun closeLib(handle: SharedLibraryHandle)

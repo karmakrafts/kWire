@@ -41,7 +41,7 @@ internal actual fun openLib(name: String, mode: LinkMode): SharedLibraryHandle? 
 }
 
 @ExperimentalForeignApi
-internal actual fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle? {
+internal actual fun createLib(name: String, address: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle? {
     return null // TODO: implement in-memory modules
 }
 

@@ -18,6 +18,7 @@
 
 package io.karma.dlfcn
 
+import com.benasher44.uuid.uuid4
 import kotlinx.cinterop.CFunction
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
@@ -46,6 +47,13 @@ class SharedLibrary internal constructor(
         }
 
         fun open(name: String, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? = open(arrayOf(name), linkMode)
+
+        fun create(address: COpaquePointer, size: Long, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? {
+            val name = uuid4().toString() // Generate a random UUIDv4 for every in-memory module to avoid collisions
+            val handle = createLib(name, address, size, linkMode)
+            return if (handle == null) null
+            else SharedLibrary(name, linkMode, handle)
+        }
 
         fun openCStdLib(): SharedLibrary? = open(C_STD_LIB)
     }
