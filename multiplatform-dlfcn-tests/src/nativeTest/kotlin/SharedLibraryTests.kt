@@ -38,24 +38,24 @@ private fun MemScope.allocCString(value: String): CPointer<ByteVar> {
 }
 
 @Test
-fun `Load and unload of libc`() {
-    val lib = SharedLibrary.openCStdLib()
-    assertNotNull(lib)
-    lib.close()
+fun `Load and unload libc`() {
+    SharedLibrary.openCStdLib().use {
+        assertNotNull(it)
+    }
 }
 
 @Test
 fun `Call into libc to use memcpy`() = memScoped {
-    val lib = SharedLibrary.openCStdLib()
-    assertNotNull(lib)
-    val value = "Hello World!"
-    val sourceBuffer = allocCString(value)
-    val destBuffer = allocArray<ByteVar>(value.length + 1)
-    lib.findFunction<(COpaquePointer?, COpaquePointer?, size_t) -> COpaquePointer?>("memcpy")(
-        destBuffer,
-        sourceBuffer,
-        (value.length + 1).convert()
-    )
-    assertEquals(value, destBuffer.toKString())
-    lib.close()
+    SharedLibrary.openCStdLib().use {
+        assertNotNull(it)
+        val value = "Hello World!"
+        val sourceBuffer = allocCString(value)
+        val destBuffer = allocArray<ByteVar>(value.length + 1)
+        it.findFunction<(COpaquePointer?, COpaquePointer?, size_t) -> COpaquePointer?>("memcpy")(
+            destBuffer,
+            sourceBuffer,
+            (value.length + 1).convert()
+        )
+        assertEquals(value, destBuffer.toKString())
+    }
 }
