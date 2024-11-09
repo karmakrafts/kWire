@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 import io.karma.dlfcn.SharedLibrary
 import kotlinx.cinterop.ByteVar
@@ -29,9 +29,18 @@ import kotlinx.cinterop.invoke
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import platform.posix.size_t
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+
+private val platformPair: String = "${Platform.osFamily.name.lowercase()}-${Platform.cpuArchitecture.name.lowercase()}"
+
+private val libraryExtension: String = when(Platform.osFamily) {
+    OsFamily.WINDOWS -> "dll"
+    OsFamily.MACOSX -> "dylib"
+    else -> "so"
+}
 
 private fun MemScope.allocCString(value: String): CPointer<ByteVar> {
     return allocArrayOf(value.encodeToByteArray() + 0)
@@ -40,6 +49,13 @@ private fun MemScope.allocCString(value: String): CPointer<ByteVar> {
 @Test
 fun `Load and unload libc`() {
     SharedLibrary.openCStdLib().use {
+        assertNotNull(it)
+    }
+}
+
+@Test
+fun `Load and unload testlib`() {
+    SharedLibrary.open("testlib/testlib-$platformPair.$libraryExtension").use {
         assertNotNull(it)
     }
 }
