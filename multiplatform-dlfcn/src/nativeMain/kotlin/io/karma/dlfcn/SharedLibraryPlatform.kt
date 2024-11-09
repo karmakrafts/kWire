@@ -24,6 +24,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
  * @since 09/11/2024
  */
 
+internal interface SharedLibraryHandle
+
 value class LinkMode private constructor(internal val flag: Int) {
     companion object {
         val LAZY: LinkMode = LinkMode(1)
@@ -34,13 +36,13 @@ value class LinkMode private constructor(internal val flag: Int) {
 internal expect val C_STD_LIB: Array<String>
 
 @ExperimentalForeignApi
-internal expect fun openLib(name: String, mode: LinkMode): COpaquePointer?
+internal expect fun openLib(name: String, mode: LinkMode): SharedLibraryHandle?
 
 @ExperimentalForeignApi
-internal expect fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): COpaquePointer?
+internal expect fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle?
 
 @ExperimentalForeignApi
-internal expect fun closeLib(lib: COpaquePointer)
+internal expect fun closeLib(lib: SharedLibraryHandle)
 
 @ExperimentalForeignApi
-internal expect fun getFunctionAddress(lib: COpaquePointer, name: String): COpaquePointer?
+internal expect fun getFunctionAddress(lib: SharedLibraryHandle, name: String): COpaquePointer?

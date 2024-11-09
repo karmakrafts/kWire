@@ -16,5 +16,4 @@
 
 package io.karma.dlfcn
 
-internal actual val C_STD_LIB: Array<String> =
-    arrayOf("libc.dylib", "libSystem", "libSystem.dylib")
+internal actual val C_STD_LIB: Array<String> = arrayOf("libc.dylib", "libSystem", "libSystem.dylib")

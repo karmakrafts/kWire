@@ -25,9 +25,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.reinterpret
 
 class SharedLibrary internal constructor(
-    val name: String,
-    val linkMode: LinkMode,
-    @property:ExperimentalForeignApi val handle: COpaquePointer,
+    val name: String, val linkMode: LinkMode, private val handle: SharedLibraryHandle
 ) : AutoCloseable {
     companion object {
         fun open(

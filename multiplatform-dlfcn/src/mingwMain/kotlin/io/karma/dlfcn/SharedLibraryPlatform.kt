@@ -18,9 +18,9 @@ package io.karma.dlfcn
 
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.reinterpret
 import platform.windows.FreeLibrary
 import platform.windows.GetProcAddress
+import platform.windows.HMODULE
 import platform.windows.LoadLibraryW
 
 /**
@@ -28,24 +28,31 @@ import platform.windows.LoadLibraryW
  * @since 09/11/2024
  */
 
+@ExperimentalForeignApi
+internal class WindowsSharedLibraryHandle(
+    val handle: HMODULE
+) : SharedLibraryHandle
+
 internal actual val C_STD_LIB: Array<String> = arrayOf("msvcrt.dll")
 
 @ExperimentalForeignApi
-internal actual fun openLib(name: String, mode: LinkMode): COpaquePointer? {
-    return LoadLibraryW(name)
+internal actual fun openLib(name: String, mode: LinkMode): SharedLibraryHandle? {
+    return LoadLibraryW(name)?.let(::WindowsSharedLibraryHandle)
 }
 
 @ExperimentalForeignApi
-internal actual fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): COpaquePointer? {
+internal actual fun createLib(memory: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle? {
     return null // TODO: implement in-memory modules
 }
 
 @ExperimentalForeignApi
-internal actual fun closeLib(lib: COpaquePointer) {
-    FreeLibrary(lib.reinterpret())
+internal actual fun closeLib(lib: SharedLibraryHandle) {
+    require(lib is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
+    FreeLibrary(lib.handle)
 }
 
 @ExperimentalForeignApi
-internal actual fun getFunctionAddress(lib: COpaquePointer, name: String): COpaquePointer? {
-    return GetProcAddress(lib.reinterpret(), name)
+internal actual fun getFunctionAddress(lib: SharedLibraryHandle, name: String): COpaquePointer? {
+    require(lib is WindowsSharedLibraryHandle) { "Handle must be a WindowsSharedLibraryHandle" }
+    return GetProcAddress(lib.handle, name)
 }
