@@ -24,7 +24,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
  * @since 09/11/2024
  */
 
-internal interface SharedLibraryHandle
+internal interface SharedLibraryHandle {
+    val isInMemory: Boolean
+}
 
 value class LinkMode private constructor(internal val flag: Int) {
     companion object {

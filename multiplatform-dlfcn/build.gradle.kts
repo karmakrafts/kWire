@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.load.kotlin.computeInternalName
+
 /*
  * Copyright 2024 Karma Krafts & associates
  *
@@ -32,18 +34,20 @@ kotlin {
     mingwX64()
     linuxX64()
     linuxArm64()
-    macosX64()
-    macosArm64()
+    listOf(macosX64(), macosArm64()).forEach {
+        it.apply {
+            compilations.configureEach {
+                cinterops {
+                    val macho by creating
+                }
+            }
+        }
+    }
     applyDefaultHierarchyTemplate()
     sourceSets {
         val posixMain by creating { dependsOn(nativeMain.get()) }
         linuxMain { dependsOn(posixMain) }
         macosMain { dependsOn(posixMain) }
-        commonMain {
-            dependencies {
-                implementation(libs.benasherUuid)
-            }
-        }
     }
 }
 

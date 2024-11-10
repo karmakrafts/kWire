@@ -3,7 +3,6 @@ multiplatformDlfcn = "1.2.0"
 kotlin = "2.0.10"
 kotlinxIo = "0.5.4"
 multiplatformMman = "1.2.0.2"
-benasherUuid = "0.8.4"
 kotest = "5.9.1"
 
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
@@ -13,7 +12,6 @@ kotest-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "k
 kotlinx-io-bytestring = { module = "org.jetbrains.kotlinx:kotlinx-io-bytestring", version.ref = "kotlinxIo" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
 multiplatformMman = { module = "io.karma.mman:multiplatform-mman", version.ref = "multiplatformMman" }
-benasherUuid = { module = "com.benasher44:uuid", version.ref = "benasherUuid" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

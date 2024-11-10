@@ -31,7 +31,9 @@ import platform.windows.LoadLibraryW
 @ExperimentalForeignApi
 internal class WindowsSharedLibraryHandle(
     val handle: HMODULE
-) : SharedLibraryHandle
+) : SharedLibraryHandle {
+    override val isInMemory: Boolean = false
+}
 
 internal actual val C_STD_LIB: Array<String> = arrayOf("msvcrt.dll")
 

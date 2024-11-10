@@ -1,0 +1,3 @@
+package = platform.darwin
+headers = mach-o/reloc.h
+compilerOpts = -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include

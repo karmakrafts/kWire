@@ -20,10 +20,6 @@ import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.posix.RTLD_LAZY
 import platform.posix.RTLD_NOW
-import platform.posix.close
-import platform.posix.dlclose
-import platform.posix.dlopen
-import platform.posix.dlsym
 
 /**
  * @author Alexander Hinze
@@ -31,30 +27,14 @@ import platform.posix.dlsym
  */
 
 @ExperimentalForeignApi
-internal class PosixSharedLibraryHandle(
-    val address: COpaquePointer, val shmFd: Int = -1
-) : SharedLibraryHandle
+internal open class PosixSharedLibraryHandle(
+    val address: COpaquePointer
+) : SharedLibraryHandle {
+    override val isInMemory: Boolean = false
+}
 
 internal inline val LinkMode.posixMode: Int
     get() = when (this) {
         LinkMode.NOW -> RTLD_NOW
         else -> RTLD_LAZY
     }
-
-@ExperimentalForeignApi
-internal actual fun openLib(name: String, mode: LinkMode): SharedLibraryHandle? {
-    return dlopen(name, mode.posixMode)?.let(::PosixSharedLibraryHandle)
-}
-
-@ExperimentalForeignApi
-internal actual fun closeLib(handle: SharedLibraryHandle) {
-    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
-    dlclose(handle.address)
-    if (handle.shmFd != -1) close(handle.shmFd)
-}
-
-@ExperimentalForeignApi
-internal actual fun getFunctionAddress(handle: SharedLibraryHandle, name: String): COpaquePointer? {
-    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
-    return dlsym(handle.address, name)
-}

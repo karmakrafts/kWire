@@ -16,12 +16,6 @@
 
 package io.karma.dlfcn
 
-import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.ExperimentalForeignApi
-
-internal actual val C_STD_LIB: Array<String> = arrayOf("libc.dylib", "libSystem", "libSystem.dylib")
-
-@ExperimentalForeignApi
-internal actual fun createLib(name: String, address: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle? {
-    return null
-}
+@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
+@Retention(AnnotationRetention.BINARY)
+annotation class ExperimentalDlfcnApi

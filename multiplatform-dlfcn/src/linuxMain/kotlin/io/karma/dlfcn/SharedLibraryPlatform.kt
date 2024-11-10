@@ -19,30 +19,42 @@ package io.karma.dlfcn
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.convert
-import platform.posix.MAP_SHARED
-import platform.posix.MS_SYNC
-import platform.posix.O_CREAT
-import platform.posix.O_RDWR
-import platform.posix.PROT_READ
-import platform.posix.PROT_WRITE
-import platform.posix.S_IRGRP
-import platform.posix.S_IROTH
-import platform.posix.S_IRUSR
-import platform.posix.close
-import platform.posix.dlopen
-import platform.posix.ftruncate
-import platform.posix.memcpy
-import platform.posix.mmap
-import platform.posix.msync
-import platform.posix.munmap
-import platform.posix.shm_open
+import platform.posix.*
 
 internal actual val C_STD_LIB: Array<String> = arrayOf("libc.so", "libc.so.6")
 
 @ExperimentalForeignApi
+internal class LinuxMemorySharedLibraryHandle(
+    address: COpaquePointer,
+    internal val shmFd: Int
+) : PosixSharedLibraryHandle(address) {
+    override val isInMemory: Boolean = true
+}
+
+@ExperimentalForeignApi
+internal actual fun openLib(name: String, mode: LinkMode): SharedLibraryHandle? {
+    return dlopen(name, mode.posixMode)?.let(::PosixSharedLibraryHandle)
+}
+
+@ExperimentalForeignApi
+internal actual fun closeLib(handle: SharedLibraryHandle) {
+    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
+    dlclose(handle.address)
+    if(handle is LinuxMemorySharedLibraryHandle) close(handle.shmFd)
+}
+
+@ExperimentalForeignApi
+internal actual fun getFunctionAddress(handle: SharedLibraryHandle, name: String): COpaquePointer? {
+    require(handle is PosixSharedLibraryHandle) { "Handle must be a PosixSharedLibraryHandle" }
+    return dlsym(handle.address, name)
+}
+
+@ExperimentalForeignApi
 internal actual fun createLib(name: String, address: COpaquePointer, size: Long, mode: LinkMode): SharedLibraryHandle? {
     val shmFd = shm_open(
-        "/$name", O_RDWR or O_CREAT, (S_IRUSR or S_IRGRP or S_IROTH).convert()
+        "/$name", O_RDWR or O_CREAT, (S_IRUSR or S_IWUSR or S_IXUSR
+                or S_IRGRP or S_IXGRP
+                or S_IROTH or S_IXOTH).convert()
     )
     if (shmFd == -1) return null
     if (ftruncate(shmFd, size) != 0) {
@@ -64,5 +76,5 @@ internal actual fun createLib(name: String, address: COpaquePointer, size: Long,
         close(shmFd)
         null
     }
-    else PosixSharedLibraryHandle(moduleAddress, shmFd)
+    else LinuxMemorySharedLibraryHandle(moduleAddress, shmFd)
 }
