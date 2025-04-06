@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
 
 // TODO: document this
@@ -22,18 +24,18 @@ class FFIFunction(
     val address: Pointer,
     val descriptor: FFIDescriptor
 ) {
-    fun call(args: FFIArgSpec = {}) = FFI.call(address, descriptor, args)
-    fun callByte(args: FFIArgSpec = {}): Byte = FFI.callByte(address, descriptor, args)
-    fun callShort(args: FFIArgSpec = {}): Short = FFI.callShort(address, descriptor, args)
-    fun callInt(args: FFIArgSpec = {}): Int = FFI.callInt(address, descriptor, args)
-    fun callLong(args: FFIArgSpec = {}): Long = FFI.callLong(address, descriptor, args)
-    fun callNInt(args: FFIArgSpec = {}): NInt = FFI.callNInt(address, descriptor, args)
-    fun callUByte(args: FFIArgSpec = {}): UByte = FFI.callUByte(address, descriptor, args)
-    fun callUShort(args: FFIArgSpec = {}): UShort = FFI.callUShort(address, descriptor, args)
-    fun callUInt(args: FFIArgSpec = {}): UInt = FFI.callUInt(address, descriptor, args)
-    fun callULong(args: FFIArgSpec = {}): ULong = FFI.callULong(address, descriptor, args)
-    fun callNUInt(args: FFIArgSpec = {}): NUInt = FFI.callNUInt(address, descriptor, args)
-    fun callFloat(args: FFIArgSpec = {}): Float = FFI.callFloat(address, descriptor, args)
-    fun callDouble(args: FFIArgSpec = {}): Double = FFI.callDouble(address, descriptor, args)
-    fun callPointer(args: FFIArgSpec = {}): Pointer = FFI.callPointer(address, descriptor, args)
+    inline fun call(noinline args: FFIArgSpec = {}) = FFI.call(address, descriptor, args)
+    inline fun callByte(noinline args: FFIArgSpec = {}): Byte = FFI.callByte(address, descriptor, args)
+    inline fun callShort(noinline args: FFIArgSpec = {}): Short = FFI.callShort(address, descriptor, args)
+    inline fun callInt(noinline args: FFIArgSpec = {}): Int = FFI.callInt(address, descriptor, args)
+    inline fun callLong(noinline args: FFIArgSpec = {}): Long = FFI.callLong(address, descriptor, args)
+    inline fun callNInt(noinline args: FFIArgSpec = {}): NInt = FFI.callNInt(address, descriptor, args)
+    inline fun callUByte(noinline args: FFIArgSpec = {}): UByte = FFI.callUByte(address, descriptor, args)
+    inline fun callUShort(noinline args: FFIArgSpec = {}): UShort = FFI.callUShort(address, descriptor, args)
+    inline fun callUInt(noinline args: FFIArgSpec = {}): UInt = FFI.callUInt(address, descriptor, args)
+    inline fun callULong(noinline args: FFIArgSpec = {}): ULong = FFI.callULong(address, descriptor, args)
+    inline fun callNUInt(noinline args: FFIArgSpec = {}): NUInt = FFI.callNUInt(address, descriptor, args)
+    inline fun callFloat(noinline args: FFIArgSpec = {}): Float = FFI.callFloat(address, descriptor, args)
+    inline fun callDouble(noinline args: FFIArgSpec = {}): Double = FFI.callDouble(address, descriptor, args)
+    inline fun callPointer(noinline args: FFIArgSpec = {}): Pointer = FFI.callPointer(address, descriptor, args)
 }
