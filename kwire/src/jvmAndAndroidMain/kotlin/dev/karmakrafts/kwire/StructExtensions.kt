@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Karma Krafts & associates
+ * Copyright 2025 Karma Krafts & associates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-rootProject.name = "kwire"
+package dev.karmakrafts.kwire
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        gradlePluginPortal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
+import java.lang.foreign.MemoryLayout
+
+fun Struct.getMemoryLayout(): MemoryLayout {
+    return MemoryLayout.structLayout(*fields.values.map { it.type.getMemoryLayout() }.toTypedArray())
 }
-
-@Suppress("UnstableApiUsage")
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
-}
-
-include("kwire")

@@ -16,11 +16,16 @@
 
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/nativeMain/kotlin/io/karma/dlfcn/ExperimentalDlfcnApi.kt
-@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
-@Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalDlfcnApi
-========
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
->>>>>>>> Stashed changes:kwire/src/androidMain/kotlin/dev/karmakrafts/kwire/Platform.kt
+import java.lang.foreign.MemoryLayout
+import java.lang.foreign.ValueLayout
+
+fun FFIType.getMemoryLayout(): MemoryLayout = when (this) {
+    FFIType.BYTE -> ValueLayout.JAVA_BYTE
+    FFIType.SHORT -> ValueLayout.JAVA_SHORT_UNALIGNED
+    FFIType.INT -> ValueLayout.JAVA_INT_UNALIGNED
+    FFIType.LONG -> ValueLayout.JAVA_LONG_UNALIGNED
+    FFIType.NINT -> ValueLayout.ADDRESS_UNALIGNED // TODO: can this be aligned?
+    FFIType.FLOAT -> ValueLayout.JAVA_FLOAT_UNALIGNED
+    FFIType.DOUBLE -> ValueLayout.JAVA_DOUBLE_UNALIGNED
+    else -> throw IllegalStateException("$this has no valid memory layout")
+}

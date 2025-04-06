@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/posixMain/kotlin/io/karma/dlfcn/SharedLibraryPlatform.kt
+import kotlinx.cinterop.COpaque
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointed
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.posix.RTLD_LAZY
-import platform.posix.RTLD_NOW
-
-/**
- * @author Alexander Hinze
- * @since 09/11/2024
- */
+import kotlinx.cinterop.toCPointer
 
 @ExperimentalForeignApi
-internal open class PosixSharedLibraryHandle(
-    val address: COpaquePointer
-) : SharedLibraryHandle {
-    override val isInMemory: Boolean = false
+inline fun CPointer<*>.toPointer(): Pointer = Pointer(rawValue.toLong().toNUInt())
+
+@ExperimentalForeignApi
+inline fun <reified T : CPointed> Pointer.toCPointer(): CPointer<T>? {
+    return value.ulongValue.toLong().toCPointer()
 }
 
-internal inline val LinkMode.posixMode: Int
-    get() = when (this) {
-        LinkMode.NOW -> RTLD_NOW
-        else -> RTLD_LAZY
-    }
-========
-internal actual fun getPlatformFFI(): FFI = TODO("Not yet implemented")
->>>>>>>> Stashed changes:kwire/src/nativeMain/kotlin/dev/karmakrafts/kwire/FFI.kt
+@ExperimentalForeignApi
+inline fun Pointer.toCOpaquePointer(): COpaquePointer? = toCPointer<COpaque>()

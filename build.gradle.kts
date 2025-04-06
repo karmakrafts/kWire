@@ -14,38 +14,71 @@
  * limitations under the License.
  */
 
-import java.util.Properties
-import kotlin.io.path.div
-import kotlin.io.path.inputStream
-import kotlin.io.path.writeText
+import dev.karmakrafts.conventions.GitLabCI
+import dev.karmakrafts.conventions.configureJava
+import dev.karmakrafts.conventions.defaultDependencyLocking
+import dev.karmakrafts.conventions.setProjectInfo
+import java.net.URI
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.karmaConventions)
+    signing
+    `maven-publish`
+    alias(libs.plugins.gradleNexus)
 }
 
-val buildConfig: Properties = Properties().apply {
-    (rootDir.toPath() / "build.properties").inputStream().use {
-        load(it)
-    }
-}
-val baseVersion: String = libs.versions.multiplatformDlfcn.get()
-
-val generateVersionInfo by tasks.registering {
-    doLast {
-        println(baseVersion)
-        (rootDir.toPath() / ".version").writeText(baseVersion)
-    }
-}
+group = "dev.karmakrafts.kwire"
+version = GitLabCI.getDefaultVersion(libs.versions.kwire)
 
 allprojects {
-    group = buildConfig["group"] as String
-    version = "$baseVersion.${System.getenv("CI_PIPELINE_IID") ?: 0}"
+    configureJava(rootProject.libs.versions.java)
+}
 
+subprojects {
+    apply<PublishingPlugin>()
+    apply<SigningPlugin>()
+
+    group = rootProject.group
+    version = rootProject.version
+    if (GitLabCI.isCI) defaultDependencyLocking()
+
+    publishing {
+        setProjectInfo(
+            rootProject.name,
+            "Shared library access and FFI for Kotlin Multiplatform"
+        )
+        with(GitLabCI) { karmaKraftsDefaults() }
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    signing {
+        System.getenv("SIGNING_KEY_ID")?.let { keyId ->
+            useInMemoryPgpKeys( // @formatter:off
+                keyId,
+                System.getenv("SIGNING_PRIVATE_KEY")?.let { encodedKey ->
+                    Base64.decode(encodedKey).decodeToString()
+                },
+                System.getenv("SIGNING_PASSWORD")
+            ) // @formatter:on
+        }
+        sign(publishing.publications)
+    }
+}
+
+nexusPublishing {
     repositories {
-        mavenLocal()
-        mavenCentral()
-        google()
-        maven("https://git.karmakrafts.dev/api/v4/projects/332/packages/maven") // multiplatform-mman
+        System.getenv("OSSRH_USERNAME")?.let { userName ->
+            sonatype {
+                nexusUrl = URI.create("https://central.sonatype.com/publish/staging/maven2")
+                snapshotRepositoryUrl = URI.create("https://central.sonatype.com/repository/maven-snapshots")
+                username = userName
+                password = System.getenv("OSSRH_PASSWORD")
+            }
+        }
     }
 }

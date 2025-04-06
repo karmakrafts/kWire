@@ -16,11 +16,18 @@
 
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/nativeMain/kotlin/io/karma/dlfcn/ExperimentalDlfcnApi.kt
-@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
-@Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalDlfcnApi
-========
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform as KotlinPlatform
+
+@OptIn(ExperimentalNativeApi::class)
 @PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
->>>>>>>> Stashed changes:kwire/src/androidMain/kotlin/dev/karmakrafts/kwire/Platform.kt
+internal actual fun getCurrentPlatform(): Platform = when (KotlinPlatform.osFamily) {
+    OsFamily.WINDOWS -> Platform.WINDOWS
+    OsFamily.LINUX -> Platform.LINUX
+    OsFamily.MACOSX -> Platform.MACOS
+    OsFamily.TVOS -> Platform.TVOS
+    OsFamily.WATCHOS -> Platform.WATCHOS
+    OsFamily.IOS -> Platform.IOS
+    OsFamily.ANDROID -> Platform.ANDROID
+    else -> throw IllegalStateException("Unsupported platform")
+}

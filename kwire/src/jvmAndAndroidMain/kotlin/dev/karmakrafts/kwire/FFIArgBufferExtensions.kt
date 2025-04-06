@@ -16,11 +16,15 @@
 
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/nativeMain/kotlin/io/karma/dlfcn/ExperimentalDlfcnApi.kt
-@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
-@Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalDlfcnApi
-========
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
->>>>>>>> Stashed changes:kwire/src/androidMain/kotlin/dev/karmakrafts/kwire/Platform.kt
+fun FFIArgBuffer.toArray(): Array<Any> = Array(types.size) { index ->
+    when (val type = types[index]) {
+        FFIType.BYTE -> address.asBytePtr()[0]
+        FFIType.SHORT -> address.asShortPtr()[0]
+        FFIType.INT -> address.asIntPtr()[0]
+        FFIType.LONG -> address.asLongPtr()[0]
+        FFIType.NINT -> address.asNIntPtr()[0]
+        FFIType.FLOAT -> address.asFloatPtr()[0]
+        FFIType.DOUBLE -> address.asDoublePtr()[0]
+        else -> throw IllegalStateException("Cannot map FFI parameter type $type")
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Karma Krafts & associates
+ * Copyright 2025 Karma Krafts & associates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-rootProject.name = "kwire"
+@file:Suppress("NOTHING_TO_INLINE")
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        gradlePluginPortal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
+package dev.karmakrafts.kwire
+
+import java.lang.foreign.MemorySegment
+
+// TODO: document this
+inline fun MemorySegment.toPointer(): Pointer = Pointer(address().toNUInt())
+
+// TODO: document this
+inline fun Pointer.toMemorySegment(): MemorySegment {
+    return MemorySegment.ofAddress(value.value.toLong())
 }
-
-@Suppress("UnstableApiUsage")
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
-}
-
-include("kwire")

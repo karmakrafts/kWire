@@ -16,11 +16,21 @@
 
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/nativeMain/kotlin/io/karma/dlfcn/ExperimentalDlfcnApi.kt
-@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
-@Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalDlfcnApi
-========
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
->>>>>>>> Stashed changes:kwire/src/androidMain/kotlin/dev/karmakrafts/kwire/Platform.kt
+import kotlin.reflect.KClass
+
+// TODO: document this
+enum class FFIType(
+    val type: KClass<*>,
+    val size: Int
+) {
+    // @formatter:off
+    VOID    (Unit::class, 0),
+    BYTE    (Byte::class, Byte.SIZE_BYTES),
+    SHORT   (Short::class, Short.SIZE_BYTES),
+    INT     (Int::class, Int.SIZE_BYTES),
+    LONG    (Long::class, Long.SIZE_BYTES),
+    NINT    (NInt::class, NInt.SIZE_BYTES),
+    FLOAT   (Float::class, Float.SIZE_BYTES),
+    DOUBLE  (Double::class, Double.SIZE_BYTES)
+    // @formatter:on
+}

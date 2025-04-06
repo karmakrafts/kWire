@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Karma Krafts & associates
+ * Copyright 2025 Karma Krafts & associates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-rootProject.name = "kwire"
+@file:Suppress("NOTHING_TO_INLINE")
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        gradlePluginPortal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
+package dev.karmakrafts.kwire
+
+import kotlin.jvm.JvmInline
+
+// TODO: document this
+@JvmInline
+value class Pointer(val value: NUInt) {
+    operator fun plus(other: NUInt): Pointer = Pointer(value + other)
+    operator fun minus(other: NUInt): Pointer = Pointer(value - other)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun toString(): String = "0x${value.toHexString()}"
 }
 
-@Suppress("UnstableApiUsage")
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        mavenLocal()
-        maven("https://central.sonatype.com/repository/maven-snapshots")
-    }
-}
-
-include("kwire")
+// TODO: document this
+val nullptr: Pointer = Pointer(0U.toNUInt())
