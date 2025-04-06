@@ -20,6 +20,7 @@ package dev.karmakrafts.kwire
 enum class LinkMode {
     // TODO: document this
     NOW,
+
     // TODO: document this
     LAZY
 }

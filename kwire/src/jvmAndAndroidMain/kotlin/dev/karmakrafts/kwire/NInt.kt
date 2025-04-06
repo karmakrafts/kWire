@@ -22,7 +22,7 @@ package dev.karmakrafts.kwire
 actual typealias NInt = Long
 
 actual val NInt.Companion.SIZE_BYTES: Int by lazy {
-    if(System.getProperty("sun.arch.data.model")?.toIntOrNull() == 64) Long.SIZE_BYTES
+    if (System.getProperty("sun.arch.data.model")?.toIntOrNull() == 64) Long.SIZE_BYTES
     else Int.SIZE_BYTES
 }
 

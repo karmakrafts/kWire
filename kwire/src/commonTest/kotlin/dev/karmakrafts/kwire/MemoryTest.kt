@@ -16,10 +16,6 @@
 
 package dev.karmakrafts.kwire
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-
 class MemoryTest {
     companion object {
         private val testSize: NUInt = 16U.toNUInt()

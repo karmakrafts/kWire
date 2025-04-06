@@ -18,12 +18,7 @@
 
 package dev.karmakrafts.kwire
 
-import kotlinx.cinterop.COpaque
-import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.CPointed
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.toCPointer
+import kotlinx.cinterop.*
 
 @ExperimentalForeignApi
 inline fun CPointer<*>.toPointer(): Pointer = Pointer(rawValue.toLong().toNUInt())
