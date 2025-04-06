@@ -112,4 +112,5 @@ private object JNAMemory : Memory {
     }
 }
 
+@PublishedApi
 internal actual fun getPlatformMemory(): Memory = JNAMemory

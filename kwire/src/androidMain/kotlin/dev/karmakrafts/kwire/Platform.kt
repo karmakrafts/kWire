@@ -16,11 +16,5 @@
 
 package dev.karmakrafts.kwire
 
-<<<<<<<< Updated upstream:multiplatform-dlfcn/src/nativeMain/kotlin/io/karma/dlfcn/ExperimentalDlfcnApi.kt
-@RequiresOptIn("The API you're trying to use may be prone to bugs or unfinished, use with caution")
-@Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalDlfcnApi
-========
 @PublishedApi
 internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
->>>>>>>> Stashed changes:kwire/src/androidMain/kotlin/dev/karmakrafts/kwire/Platform.kt
