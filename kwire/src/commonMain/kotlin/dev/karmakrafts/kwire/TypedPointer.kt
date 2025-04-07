@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
+package dev.karmakrafts.kwire
+
+import kotlin.jvm.JvmInline
+
 /**
  * Provides strongly-typed pointer implementations for various primitive data types.
  *
@@ -32,11 +38,6 @@
  * - Indexing operations (get, set) for accessing array elements
  * - Type reinterpretation through the [Reinterpretable.reinterpret] method
  */
-@file:Suppress("NOTHING_TO_INLINE")
-
-package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmInline
 
 // Signed
 
