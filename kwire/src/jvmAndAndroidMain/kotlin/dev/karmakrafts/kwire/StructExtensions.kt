@@ -19,5 +19,5 @@ package dev.karmakrafts.kwire
 import java.lang.foreign.MemoryLayout
 
 fun Struct.getMemoryLayout(): MemoryLayout {
-    return MemoryLayout.structLayout(*fields.values.map { it.type.getMemoryLayout() }.toTypedArray())
+    return MemoryLayout.structLayout(*fields.map { it.type.getMemoryLayout() }.toTypedArray())
 }

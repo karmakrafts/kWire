@@ -26,17 +26,18 @@ private const val APPLE_EXTENSION: String = "dylib"
 // TODO: document this
 enum class Platform(
     val isAppleFamily: Boolean,
+    val isLinuxFamily: Boolean,
     val isUnixoid: Boolean,
     val libraryExtension: String
 ) {
     // @formatter:off
-    WINDOWS (false, false,  "dll"),
-    LINUX   (false, true,   UNIX_EXTENSION),
-    ANDROID (false, true,   UNIX_EXTENSION),
-    MACOS   (true,  true,   APPLE_EXTENSION),
-    IOS     (true,  true,   APPLE_EXTENSION),
-    TVOS    (true,  true,   APPLE_EXTENSION),
-    WATCHOS (true,  true,   APPLE_EXTENSION);
+    WINDOWS (false, false,  false,  "dll"),
+    LINUX   (false, true,   true,   UNIX_EXTENSION),
+    ANDROID (false, true,   true,   UNIX_EXTENSION),
+    MACOS   (true,  false,  true,   APPLE_EXTENSION),
+    IOS     (true,  false,  true,   APPLE_EXTENSION),
+    TVOS    (true,  false,  true,   APPLE_EXTENSION),
+    WATCHOS (true,  false,  true,   APPLE_EXTENSION);
     // @formatter:on
 
     companion object {

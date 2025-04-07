@@ -16,11 +16,4 @@
 
 package dev.karmakrafts.kwire
 
-internal expect fun getPlatformLinker(): Linker
-
-internal interface Linker {
-    companion object : Linker by getPlatformLinker()
-
-    fun findLibrary(names: List<String>, linkMode: LinkMode): SharedLibraryHandle?
-    fun SharedLibraryHandle.findSymbol(name: String): Pointer?
-}
+internal actual fun getPointerSize(): Int = Long.SIZE_BYTES

@@ -22,12 +22,7 @@ package dev.karmakrafts.kwire
 import kotlin.jvm.JvmName
 
 // TODO: document this
-expect class NInt {
-    companion object
-}
-
-// TODO: document this
-expect val NInt.Companion.SIZE_BYTES: Int
+expect class NInt
 
 expect inline fun Int.toNInt(): NInt
 expect inline fun UInt.toNInt(): NInt

@@ -15,16 +15,34 @@
  */
 
 @file:Suppress("NOTHING_TO_INLINE")
+@file:JvmName("Pointer$")
 
 package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmInline
+import kotlin.jvm.JvmName
+
+internal expect fun getPointerSize(): Int
 
 // TODO: document this
 @JvmInline
 value class Pointer(val value: NUInt) {
-    operator fun plus(other: NUInt): Pointer = Pointer(value + other)
-    operator fun minus(other: NUInt): Pointer = Pointer(value - other)
+    companion object {
+        val SIZE_BYTES: Int = getPointerSize()
+    }
+
+    inline operator fun plus(other: NUInt): Pointer = Pointer(value + other)
+    inline operator fun minus(other: NUInt): Pointer = Pointer(value - other)
+
+    inline operator fun plus(other: ULong): Pointer = Pointer(value + other.toNUInt())
+    inline operator fun minus(other: ULong): Pointer = Pointer(value - other.toNUInt())
+
+    inline operator fun plus(other: UInt): Pointer = Pointer(value + other.toNUInt())
+    inline operator fun minus(other: UInt): Pointer = Pointer(value - other.toNUInt())
+
+    // TODO: document this
+    inline fun align(alignment: NUInt = Memory.defaultAlignment): Pointer =
+        Pointer(Memory.align(value, alignment))
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String = "0x${value.toHexString()}"

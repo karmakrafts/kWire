@@ -27,3 +27,18 @@ inline fun MemorySegment.toPointer(): Pointer = Pointer(address().toNUInt())
 inline fun Pointer.toMemorySegment(): MemorySegment {
     return MemorySegment.ofAddress(value.value.toLong())
 }
+
+// TODO: document this
+inline fun Pointer.toMemorySegment(size: NUInt): MemorySegment {
+    return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size.value.toLong())
+}
+
+// TODO: document this
+inline fun Pointer.toMemorySegment(size: Long): MemorySegment {
+    return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size)
+}
+
+// TODO: document this
+inline fun Pointer.toMemorySegment(size: Int): MemorySegment {
+    return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size.toLong())
+}

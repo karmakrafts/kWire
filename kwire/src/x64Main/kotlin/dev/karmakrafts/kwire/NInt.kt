@@ -20,9 +20,6 @@ package dev.karmakrafts.kwire
 
 actual typealias NInt = Long
 
-actual val NInt.Companion.SIZE_BYTES: Int
-    get() = Long.SIZE_BYTES
-
 actual inline fun Int.toNInt(): NInt = toLong()
 actual inline fun UInt.toNInt(): NInt = toLong()
 actual inline fun Long.toNInt(): NInt = this

@@ -20,12 +20,14 @@ import java.lang.foreign.MemoryLayout
 import java.lang.foreign.ValueLayout
 
 fun FFIType.getMemoryLayout(): MemoryLayout = when (this) {
-    FFIType.BYTE -> ValueLayout.JAVA_BYTE
-    FFIType.SHORT -> ValueLayout.JAVA_SHORT_UNALIGNED
-    FFIType.INT -> ValueLayout.JAVA_INT_UNALIGNED
-    FFIType.LONG -> ValueLayout.JAVA_LONG_UNALIGNED
-    FFIType.NINT -> ValueLayout.ADDRESS_UNALIGNED // TODO: can this be aligned?
-    FFIType.FLOAT -> ValueLayout.JAVA_FLOAT_UNALIGNED
-    FFIType.DOUBLE -> ValueLayout.JAVA_DOUBLE_UNALIGNED
+    FFIType.BYTE, FFIType.UBYTE -> ValueLayout.JAVA_BYTE
+    FFIType.SHORT, FFIType.USHORT -> ValueLayout.JAVA_SHORT
+    FFIType.INT, FFIType.UINT -> ValueLayout.JAVA_INT
+    FFIType.LONG, FFIType.ULONG -> ValueLayout.JAVA_LONG
+    FFIType.NINT -> if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) ValueLayout.JAVA_INT else ValueLayout.JAVA_LONG
+    FFIType.NUINT -> if (Pointer.SIZE_BYTES == UInt.SIZE_BYTES) ValueLayout.JAVA_INT else ValueLayout.JAVA_LONG
+    FFIType.PTR -> ValueLayout.ADDRESS
+    FFIType.FLOAT -> ValueLayout.JAVA_FLOAT
+    FFIType.DOUBLE -> ValueLayout.JAVA_DOUBLE
     else -> throw IllegalStateException("$this has no valid memory layout")
 }

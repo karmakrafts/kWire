@@ -16,10 +16,20 @@
 
 package dev.karmakrafts.kwire
 
+import kotlin.reflect.KClass
+
 // TODO: document this
-data class FFIDescriptor(
+@Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
+data class FFIDescriptor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()
-) {
-    constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
+) { // @formatter:on
+    inline constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
+
+    inline constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
+        returnType.getFFIType(), parameterTypes.map { it.getFFIType() })
+
+    inline constructor(returnType: KClass<*>, vararg parameterTypes: KClass<*>) : this(
+        returnType, parameterTypes.toList()
+    )
 }

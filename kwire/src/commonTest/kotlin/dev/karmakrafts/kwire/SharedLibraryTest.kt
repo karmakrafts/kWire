@@ -17,21 +17,14 @@
 package dev.karmakrafts.kwire
 
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class SharedLibraryTest {
     @Test
     fun `Open and close`() {
-        var library = SharedLibrary.tryOpen("/usr/lib/x86_64-linux-gnu/libc.so.6")
+        var library: SharedLibrary? = SharedLibrary.cRuntime
         assertNotNull(library)
-
-        val address = Memory.get().allocate(16U.toNUInt())
-        assertEquals(nullptr, address)
-        Memory.get().free(address)
-
-        library.close()
 
         library = SharedLibrary.tryOpen("IAMNOTALIBRARY")
         assertNull(library)
@@ -39,17 +32,15 @@ class SharedLibraryTest {
 
     @Test
     fun `Find address`() {
-        SharedLibrary.open("/usr/lib/x86_64-linux-gnu/libc.so.6").use { library ->
-            assertNotNull(library.findFunctionAddress("exit"))
-            assertNull(library.findFunctionAddress("nonsense"))
-        }
+        val library = SharedLibrary.cRuntime
+        assertNotNull(library.findFunctionAddress("exit"))
+        assertNull(library.findFunctionAddress("nonsense"))
     }
 
     @Test
     fun `Find function`() {
-        SharedLibrary.open("/usr/lib/x86_64-linux-gnu/libc.so.6").use { library ->
-            assertNotNull(library.findFunction("exit", FFIDescriptor(FFIType.VOID, FFIType.INT)))
-            assertNull(library.findFunction("nonsense", FFIDescriptor(FFIType.VOID)))
-        }
+        val library = SharedLibrary.cRuntime
+        assertNotNull(library.findFunction("exit", FFIDescriptor(FFIType.VOID, FFIType.INT)))
+        assertNull(library.findFunction("nonsense", FFIDescriptor(FFIType.VOID)))
     }
 }

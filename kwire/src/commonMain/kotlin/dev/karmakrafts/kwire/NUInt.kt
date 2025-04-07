@@ -26,12 +26,7 @@ import kotlin.jvm.JvmName
 @JvmInline
 value class NUInt @PublishedApi internal constructor(
     @PublishedApi internal val value: NInt
-) {
-    companion object {
-        inline val SIZE_BYTES: Int
-            get() = NInt.SIZE_BYTES
-    }
-}
+)
 
 expect inline fun UInt.toNUInt(): NUInt
 expect inline fun Int.toNUInt(): NUInt

@@ -21,11 +21,7 @@ package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmName
 
-expect class NFloat {
-    companion object
-}
-
-expect val NFloat.Companion.SIZE_BYTES: Int
+expect class NFloat
 
 expect inline fun Float.toNFloat(): NFloat
 expect inline fun Double.toNFloat(): NFloat

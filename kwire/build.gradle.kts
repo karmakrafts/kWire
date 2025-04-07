@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
 
 /*
@@ -21,6 +19,7 @@ import java.time.ZonedDateTime
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.rakii)
     alias(libs.plugins.dokka)
     signing
     `maven-publish`
@@ -64,6 +63,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
+                api(libs.rakii.runtime)
             }
         }
         val nativeMain by getting
@@ -92,12 +92,7 @@ kotlin {
 
         val jvmAndAndroidMain by creating { dependsOn(commonMain) }
         jvmMain { dependsOn(jvmAndAndroidMain) }
-        androidMain {
-            dependsOn(jvmAndAndroidMain)
-            dependencies {
-                api("${libs.jna.get()}@aar")
-            }
-        }
+        androidMain { dependsOn(jvmAndAndroidMain) }
 
         val posixMain by creating { dependsOn(nativeMain) }
         linuxMain { dependsOn(posixMain) }

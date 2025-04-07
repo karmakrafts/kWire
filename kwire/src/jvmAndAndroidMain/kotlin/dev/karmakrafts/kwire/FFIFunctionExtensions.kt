@@ -16,11 +16,9 @@
 
 package dev.karmakrafts.kwire
 
-internal expect fun getPlatformLinker(): Linker
+import java.lang.invoke.MethodHandle
+import java.lang.foreign.Linker as JvmLinker
 
-internal interface Linker {
-    companion object : Linker by getPlatformLinker()
-
-    fun findLibrary(names: List<String>, linkMode: LinkMode): SharedLibraryHandle?
-    fun SharedLibraryHandle.findSymbol(name: String): Pointer?
+fun FFIFunction.toMethodHandle(): MethodHandle {
+    return JvmLinker.nativeLinker().downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor())
 }

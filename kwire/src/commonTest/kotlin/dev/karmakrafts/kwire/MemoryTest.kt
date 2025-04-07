@@ -16,32 +16,36 @@
 
 package dev.karmakrafts.kwire
 
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+
 class MemoryTest {
     companion object {
-        private val testSize: NUInt = 16U.toNUInt()
+        private val testSize: NUInt = (Int.SIZE_BYTES * 4).toNUInt()
         private const val TEST_VALUE_1: UInt = 0xDEADBEEFU
         private const val TEST_VALUE_2: UInt = 0xCAFEBABEU
     }
 
-    //@Test
-    //fun `Allocate and free`() {
-    //    val address = Memory.allocate(testSize)
-    //    assertEquals(nullptr, address)
-    //    Memory.free(address)
-    //}
+    @Test
+    fun `Allocate and free`() {
+        val address = Memory.allocate(testSize)
+        assertNotEquals(nullptr, address)
+        Memory.free(address)
+    }
 
-    //@Test
-    //fun `Write and read`() {
-    //    val address = Memory.allocate(testSize).asUIntPtr()
-    //    assertNotEquals(nullptr, address.value)
-    //    address[0] = TEST_VALUE_1
-    //    address[1] = TEST_VALUE_2
-    //    address[2] = TEST_VALUE_1
-    //    address[3] = TEST_VALUE_2
-    //    assertEquals(TEST_VALUE_1, address[0])
-    //    assertEquals(TEST_VALUE_2, address[1])
-    //    assertEquals(TEST_VALUE_1, address[2])
-    //    assertEquals(TEST_VALUE_2, address[3])
-    //    Memory.free(address.value)
-    //}
+    @Test
+    fun `Write and read`() {
+        val address = Memory.allocate(testSize)
+        assertNotEquals(nullptr, address)
+        Memory.writeUInt(address, TEST_VALUE_1)
+        Memory.writeUInt(address + UInt.SIZE_BYTES.toNUInt(), TEST_VALUE_2)
+        Memory.writeUInt(address + (UInt.SIZE_BYTES * 2).toNUInt(), TEST_VALUE_1)
+        Memory.writeUInt(address + (UInt.SIZE_BYTES * 3).toNUInt(), TEST_VALUE_2)
+        assertEquals(TEST_VALUE_1, Memory.readUInt(address))
+        assertEquals(TEST_VALUE_2, Memory.readUInt(address + UInt.SIZE_BYTES.toNUInt()))
+        assertEquals(TEST_VALUE_1, Memory.readUInt(address + (UInt.SIZE_BYTES * 2).toNUInt()))
+        assertEquals(TEST_VALUE_2, Memory.readUInt(address + (UInt.SIZE_BYTES * 3).toNUInt()))
+        Memory.free(address)
+    }
 }

@@ -20,9 +20,6 @@ package dev.karmakrafts.kwire
 
 actual typealias NFloat = Double
 
-actual val NFloat.Companion.SIZE_BYTES: Int
-    get() = Double.SIZE_BYTES
-
 actual inline fun Float.toNFloat(): NFloat = toDouble()
 actual inline fun Double.toNFloat(): NFloat = this
 

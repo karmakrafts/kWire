@@ -14,23 +14,42 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
 
 import kotlin.reflect.KClass
 
 // TODO: document this
-enum class FFIType(
+enum class FFIType( // @formatter:off
     val type: KClass<*>,
     val size: Int
-) {
+) { // @formatter:on
     // @formatter:off
-    VOID    (Unit::class, 0),
-    BYTE    (Byte::class, Byte.SIZE_BYTES),
-    SHORT   (Short::class, Short.SIZE_BYTES),
-    INT     (Int::class, Int.SIZE_BYTES),
-    LONG    (Long::class, Long.SIZE_BYTES),
-    NINT    (NInt::class, NInt.SIZE_BYTES),
-    FLOAT   (Float::class, Float.SIZE_BYTES),
-    DOUBLE  (Double::class, Double.SIZE_BYTES)
+    VOID    (Unit::class,   0),
+
+    BYTE    (Byte::class,   Byte.SIZE_BYTES),
+    SHORT   (Short::class,  Short.SIZE_BYTES),
+    INT     (Int::class,    Int.SIZE_BYTES),
+    LONG    (Long::class,   Long.SIZE_BYTES),
+    NINT    (NInt::class,   Pointer.SIZE_BYTES),
+
+    UBYTE   (UByte::class,  UByte.SIZE_BYTES),
+    USHORT  (UShort::class, UShort.SIZE_BYTES),
+    UINT    (UInt::class,   UInt.SIZE_BYTES),
+    ULONG   (ULong::class,  ULong.SIZE_BYTES),
+    NUINT   (NUInt::class,  Pointer.SIZE_BYTES),
+
+    FLOAT   (Float::class,  Float.SIZE_BYTES),
+    DOUBLE  (Double::class, Double.SIZE_BYTES),
+
+    PTR     (Pointer::class, Pointer.SIZE_BYTES) // So we can differentiate size_t's and void*'s
     // @formatter:on
 }
+
+// TODO: document this
+inline fun KClass<*>.findFFIType(): FFIType? = FFIType.entries.find { it.type == this@findFFIType }
+
+// TODO: document this
+inline fun KClass<*>.getFFIType(): FFIType =
+    requireNotNull(findFFIType()) { "No matching FFI type for ${this@getFFIType}" }

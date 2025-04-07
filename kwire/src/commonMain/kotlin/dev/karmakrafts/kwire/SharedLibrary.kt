@@ -21,6 +21,7 @@ package dev.karmakrafts.kwire
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.jvm.JvmName
+import kotlin.reflect.KClass
 
 internal interface SharedLibraryHandle : AutoCloseable
 
@@ -32,19 +33,41 @@ internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkH
 }
 
 // TODO: document this
+@Suppress("NOTHING_TO_INLINE")
 class SharedLibrary internal constructor(
     private val handle: SharedLibraryHandle
 ) : AutoCloseable {
     companion object {
         // TODO: document this
-        fun tryOpen(name: String, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? {
-            return Linker.findLibrary(name, linkMode)?.let(::SharedLibrary)
+        val cRuntime: SharedLibrary by lazy {
+            val platform = Platform.current
+            open(
+                when {
+                    platform == Platform.WINDOWS -> listOf("msvcrt.dll")
+                    platform.isLinuxFamily -> listOf("libc.so.6", "libc.so")
+                    platform.isAppleFamily -> listOf("libSystem.dylib")
+                    else -> throw IllegalStateException("Unsupported host platform")
+                }
+            ).apply {
+                closeOnExit()
+            }
         }
 
         // TODO: document this
-        fun open(name: String, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary {
-            return requireNotNull(tryOpen(name, linkMode)) { "Could not open library $name" }
+        fun tryOpen(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? {
+            return Linker.findLibrary(names, linkMode)?.let(::SharedLibrary)
         }
+
+        // TODO: document this
+        inline fun tryOpen(vararg names: String): SharedLibrary? = tryOpen(names.toList(), LinkMode.LAZY)
+
+        // TODO: document this
+        fun open(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary {
+            return requireNotNull(tryOpen(names, linkMode)) { "Could not open library $names" }
+        }
+
+        // TODO: document this
+        inline fun open(vararg names: String): SharedLibrary = open(names.toList(), LinkMode.LAZY)
     }
 
     // TODO: document this
@@ -66,6 +89,16 @@ class SharedLibrary internal constructor(
     // TODO: document this
     fun getFunction(name: String, descriptor: FFIDescriptor): FFIFunction =
         FFIFunction(name, getFunctionAddress(name), descriptor)
+
+    // TODO: document this
+    inline operator fun get(name: String, returnType: FFIType, vararg parameterTypes: FFIType): FFIFunction {
+        return getFunction(name, FFIDescriptor(returnType, *parameterTypes))
+    }
+
+    // TODO: document this
+    inline operator fun get(name: String, returnType: KClass<*>, vararg parameterTypes: KClass<*>): FFIFunction {
+        return getFunction(name, FFIDescriptor(returnType, *parameterTypes))
+    }
 
     // TODO: document this
     fun closeOnExit() = ShutdownHandler.register(this)

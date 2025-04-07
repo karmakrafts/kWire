@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
 
-internal expect fun getPlatformLinker(): Linker
+import kotlin.jvm.JvmInline
 
-internal interface Linker {
-    companion object : Linker by getPlatformLinker()
+@JvmInline
+value class NUIntArray @PublishedApi internal constructor(
+    @PublishedApi internal val value: NIntArray
+) {
+    inline val size: Int
+        get() = value.size
 
-    fun findLibrary(names: List<String>, linkMode: LinkMode): SharedLibraryHandle?
-    fun SharedLibraryHandle.findSymbol(name: String): Pointer?
+    inline fun asNIntArray(): NIntArray = value
 }

@@ -21,11 +21,6 @@ package dev.karmakrafts.kwire
 // TODO: document this
 actual typealias NInt = Long
 
-actual val NInt.Companion.SIZE_BYTES: Int by lazy {
-    if (System.getProperty("sun.arch.data.model")?.toIntOrNull() == 64) Long.SIZE_BYTES
-    else Int.SIZE_BYTES
-}
-
 actual inline fun Int.toNInt(): NInt = toLong()
 actual inline fun UInt.toNInt(): NInt = toLong()
 actual inline fun Long.toNInt(): NInt = this

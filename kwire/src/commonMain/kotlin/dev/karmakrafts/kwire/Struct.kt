@@ -16,71 +16,67 @@
 
 package dev.karmakrafts.kwire
 
-data class StructField(
+@ConsistentCopyVisibility
+data class StructField internal constructor(
     val type: FFIType
 ) {
     var offset: NUInt = 0U.toNUInt()
         internal set
 }
 
-@Suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
 class Struct private constructor(
-    val address: Pointer,
-    val fields: LinkedHashMap<String, StructField>
+    val address: Pointer, val fields: List<StructField>
 ) : AutoCloseable {
-    companion object {
-        fun allocate(fields: LinkedHashMap<String, FFIType>): Struct {
-            return Struct(
-                Memory.allocate(fields.values.sumOf { it.size }.toNUInt()),
-                fields.map { it.key to StructField(it.value) }.toMap(LinkedHashMap())
-            )
-        }
-    }
+    constructor(fieldTypes: List<FFIType>) : this(
+        Memory.allocate(fieldTypes.sumOf { it.size }.toNUInt()),
+        fieldTypes.map { StructField(it) })
+
+    inline constructor(vararg fieldTypes: FFIType) : this(fieldTypes.toList())
 
     init {
         // Pre-compute all field offsets
-        val fieldList = fields.values
-        for (field in fieldList) {
-            val index = fieldList.indexOf(field)
-            field.offset = fieldList.take(index).sumOf { it.type.size }.toNUInt()
+        for (field in fields) {
+            val index = fields.indexOf(field)
+            field.offset = fields.asSequence().take(index).sumOf { it.type.size }.toNUInt()
         }
     }
 
-    fun getFieldOffset(name: String): NUInt {
-        return requireNotNull(fields[name]) {
-            "Struct field '$name' does not exist"
+    fun getFieldOffset(index: Int): NUInt {
+        return requireNotNull(fields.getOrNull(index)) {
+            "Struct field $index does not exist"
         }.offset
     }
 
-    inline fun getFieldAddress(name: String): Pointer = address + getFieldOffset(name)
+    inline fun getFieldAddress(index: Int): Pointer = address + getFieldOffset(index)
 
-    inline fun getByte(name: String): Byte = Memory.readByte(getFieldAddress(name))
-    inline fun getShort(name: String): Short = Memory.readShort(getFieldAddress(name))
-    inline fun getInt(name: String): Int = Memory.readInt(getFieldAddress(name))
-    inline fun getLong(name: String): Long = Memory.readLong(getFieldAddress(name))
-    inline fun getNInt(name: String): NInt = Memory.readNInt(getFieldAddress(name))
-    inline fun getUByte(name: String): UByte = Memory.readUByte(getFieldAddress(name))
-    inline fun getUShort(name: String): UShort = Memory.readUShort(getFieldAddress(name))
-    inline fun getUInt(name: String): UInt = Memory.readUInt(getFieldAddress(name))
-    inline fun getULong(name: String): ULong = Memory.readULong(getFieldAddress(name))
-    inline fun getNUInt(name: String): NUInt = Memory.readNUInt(getFieldAddress(name))
-    inline fun getFloat(name: String): Float = Memory.readFloat(getFieldAddress(name))
-    inline fun getDouble(name: String): Double = Memory.readDouble(getFieldAddress(name))
-    inline fun getPointer(name: String): Pointer = Memory.readPointer(getFieldAddress(name))
+    inline fun getByte(index: Int): Byte = Memory.readByte(getFieldAddress(index))
+    inline fun getShort(index: Int): Short = Memory.readShort(getFieldAddress(index))
+    inline fun getInt(index: Int): Int = Memory.readInt(getFieldAddress(index))
+    inline fun getLong(index: Int): Long = Memory.readLong(getFieldAddress(index))
+    inline fun getNInt(index: Int): NInt = Memory.readNInt(getFieldAddress(index))
+    inline fun getUByte(index: Int): UByte = Memory.readUByte(getFieldAddress(index))
+    inline fun getUShort(index: Int): UShort = Memory.readUShort(getFieldAddress(index))
+    inline fun getUInt(index: Int): UInt = Memory.readUInt(getFieldAddress(index))
+    inline fun getULong(index: Int): ULong = Memory.readULong(getFieldAddress(index))
+    inline fun getNUInt(index: Int): NUInt = Memory.readNUInt(getFieldAddress(index))
+    inline fun getFloat(index: Int): Float = Memory.readFloat(getFieldAddress(index))
+    inline fun getDouble(index: Int): Double = Memory.readDouble(getFieldAddress(index))
+    inline fun getPointer(index: Int): Pointer = Memory.readPointer(getFieldAddress(index))
 
-    inline fun setByte(name: String, value: Byte) = Memory.writeByte(getFieldAddress(name), value)
-    inline fun setShort(name: String, value: Short) = Memory.writeShort(getFieldAddress(name), value)
-    inline fun setInt(name: String, value: Int) = Memory.writeInt(getFieldAddress(name), value)
-    inline fun setLong(name: String, value: Long) = Memory.writeLong(getFieldAddress(name), value)
-    inline fun setNInt(name: String, value: NInt) = Memory.writeNInt(getFieldAddress(name), value)
-    inline fun setUByte(name: String, value: UByte) = Memory.writeUByte(getFieldAddress(name), value)
-    inline fun setUShort(name: String, value: UShort) = Memory.writeUShort(getFieldAddress(name), value)
-    inline fun setUInt(name: String, value: UInt) = Memory.writeUInt(getFieldAddress(name), value)
-    inline fun setULong(name: String, value: ULong) = Memory.writeULong(getFieldAddress(name), value)
-    inline fun setNUInt(name: String, value: NUInt) = Memory.writeNUInt(getFieldAddress(name), value)
-    inline fun setFloat(name: String, value: Float) = Memory.writeFloat(getFieldAddress(name), value)
-    inline fun setDouble(name: String, value: Double) = Memory.writeDouble(getFieldAddress(name), value)
-    inline fun setPointer(name: String, value: Pointer) = Memory.writePointer(getFieldAddress(name), value)
+    inline fun setByte(index: Int, value: Byte) = Memory.writeByte(getFieldAddress(index), value)
+    inline fun setShort(index: Int, value: Short) = Memory.writeShort(getFieldAddress(index), value)
+    inline fun setInt(index: Int, value: Int) = Memory.writeInt(getFieldAddress(index), value)
+    inline fun setLong(index: Int, value: Long) = Memory.writeLong(getFieldAddress(index), value)
+    inline fun setNInt(index: Int, value: NInt) = Memory.writeNInt(getFieldAddress(index), value)
+    inline fun setUByte(index: Int, value: UByte) = Memory.writeUByte(getFieldAddress(index), value)
+    inline fun setUShort(index: Int, value: UShort) = Memory.writeUShort(getFieldAddress(index), value)
+    inline fun setUInt(index: Int, value: UInt) = Memory.writeUInt(getFieldAddress(index), value)
+    inline fun setULong(index: Int, value: ULong) = Memory.writeULong(getFieldAddress(index), value)
+    inline fun setNUInt(index: Int, value: NUInt) = Memory.writeNUInt(getFieldAddress(index), value)
+    inline fun setFloat(index: Int, value: Float) = Memory.writeFloat(getFieldAddress(index), value)
+    inline fun setDouble(index: Int, value: Double) = Memory.writeDouble(getFieldAddress(index), value)
+    inline fun setPointer(index: Int, value: Pointer) = Memory.writePointer(getFieldAddress(index), value)
 
     override fun close() {
         Memory.free(address)

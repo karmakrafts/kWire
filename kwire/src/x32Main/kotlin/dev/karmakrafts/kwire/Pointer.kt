@@ -16,15 +16,4 @@
 
 package dev.karmakrafts.kwire
 
-private object JNALinker : Linker {
-    @Suppress("UnsafeDynamicallyLoadedCode")
-    override fun findLibrary(name: String, linkMode: LinkMode): SharedLibraryHandle? {
-        return null
-    }
-
-    override fun SharedLibraryHandle.findSymbol(name: String): Pointer? {
-        return null
-    }
-}
-
-internal actual fun getPlatformLinker(): Linker = JNALinker
+internal actual fun getPointerSize(): Int = Int.SIZE_BYTES
