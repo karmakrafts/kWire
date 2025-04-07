@@ -25,6 +25,8 @@ import kotlin.jvm.JvmName
 
 // TODO: document this
 expect class NIntArray
+expect inline fun nIntArray(size: Int): NIntArray
+expect inline fun nIntArray(size: Int, noinline initializer: (Int) -> NInt): NIntArray
 
 expect inline val NIntArray.size: Int
 
