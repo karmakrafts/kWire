@@ -17,17 +17,15 @@
 package dev.karmakrafts.kwire
 
 import java.lang.invoke.MethodHandle
-import java.lang.foreign.Linker as JvmLinker
 
 /**
  * Converts this [FFIFunction] to a Java [MethodHandle].
  *
  * This extension function creates a method handle that can be used to invoke the native function
- * represented by this [FFIFunction]. It uses the JVM's native linker to create a downcall handle
- * with the function's address and descriptor.
+ * directly using Java's Foreign Function Interface. The method handle is created using the function's
+ * address and descriptor.
  *
  * @return A [MethodHandle] that can be used to invoke the native function.
+ * @throws IllegalArgumentException if the method handle could not be obtained.
  */
-fun FFIFunction.toMethodHandle(): MethodHandle {
-    return JvmLinker.nativeLinker().downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor())
-}
+fun FFIFunction.toMethodHandle(): MethodHandle = PanamaFFI.getHandle(address, descriptor)

@@ -20,10 +20,10 @@ import java.lang.invoke.MethodHandle
 import java.util.concurrent.ConcurrentHashMap
 import java.lang.foreign.Linker as JvmLinker
 
-internal class PanamaFFI : FFI {
+internal object PanamaFFI : FFI {
     private val handleCache: ConcurrentHashMap<Pointer, MethodHandle> = ConcurrentHashMap()
 
-    private fun getHandle(address: Pointer, descriptor: FFIDescriptor): MethodHandle {
+    internal fun getHandle(address: Pointer, descriptor: FFIDescriptor): MethodHandle {
         var handle = handleCache[address]
         if (handle == null) {
             handle = JvmLinker.nativeLinker()
@@ -83,6 +83,4 @@ internal class PanamaFFI : FFI {
     }
 }
 
-private val ffi: FFI = PanamaFFI()
-
-internal actual fun getPlatformFFI(): FFI = ffi
+internal actual fun getPlatformFFI(): FFI = PanamaFFI
