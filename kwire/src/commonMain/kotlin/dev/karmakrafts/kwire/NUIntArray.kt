@@ -28,6 +28,19 @@ value class NUIntArray @PublishedApi internal constructor(
     inline val size: Int
         get() = value.size
 
+    inline operator fun contains(value: NUInt): Boolean = value.value in this.value
+
+    inline operator fun get(index: Int): NUInt = NUInt(value[index])
+
+    inline operator fun set(index: Int, value: NUInt) {
+        this.value[index] = value.value
+    }
+
+    inline operator fun plus(other: NUIntArray): NUIntArray = NUIntArray(value + other.value)
+    inline operator fun minus(other: NUIntArray): NUIntArray = NUIntArray(value - other.value)
+
+    inline fun asSequence(): Sequence<NUInt> = value.asSequence().map(::NUInt)
+
     inline fun asNIntArray(): NIntArray = value
 }
 
