@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
+@file:Suppress("NOTHING_TO_INLINE") @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package dev.karmakrafts.kwire
 
@@ -42,6 +42,14 @@ interface FFIArgBuffer {
     fun putNInt(value: NInt)
     fun putFloat(value: Float)
     fun putDouble(value: Double)
+
+    fun putBytes(value: ByteArray)
+    fun putShorts(value: ShortArray)
+    fun putInts(value: IntArray)
+    fun putLongs(value: LongArray)
+    fun putNInts(value: NIntArray)
+    fun putFloats(value: FloatArray)
+    fun putDoubles(value: DoubleArray)
 }
 
 inline fun FFIArgBuffer.putUByte(value: UByte) = putByte(value.toByte())
@@ -49,7 +57,14 @@ inline fun FFIArgBuffer.putUShort(value: UShort) = putShort(value.toShort())
 inline fun FFIArgBuffer.putUInt(value: UInt) = putInt(value.toInt())
 inline fun FFIArgBuffer.putULong(value: ULong) = putLong(value.toLong())
 inline fun FFIArgBuffer.putNUInt(value: NUInt) = putNInt(value.toSigned())
+
 inline fun FFIArgBuffer.putPointer(value: Pointer) = putNUInt(value.value)
+
+inline fun FFIArgBuffer.putUBytes(value: UByteArray) = putBytes(value.asByteArray())
+inline fun FFIArgBuffer.putUShorts(value: UShortArray) = putShorts(value.asShortArray())
+inline fun FFIArgBuffer.putUInts(value: UIntArray) = putInts(value.asIntArray())
+inline fun FFIArgBuffer.putULongs(value: ULongArray) = putLongs(value.asLongArray())
+inline fun FFIArgBuffer.putNUInts(value: NUIntArray) = putNInts(value.asNIntArray())
 
 @PublishedApi
 internal class FFIArgBufferImpl internal constructor() : FFIArgBuffer, AutoCloseable {
@@ -61,8 +76,8 @@ internal class FFIArgBufferImpl internal constructor() : FFIArgBuffer, AutoClose
         ShutdownHandler.register(this)
     }
 
-    private fun nextOffset(type: FFIType): NUInt {
-        val newOffset = offset + type.size.toNUInt()
+    private fun nextOffset(type: FFIType, count: Int = 1): NUInt {
+        val newOffset = offset + (type.size * count).toNUInt()
         check(newOffset < FFIArgBuffer.DEFAULT_SIZE.toNUInt()) { "Exceeded argument buffer limit" }
         val oldOffset = offset
         offset = newOffset
@@ -70,7 +85,7 @@ internal class FFIArgBufferImpl internal constructor() : FFIArgBuffer, AutoClose
         return oldOffset
     }
 
-    private inline fun nextAddress(type: FFIType): Pointer = address + nextOffset(type)
+    private inline fun nextAddress(type: FFIType, count: Int = 1): Pointer = address + nextOffset(type, count)
 
     override fun putByte(value: Byte) = Memory.writeByte(nextAddress(FFIType.BYTE), value)
     override fun putShort(value: Short) = Memory.writeShort(nextAddress(FFIType.SHORT), value)
@@ -79,6 +94,14 @@ internal class FFIArgBufferImpl internal constructor() : FFIArgBuffer, AutoClose
     override fun putNInt(value: NInt) = Memory.writeNInt(nextAddress(FFIType.NINT), value)
     override fun putFloat(value: Float) = Memory.writeFloat(nextAddress(FFIType.FLOAT), value)
     override fun putDouble(value: Double) = Memory.writeDouble(nextAddress(FFIType.DOUBLE), value)
+
+    override fun putBytes(value: ByteArray) = Memory.writeBytes(nextAddress(FFIType.BYTE, value.size), value)
+    override fun putShorts(value: ShortArray) = Memory.writeShorts(nextAddress(FFIType.SHORT, value.size), value)
+    override fun putInts(value: IntArray) = Memory.writeInts(nextAddress(FFIType.INT, value.size), value)
+    override fun putLongs(value: LongArray) = Memory.writeLongs(nextAddress(FFIType.LONG, value.size), value)
+    override fun putNInts(value: NIntArray) = Memory.writeNInts(nextAddress(FFIType.NINT, value.size), value)
+    override fun putFloats(value: FloatArray) = Memory.writeFloats(nextAddress(FFIType.FLOAT, value.size), value)
+    override fun putDoubles(value: DoubleArray) = Memory.writeDoubles(nextAddress(FFIType.DOUBLE, value.size), value)
 
     @PublishedApi
     internal fun clear(): FFIArgBufferImpl {
