@@ -26,14 +26,42 @@ import kotlinx.cinterop.UnsafeNumber
 import platform.posix.ptrdiff_tVar
 import platform.posix.size_tVar
 
+/**
+ * Gets a pointer to the element at the specified [index] in a pinned [NIntArray].
+ *
+ * This function allows direct memory access to elements in a native integer array.
+ * The array must be pinned to prevent it from being moved by the garbage collector.
+ *
+ * @param index The index of the element to get a pointer to.
+ * @return A pointer to the element at the specified index, or null if the index is out of bounds.
+ */
 @OptIn(UnsafeNumber::class)
 @ExperimentalForeignApi
 expect inline fun Pinned<NIntArray>.addressOf(index: Int): CPointer<ptrdiff_tVar>?
 
+/**
+ * Gets a pointer to the element at the specified [index] in a pinned [NUIntArray].
+ *
+ * This function allows direct memory access to elements in a native unsigned integer array.
+ * The array must be pinned to prevent it from being moved by the garbage collector.
+ *
+ * @param index The index of the element to get a pointer to.
+ * @return A pointer to the element at the specified index, or null if the index is out of bounds.
+ */
 @OptIn(UnsafeNumber::class)
 @ExperimentalForeignApi
 expect inline fun Pinned<NUIntArray>.addressOf(index: Int): CPointer<size_tVar>?
 
+/**
+ * Gets a pointer to the element at the specified [index] in a pinned [NFloatArray].
+ *
+ * This function allows direct memory access to elements in a native floating-point array.
+ * The array must be pinned to prevent it from being moved by the garbage collector.
+ *
+ * @param index The index of the element to get a pointer to.
+ * @return A pointer to the element at the specified index, or null if the index is out of bounds.
+ * @note The returned pointer is not type-safe and should be used with caution.
+ */
 // TODO: make the returned pointer type safe
 @ExperimentalForeignApi
 expect inline fun Pinned<NFloatArray>.addressOf(index: Int): COpaquePointer?
