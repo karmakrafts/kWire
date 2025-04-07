@@ -20,6 +20,7 @@ package dev.karmakrafts.kwire
 
 // TODO: document this
 actual typealias NIntArray = LongArray
+
 actual inline fun nIntArray(size: Int): NIntArray = LongArray(size)
 actual inline fun nIntArray(size: Int, noinline initializer: (Int) -> NInt): NIntArray = LongArray(size, initializer)
 

@@ -20,6 +20,7 @@ package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmInline
 
+@Suppress("WRONG_MODIFIER_TARGET")
 @JvmInline
 value class NUIntArray @PublishedApi internal constructor(
     @PublishedApi internal val value: NIntArray
@@ -28,4 +29,12 @@ value class NUIntArray @PublishedApi internal constructor(
         get() = value.size
 
     inline fun asNIntArray(): NIntArray = value
+}
+
+inline fun nUIntArray(size: Int): NUIntArray = NUIntArray(nIntArray(size))
+
+inline fun nUIntArray(size: Int, crossinline initializer: (Int) -> NUInt): NUIntArray {
+    return NUIntArray(nIntArray(size) {
+        initializer(it).value
+    })
 }
