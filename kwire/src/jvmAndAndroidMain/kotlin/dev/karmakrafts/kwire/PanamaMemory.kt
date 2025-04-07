@@ -59,6 +59,7 @@ private object PanamaMemory : Memory {
     }
 
     override fun copyOverlapping(source: Pointer, dest: Pointer, size: NUInt) {
+        // Discarding cast is required because of @PolymorphicSignature on invokeExact
         memmove.invokeExact(dest.toMemorySegment(), source.toMemorySegment(), size.value) as MemorySegment
     }
 

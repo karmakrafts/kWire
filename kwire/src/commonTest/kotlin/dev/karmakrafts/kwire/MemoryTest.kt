@@ -28,115 +28,115 @@ class MemoryTest {
     @Test
     fun `Allocate and free`() {
         val address = Memory.allocate(testSize)
-        assertNotEquals(nullptr, address)
+        assertNotEquals(nullptr, address, "Memory allocation should return a valid pointer")
         Memory.free(address)
     }
 
     @Test
     fun `Write and read byte`() {
         val address = Memory.allocate(Byte.SIZE_BYTES.toNUInt()).asBytePtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "BytePtr allocation should return a valid pointer")
         address[0] = 0xEE.toByte()
-        assertEquals(0xEE.toByte(), address[0])
+        assertEquals(0xEE.toByte(), address[0], "Read byte value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read short`() {
         val address = Memory.allocate(Short.SIZE_BYTES.toNUInt()).asShortPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "ShortPtr allocation should return a valid pointer")
         address[0] = 0x1234.toShort()
-        assertEquals(0x1234.toShort(), address[0])
+        assertEquals(0x1234.toShort(), address[0], "Read short value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read int`() {
         val address = Memory.allocate(Int.SIZE_BYTES.toNUInt()).asIntPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "IntPtr allocation should return a valid pointer")
         address[0] = 0x12345678
-        assertEquals(0x12345678, address[0])
+        assertEquals(0x12345678, address[0], "Read int value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read long`() {
         val address = Memory.allocate(Long.SIZE_BYTES.toNUInt()).asLongPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "LongPtr allocation should return a valid pointer")
         address[0] = 0x123456789ABCDEF0L
-        assertEquals(0x123456789ABCDEF0L, address[0])
+        assertEquals(0x123456789ABCDEF0L, address[0], "Read long value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read nint`() {
         val address = Memory.allocate(Pointer.SIZE_BYTES.toNUInt()).asNIntPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "NIntPtr allocation should return a valid pointer")
         address[0] = 0x12345678.toNInt()
-        assertEquals(0x12345678.toNInt(), address[0])
+        assertEquals(0x12345678.toNInt(), address[0], "Read nint value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read ubyte`() {
         val address = Memory.allocate(UByte.SIZE_BYTES.toNUInt()).asUBytePtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "UBytePtr allocation should return a valid pointer")
         address[0] = 0xEEu
-        assertEquals(0xEEu, address[0])
+        assertEquals(0xEEu, address[0], "Read ubyte value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read ushort`() {
         val address = Memory.allocate(UShort.SIZE_BYTES.toNUInt()).asUShortPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "UShortPtr allocation should return a valid pointer")
         address[0] = 0x1234u
-        assertEquals(0x1234u, address[0])
+        assertEquals(0x1234u, address[0], "Read ushort value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read uint`() {
         val address = Memory.allocate(UInt.SIZE_BYTES.toNUInt()).asUIntPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "UIntPtr allocation should return a valid pointer")
         address[0] = 0x12345678u
-        assertEquals(0x12345678u, address[0])
+        assertEquals(0x12345678u, address[0], "Read uint value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read ulong`() {
         val address = Memory.allocate(ULong.SIZE_BYTES.toNUInt()).asULongPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "ULongPtr allocation should return a valid pointer")
         address[0] = 0x123456789ABCDEF0uL
-        assertEquals(0x123456789ABCDEF0uL, address[0])
+        assertEquals(0x123456789ABCDEF0uL, address[0], "Read ulong value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read nuint`() {
         val address = Memory.allocate(Pointer.SIZE_BYTES.toNUInt()).asNUIntPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "NUIntPtr allocation should return a valid pointer")
         address[0] = 0x12345678u.toNUInt()
-        assertEquals(0x12345678u.toNUInt(), address[0])
+        assertEquals(0x12345678u.toNUInt(), address[0], "Read nuint value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read float`() {
         val address = Memory.allocate(Float.SIZE_BYTES.toNUInt()).asFloatPtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "FloatPtr allocation should return a valid pointer")
         address[0] = 3.14159f
-        assertEquals(3.14159f, address[0])
+        assertEquals(3.14159f, address[0], "Read float value should match the written value")
         Memory.free(address.reinterpret())
     }
 
     @Test
     fun `Write and read double`() {
         val address = Memory.allocate(Double.SIZE_BYTES.toNUInt()).asDoublePtr()
-        assertNotEquals(nullptr.reinterpret(), address)
+        assertNotEquals(nullptr.reinterpret(), address, "DoublePtr allocation should return a valid pointer")
         address[0] = 3.14159265358979
-        assertEquals(3.14159265358979, address[0])
+        assertEquals(3.14159265358979, address[0], "Read double value should match the written value")
         Memory.free(address.reinterpret())
     }
 
@@ -144,7 +144,7 @@ class MemoryTest {
     fun `Set fills memory with byte value`() {
         val size = 10.toNUInt()
         val address = Memory.allocate(size)
-        assertNotEquals(nullptr, address)
+        assertNotEquals(nullptr, address, "Memory allocation should return a valid pointer")
 
         // Set memory to a specific byte value
         val fillValue = 0x42.toByte()
@@ -162,7 +162,7 @@ class MemoryTest {
     @Test
     fun `Set with zero size does nothing`() {
         val address = Memory.allocate(10.toNUInt())
-        assertNotEquals(nullptr, address)
+        assertNotEquals(nullptr, address, "Memory allocation should return a valid pointer")
 
         // Set initial values
         val bytePtr = address.asBytePtr()
@@ -173,8 +173,8 @@ class MemoryTest {
         Memory.set(address, 0x42, 0.toNUInt())
 
         // Verify values are unchanged
-        assertEquals(0x1, bytePtr[0])
-        assertEquals(0x2, bytePtr[1])
+        assertEquals(0x1, bytePtr[0], "Value at index 0 should remain unchanged when set is called with zero size")
+        assertEquals(0x2, bytePtr[1], "Value at index 1 should remain unchanged when set is called with zero size")
 
         Memory.free(address)
     }
@@ -184,8 +184,8 @@ class MemoryTest {
         val size = 10.toNUInt()
         val source = Memory.allocate(size)
         val dest = Memory.allocate(size)
-        assertNotEquals(nullptr, source)
-        assertNotEquals(nullptr, dest)
+        assertNotEquals(nullptr, source, "Source memory allocation should return a valid pointer")
+        assertNotEquals(nullptr, dest, "Destination memory allocation should return a valid pointer")
 
         // Initialize source with test data
         val sourcePtr = source.asBytePtr()
@@ -210,8 +210,8 @@ class MemoryTest {
     fun `Copy with zero size does nothing`() {
         val source = Memory.allocate(10.toNUInt())
         val dest = Memory.allocate(10.toNUInt())
-        assertNotEquals(nullptr, source)
-        assertNotEquals(nullptr, dest)
+        assertNotEquals(nullptr, source, "Source memory allocation should return a valid pointer")
+        assertNotEquals(nullptr, dest, "Destination memory allocation should return a valid pointer")
 
         // Initialize source and destination with different values
         val sourcePtr = source.asBytePtr()
@@ -223,7 +223,7 @@ class MemoryTest {
         Memory.copy(source, dest, 0.toNUInt())
 
         // Verify destination is unchanged
-        assertEquals(0x2, destPtr[0])
+        assertEquals(0x2, destPtr[0], "Destination value should remain unchanged when copy is called with zero size")
 
         Memory.free(source)
         Memory.free(dest)
@@ -233,7 +233,7 @@ class MemoryTest {
     fun `Copy overlapping handles overlapping regions source before dest`() {
         val size = 10.toNUInt()
         val buffer = Memory.allocate(size + 5.toNUInt())
-        assertNotEquals(nullptr, buffer)
+        assertNotEquals(nullptr, buffer, "Buffer memory allocation should return a valid pointer")
 
         // Initialize buffer with test data
         val bufferPtr = buffer.asBytePtr()
@@ -260,7 +260,7 @@ class MemoryTest {
     fun `Copy overlapping handles overlapping regions source after dest`() {
         val size = 10.toNUInt()
         val buffer = Memory.allocate(size + 5.toNUInt())
-        assertNotEquals(nullptr, buffer)
+        assertNotEquals(nullptr, buffer, "Buffer memory allocation should return a valid pointer")
 
         // Initialize buffer with test data
         val bufferPtr = buffer.asBytePtr()
@@ -288,8 +288,8 @@ class MemoryTest {
         val size = 10.toNUInt()
         val first = Memory.allocate(size)
         val second = Memory.allocate(size)
-        assertNotEquals(nullptr, first)
-        assertNotEquals(nullptr, second)
+        assertNotEquals(nullptr, first, "First memory allocation should return a valid pointer")
+        assertNotEquals(nullptr, second, "Second memory allocation should return a valid pointer")
 
         // Initialize both regions with the same data
         val firstPtr = first.asBytePtr()
@@ -315,8 +315,8 @@ class MemoryTest {
         val size = 10.toNUInt()
         val first = Memory.allocate(size)
         val second = Memory.allocate(size)
-        assertNotEquals(nullptr, first)
-        assertNotEquals(nullptr, second)
+        assertNotEquals(nullptr, first, "First memory allocation should return a valid pointer")
+        assertNotEquals(nullptr, second, "Second memory allocation should return a valid pointer")
 
         // Initialize regions with different data
         val firstPtr = first.asBytePtr()
@@ -340,8 +340,8 @@ class MemoryTest {
     fun `Compare returns 0 for empty regions`() {
         val first = Memory.allocate(10.toNUInt())
         val second = Memory.allocate(10.toNUInt())
-        assertNotEquals(nullptr, first)
-        assertNotEquals(nullptr, second)
+        assertNotEquals(nullptr, first, "First memory allocation should return a valid pointer")
+        assertNotEquals(nullptr, second, "Second memory allocation should return a valid pointer")
 
         // Initialize regions with different data
         val firstPtr = first.asBytePtr()
