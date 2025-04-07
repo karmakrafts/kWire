@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
+// @formatter:off
+@file:Suppress("NOTHING_TO_INLINE") 
 @file:JvmName("FFI$")
+// @formatter:on
 
 package dev.karmakrafts.kwire
 
@@ -23,35 +25,158 @@ import kotlin.jvm.JvmName
 
 internal expect fun getPlatformFFI(): FFI
 
-// TODO: document this
+/**
+ * Interface for Foreign Function Interface (FFI) operations.
+ *
+ * This interface provides methods for calling native functions at specific memory addresses
+ * with various return types. It serves as the primary mechanism for interacting with
+ * native code from Kotlin.
+ */
 interface FFI {
     companion object : FFI by getPlatformFFI()
 
+    /**
+     * Calls a native function at the specified address with void return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     */
     fun call(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {})
 
+    /**
+     * Calls a native function at the specified address with byte return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The byte value returned by the native function
+     */
     fun callByte(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Byte
+
+    /**
+     * Calls a native function at the specified address with short return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The short value returned by the native function
+     */
     fun callShort(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Short
+
+    /**
+     * Calls a native function at the specified address with int return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The int value returned by the native function
+     */
     fun callInt(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Int
+
+    /**
+     * Calls a native function at the specified address with long return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The long value returned by the native function
+     */
     fun callLong(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Long
+
+    /**
+     * Calls a native function at the specified address with native integer return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The native integer value returned by the native function
+     */
     fun callNInt(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): NInt
+
+    /**
+     * Calls a native function at the specified address with float return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The float value returned by the native function
+     */
     fun callFloat(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Float
+
+    /**
+     * Calls a native function at the specified address with double return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The double value returned by the native function
+     */
     fun callDouble(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Double
 }
 
+/**
+ * Calls a native function at the specified address with unsigned byte return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned byte value returned by the native function
+ */
 inline fun FFI.callUByte(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): UByte =
     callByte(address, descriptor, args).toUByte()
 
+/**
+ * Calls a native function at the specified address with unsigned short return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned short value returned by the native function
+ */
 inline fun FFI.callUShort(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): UShort =
     callShort(address, descriptor, args).toUShort()
 
+/**
+ * Calls a native function at the specified address with unsigned int return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned int value returned by the native function
+ */
 inline fun FFI.callUInt(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): UInt =
     callInt(address, descriptor, args).toUInt()
 
+/**
+ * Calls a native function at the specified address with unsigned long return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned long value returned by the native function
+ */
 inline fun FFI.callULong(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): ULong =
     callLong(address, descriptor, args).toULong()
 
+/**
+ * Calls a native function at the specified address with native unsigned integer return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The native unsigned integer value returned by the native function
+ */
 inline fun FFI.callNUInt(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): NUInt =
     callNInt(address, descriptor, args).toUnsigned()
 
+/**
+ * Calls a native function at the specified address with pointer return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The pointer value returned by the native function
+ */
 inline fun FFI.callPointer(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): Pointer =
     Pointer(callNUInt(address, descriptor, args))
