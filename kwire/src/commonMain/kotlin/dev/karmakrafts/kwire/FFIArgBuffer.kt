@@ -161,6 +161,16 @@ interface FFIArgBuffer {
      */
     fun putDoubles(value: DoubleArray)
 
+    /**
+     * Converts the buffer's contents to an array of values.
+     *
+     * This method reads all values stored in the buffer according to their types
+     * and returns them as an array of Any objects. Pointer values are converted
+     * to their platform-specific representations.
+     *
+     * @return An array containing all values stored in the buffer
+     * @throws IllegalStateException if an unsupported FFI parameter type is encountered
+     */
     fun toArray(): Array<Any> {
         var offset = 0UL
         return Array(types.size) { index ->
