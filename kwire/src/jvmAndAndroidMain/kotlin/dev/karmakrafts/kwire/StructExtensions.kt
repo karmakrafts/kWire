@@ -18,6 +18,15 @@ package dev.karmakrafts.kwire
 
 import java.lang.foreign.MemoryLayout
 
+/**
+ * Converts this [Struct] to a Java [MemoryLayout].
+ *
+ * This extension function creates a memory layout that represents the structure of this [Struct].
+ * It maps each field's type to its corresponding memory layout and then creates a struct layout
+ * from those layouts.
+ *
+ * @return A [MemoryLayout] that represents the memory layout of this struct.
+ */
 fun Struct.getMemoryLayout(): MemoryLayout {
     return MemoryLayout.structLayout(*fields.map { it.type.getMemoryLayout() }.toTypedArray())
 }

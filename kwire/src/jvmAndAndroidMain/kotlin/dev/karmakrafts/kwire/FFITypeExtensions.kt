@@ -19,6 +19,24 @@ package dev.karmakrafts.kwire
 import java.lang.foreign.MemoryLayout
 import java.lang.foreign.ValueLayout
 
+/**
+ * Converts this [FFIType] to a Java [MemoryLayout].
+ *
+ * This extension function maps each FFI type to its corresponding Java memory layout.
+ * The mapping is as follows:
+ * - BYTE, UBYTE -> JAVA_BYTE
+ * - SHORT, USHORT -> JAVA_SHORT
+ * - INT, UINT -> JAVA_INT
+ * - LONG, ULONG -> JAVA_LONG
+ * - NINT -> JAVA_INT or JAVA_LONG depending on the platform
+ * - NUINT -> JAVA_INT or JAVA_LONG depending on the platform
+ * - PTR -> ADDRESS
+ * - FLOAT -> JAVA_FLOAT
+ * - DOUBLE -> JAVA_DOUBLE
+ *
+ * @return A [MemoryLayout] that represents the memory layout of this FFI type.
+ * @throws IllegalStateException if this FFI type has no valid memory layout.
+ */
 fun FFIType.getMemoryLayout(): MemoryLayout = when (this) {
     FFIType.BYTE, FFIType.UBYTE -> ValueLayout.JAVA_BYTE
     FFIType.SHORT, FFIType.USHORT -> ValueLayout.JAVA_SHORT

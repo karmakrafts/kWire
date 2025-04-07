@@ -20,25 +20,61 @@ package dev.karmakrafts.kwire
 
 import java.lang.foreign.MemorySegment
 
-// TODO: document this
+/**
+ * Converts this [MemorySegment] to a [Pointer].
+ *
+ * This extension function creates a pointer that points to the same memory address as this memory segment.
+ *
+ * @return A [Pointer] that points to the same memory address as this memory segment.
+ */
 inline fun MemorySegment.toPointer(): Pointer = Pointer(address().toNUInt())
 
-// TODO: document this
+/**
+ * Converts this [Pointer] to a [MemorySegment].
+ *
+ * This extension function creates a memory segment that points to the same memory address as this pointer.
+ *
+ * @return A [MemorySegment] that points to the same memory address as this pointer.
+ */
 inline fun Pointer.toMemorySegment(): MemorySegment {
     return MemorySegment.ofAddress(value.value.toLong())
 }
 
-// TODO: document this
+/**
+ * Converts this [Pointer] to a [MemorySegment] with a specified size.
+ *
+ * This extension function creates a memory segment that points to the same memory address as this pointer
+ * and has the specified size in bytes.
+ *
+ * @param size The size of the memory segment in bytes as an [NUInt].
+ * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
+ */
 inline fun Pointer.toMemorySegment(size: NUInt): MemorySegment {
     return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size.value.toLong())
 }
 
-// TODO: document this
+/**
+ * Converts this [Pointer] to a [MemorySegment] with a specified size.
+ *
+ * This extension function creates a memory segment that points to the same memory address as this pointer
+ * and has the specified size in bytes.
+ *
+ * @param size The size of the memory segment in bytes as a [Long].
+ * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
+ */
 inline fun Pointer.toMemorySegment(size: Long): MemorySegment {
     return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size)
 }
 
-// TODO: document this
+/**
+ * Converts this [Pointer] to a [MemorySegment] with a specified size.
+ *
+ * This extension function creates a memory segment that points to the same memory address as this pointer
+ * and has the specified size in bytes.
+ *
+ * @param size The size of the memory segment in bytes as an [Int].
+ * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
+ */
 inline fun Pointer.toMemorySegment(size: Int): MemorySegment {
     return MemorySegment.ofAddress(value.value.toLong()).reinterpret(size.toLong())
 }

@@ -19,14 +19,39 @@ package dev.karmakrafts.kwire
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.MemoryLayout
 
+/**
+ * Converts the parameter types of this [FFIDescriptor] to an array of [MemoryLayout]s.
+ *
+ * This extension function maps each parameter type of this descriptor to its corresponding
+ * memory layout and returns them as an array.
+ *
+ * @return An array of [MemoryLayout]s representing the memory layouts of the parameter types.
+ */
 fun FFIDescriptor.toArgumentMemoryLayouts(): Array<MemoryLayout> {
     return parameterTypes.map { it.getMemoryLayout() }.toTypedArray()
 }
 
+/**
+ * Converts the return type of this [FFIDescriptor] to a [MemoryLayout].
+ *
+ * This extension function maps the return type of this descriptor to its corresponding
+ * memory layout.
+ *
+ * @return A [MemoryLayout] representing the memory layout of the return type.
+ */
 fun FFIDescriptor.toResultMemoryLayout(): MemoryLayout {
     return returnType.getMemoryLayout()
 }
 
+/**
+ * Converts this [FFIDescriptor] to a Java [FunctionDescriptor].
+ *
+ * This extension function creates a function descriptor that can be used with the Java
+ * Foreign Function Interface. If the return type is VOID, it creates a void function descriptor;
+ * otherwise, it creates a function descriptor with the specified return type and parameter types.
+ *
+ * @return A [FunctionDescriptor] that represents this FFI descriptor.
+ */
 fun FFIDescriptor.toFunctionDescriptor(): FunctionDescriptor {
     return if (returnType == FFIType.VOID) {
         FunctionDescriptor.ofVoid(*toArgumentMemoryLayouts())
