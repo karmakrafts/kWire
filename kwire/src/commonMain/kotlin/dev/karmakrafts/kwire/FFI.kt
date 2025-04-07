@@ -23,6 +23,14 @@ package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmName
 
+/**
+ * Internal function to get the platform-specific implementation of the FFI interface.
+ *
+ * This function is expected to be implemented by each platform (JVM, Native, etc.)
+ * to provide the appropriate FFI implementation for that platform.
+ *
+ * @return The platform-specific FFI implementation
+ */
 internal expect fun getPlatformFFI(): FFI
 
 /**
@@ -33,6 +41,12 @@ internal expect fun getPlatformFFI(): FFI
  * native code from Kotlin.
  */
 interface FFI {
+    /**
+     * Companion object that delegates to the platform-specific FFI implementation.
+     *
+     * This allows for static access to FFI functionality through the FFI class,
+     * e.g., `FFI.call(...)` instead of requiring an instance.
+     */
     companion object : FFI by getPlatformFFI()
 
     /**
