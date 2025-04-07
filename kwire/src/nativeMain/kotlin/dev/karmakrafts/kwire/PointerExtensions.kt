@@ -34,7 +34,11 @@ import kotlinx.cinterop.UByteVar
 import kotlinx.cinterop.UIntVar
 import kotlinx.cinterop.ULongVar
 import kotlinx.cinterop.UShortVar
+import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.toCPointer
+import platform.posix.ptrdiff_tVar
+import platform.posix.size_t
+import platform.posix.size_tVar
 
 @ExperimentalForeignApi
 inline fun CPointer<*>.toPointer(): Pointer = Pointer(rawValue.toLong().toNUInt())
@@ -62,6 +66,10 @@ inline fun CPointer<IntVar>.toIntPtr(): IntPtr = toPointer().reinterpret()
 @ExperimentalForeignApi
 inline fun CPointer<LongVar>.toLongPtr(): LongPtr = toPointer().reinterpret()
 
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun CPointer<ptrdiff_tVar>.toNIntPtr(): NIntPtr = toPointer().reinterpret()
+
 @ExperimentalForeignApi
 inline fun BytePtr.toCPointer(): CPointer<ByteVar>? = reinterpret<Pointer>().toCPointer()
 
@@ -73,6 +81,10 @@ inline fun IntPtr.toCPointer(): CPointer<IntVar>? = reinterpret<Pointer>().toCPo
 
 @ExperimentalForeignApi
 inline fun LongPtr.toCPointer(): CPointer<LongVar>? = reinterpret<Pointer>().toCPointer()
+
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun NIntPtr.toCPointer(): CPointer<ptrdiff_tVar>? = reinterpret<Pointer>().toCPointer()
 
 // Unsigned integer pointer conversions
 
@@ -88,6 +100,10 @@ inline fun CPointer<UIntVar>.toIntPtr(): UIntPtr = toPointer().reinterpret()
 @ExperimentalForeignApi
 inline fun CPointer<ULongVar>.toLongPtr(): ULongPtr = toPointer().reinterpret()
 
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun CPointer<size_tVar>.toNUIntPtr(): NUIntPtr = toPointer().reinterpret()
+
 @ExperimentalForeignApi
 inline fun UBytePtr.toCPointer(): CPointer<UByteVar>? = reinterpret<Pointer>().toCPointer()
 
@@ -99,6 +115,10 @@ inline fun UIntPtr.toCPointer(): CPointer<UIntVar>? = reinterpret<Pointer>().toC
 
 @ExperimentalForeignApi
 inline fun ULongPtr.toCPointer(): CPointer<ULongVar>? = reinterpret<Pointer>().toCPointer()
+
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun NUIntPtr.toCPointer(): CPointer<size_tVar>? = reinterpret<Pointer>().toCPointer()
 
 // IEEE-754 pointeer conversions
 
