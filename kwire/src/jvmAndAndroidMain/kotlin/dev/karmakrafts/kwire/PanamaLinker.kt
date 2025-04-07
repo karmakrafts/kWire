@@ -25,9 +25,10 @@ import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.readSymbolicLink
 import kotlin.jvm.optionals.getOrNull
 
-private data class PanamaSharedLibraryHandle(
-    val lookup: SymbolLookup, val arena: Arena
-) : SharedLibraryHandle {
+private data class PanamaSharedLibraryHandle( // @formatter:off
+    val lookup: SymbolLookup,
+    val arena: Arena
+) : SharedLibraryHandle { // @formatter:on
     override fun close() {
         arena.close()
     }

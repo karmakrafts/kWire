@@ -17,3 +17,7 @@
 package dev.karmakrafts.kwire
 
 internal actual fun getPointerSize(): Int = Int.SIZE_BYTES
+
+internal actual inline fun Pointer.toPlatformRepresentation(): Any {
+    return value.value.intValue // Boxed integer
+}

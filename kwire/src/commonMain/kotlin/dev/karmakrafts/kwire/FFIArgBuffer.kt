@@ -160,6 +160,26 @@ interface FFIArgBuffer {
      * @param value The double array to store
      */
     fun putDoubles(value: DoubleArray)
+
+    fun toArray(): Array<Any> {
+        var offset = 0UL
+        return Array(types.size) { index ->
+            val type = types[index]
+            val value: Any = when (type) {
+                FFIType.BYTE, FFIType.UBYTE -> Memory.readByte(address + offset)
+                FFIType.SHORT, FFIType.USHORT -> Memory.readShort(address + offset)
+                FFIType.INT, FFIType.UINT -> Memory.readInt(address + offset)
+                FFIType.LONG, FFIType.ULONG -> Memory.readLong(address + offset)
+                FFIType.NINT, FFIType.NUINT -> Memory.readNInt(address + offset)
+                FFIType.FLOAT -> Memory.readFloat(address + offset)
+                FFIType.DOUBLE -> Memory.readDouble(address + offset)
+                FFIType.PTR -> Memory.readPointer(address + offset).toPlatformRepresentation()
+                else -> throw IllegalStateException("Cannot map FFI parameter type $type")
+            }
+            offset += type.size.toULong()
+            value
+        }
+    }
 }
 
 /**

@@ -229,6 +229,22 @@ value class Pointer(val value: NUInt) : Reinterpretable {
 }
 
 /**
+ * Converts this pointer to a platform-specific representation.
+ *
+ * This internal function is used to convert the platform-independent [Pointer]
+ * to a representation that can be used with platform-specific APIs, particularly
+ * for FFI (Foreign Function Interface) calls.
+ *
+ * The return type varies by platform:
+ * - On JVM/Android: Returns a MemorySegment (from Java's Foreign Memory Access API)
+ * - On x64 native platforms: Returns a boxed [Long] representing the memory address
+ * - On x32 native platforms: Returns a boxed [Int] representing the memory address
+ *
+ * @return A platform-specific representation of this pointer
+ */
+internal expect inline fun Pointer.toPlatformRepresentation(): Any
+
+/**
  * A constant representing a null pointer (address 0).
  *
  * This is equivalent to NULL or nullptr in C/C++ and can be used to represent
