@@ -59,7 +59,7 @@ private object PanamaMemory : Memory {
     }
 
     override fun copyOverlapping(source: Pointer, dest: Pointer, size: NUInt) {
-        memmove.invokeExact(dest.toMemorySegment(), source.toMemorySegment(), size.value)
+        memmove.invokeExact(dest.toMemorySegment(), source.toMemorySegment(), size.value) as MemorySegment
     }
 
     override fun compare(first: Pointer, second: Pointer, size: NUInt): Int {
