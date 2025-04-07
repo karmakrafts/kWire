@@ -46,7 +46,7 @@ data class StructField internal constructor(
  * @property fields The list of fields in the struct
  */
 @OptIn(ExperimentalUnsignedTypes::class)
-@Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
+@Suppress("NOTHING_TO_INLINE")
 class Struct private constructor( // @formatter:off
     val address: Pointer,
     val fields: List<StructField>
@@ -71,7 +71,7 @@ class Struct private constructor( // @formatter:off
      *
      * @param fieldTypes Variable number of FFI types representing the fields of the struct
      */
-    inline constructor(vararg fieldTypes: FFIType) : this(fieldTypes.toList())
+    constructor(vararg fieldTypes: FFIType) : this(fieldTypes.toList())
 
     init {
         // Pre-compute all field offsets

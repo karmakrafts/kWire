@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  * @property returnType The return type of the function, defaults to [FFIType.VOID]
  * @property parameterTypes List of parameter types for the function, defaults to an empty list
  */
-@Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
+@Suppress("NOTHING_TO_INLINE")
 data class FFIDescriptor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()
@@ -39,7 +39,7 @@ data class FFIDescriptor( // @formatter:off
      * @param returnType The return type of the function
      * @param parameterTypes Variable number of parameter types for the function
      */
-    inline constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
+    constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
 
     /**
      * Constructs a descriptor using Kotlin classes for the return type and parameter types.
@@ -51,7 +51,7 @@ data class FFIDescriptor( // @formatter:off
      * @param parameterTypes List of Kotlin classes representing parameter types
      * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
      */
-    inline constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
+    constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
         returnType.getFFIType(), parameterTypes.map { it.getFFIType() })
 
     /**
@@ -64,7 +64,7 @@ data class FFIDescriptor( // @formatter:off
      * @param parameterTypes Variable number of Kotlin classes representing parameter types
      * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
      */
-    inline constructor(returnType: KClass<*>, vararg parameterTypes: KClass<*>) : this(
+    constructor(returnType: KClass<*>, vararg parameterTypes: KClass<*>) : this(
         returnType, parameterTypes.toList()
     )
 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
 
 internal actual fun getPointerSize(): Int = Int.SIZE_BYTES
