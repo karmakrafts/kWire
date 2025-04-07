@@ -20,7 +20,16 @@ package dev.karmakrafts.kwire
 
 import kotlin.reflect.KClass
 
-// TODO: document this
+/**
+ * Enumeration of Foreign Function Interface (FFI) types supported by the library.
+ *
+ * This enum maps Kotlin classes to their corresponding FFI types and sizes in bytes.
+ * It is used to define the signature of native functions and to convert between
+ * Kotlin types and native types when calling native functions.
+ *
+ * @property type The Kotlin class corresponding to this FFI type
+ * @property size The size of this type in bytes
+ */
 enum class FFIType( // @formatter:off
     val type: KClass<*>,
     val size: Int
@@ -47,9 +56,24 @@ enum class FFIType( // @formatter:off
     // @formatter:on
 }
 
-// TODO: document this
+/**
+ * Extension function to find the corresponding [FFIType] for a Kotlin class.
+ *
+ * This function searches through all entries in the [FFIType] enum to find
+ * the one that corresponds to this Kotlin class.
+ *
+ * @return The corresponding [FFIType], or null if no matching type is found
+ */
 inline fun KClass<*>.findFFIType(): FFIType? = FFIType.entries.find { it.type == this@findFFIType }
 
-// TODO: document this
+/**
+ * Extension function to get the corresponding [FFIType] for a Kotlin class.
+ *
+ * This function is similar to [findFFIType], but it throws an exception if no
+ * matching [FFIType] is found, rather than returning null.
+ *
+ * @return The corresponding [FFIType]
+ * @throws IllegalArgumentException if no matching [FFIType] is found for this Kotlin class
+ */
 inline fun KClass<*>.getFFIType(): FFIType =
     requireNotNull(findFFIType()) { "No matching FFI type for ${this@getFFIType}" }
