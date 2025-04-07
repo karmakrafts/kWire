@@ -42,6 +42,12 @@ value class Pointer(val value: NUInt) : Reinterpretable {
     inline operator fun plus(other: UInt): Pointer = Pointer(value + other.toNUInt())
     inline operator fun minus(other: UInt): Pointer = Pointer(value - other.toNUInt())
 
+    inline operator fun plus(other: Long): Pointer = Pointer(value + other.toNUInt())
+    inline operator fun minus(other: Long): Pointer = Pointer(value - other.toNUInt())
+
+    inline operator fun plus(other: Int): Pointer = Pointer(value + other.toNUInt())
+    inline operator fun minus(other: Int): Pointer = Pointer(value - other.toNUInt())
+
     // TODO: document this
     inline fun align(alignment: NUInt = Memory.defaultAlignment): Pointer = Pointer(Memory.align(value, alignment))
 

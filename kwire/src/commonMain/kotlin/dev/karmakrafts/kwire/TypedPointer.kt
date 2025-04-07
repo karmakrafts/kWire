@@ -27,6 +27,18 @@ value class BytePtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): BytePtr = BytePtr(value + other * Byte.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): BytePtr = BytePtr(value - other * Byte.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): BytePtr = BytePtr(value + (other * Byte.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): BytePtr = BytePtr(value - (other * Byte.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): BytePtr = BytePtr(value + (other * Byte.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): BytePtr = BytePtr(value - (other * Byte.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): BytePtr = BytePtr(value + (other * Byte.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): BytePtr = BytePtr(value - (other * Byte.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): BytePtr = BytePtr(value + (other * Byte.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): BytePtr = BytePtr(value - (other * Byte.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): Byte =
         Memory.readByte(value + index.toNUInt() * Byte.SIZE_BYTES.toNUInt())
 
@@ -69,6 +81,18 @@ inline fun Pointer.asBytePtr(): BytePtr = BytePtr(this)
 value class ShortPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): ShortPtr = ShortPtr(value + other * Short.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): ShortPtr = ShortPtr(value - other * Short.SIZE_BYTES.toNUInt())
+
+    inline operator fun plus(other: ULong): ShortPtr = ShortPtr(value + (other * Short.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): ShortPtr = ShortPtr(value - (other * Short.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): ShortPtr = ShortPtr(value + (other * Short.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): ShortPtr = ShortPtr(value - (other * Short.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): ShortPtr = ShortPtr(value + (other * Short.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): ShortPtr = ShortPtr(value - (other * Short.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): ShortPtr = ShortPtr(value + (other * Short.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): ShortPtr = ShortPtr(value - (other * Short.SIZE_BYTES).toNUInt())
 
     inline operator fun get(index: Int): Short =
         Memory.readShort(value + index.toNUInt() * Short.SIZE_BYTES.toNUInt())
@@ -113,6 +137,18 @@ value class IntPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): IntPtr = IntPtr(value + other * Int.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): IntPtr = IntPtr(value - other * Int.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): IntPtr = IntPtr(value + (other * Int.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): IntPtr = IntPtr(value - (other * Int.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): IntPtr = IntPtr(value + (other * Int.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): IntPtr = IntPtr(value - (other * Int.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): IntPtr = IntPtr(value + (other * Int.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): IntPtr = IntPtr(value - (other * Int.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): IntPtr = IntPtr(value + (other * Int.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): IntPtr = IntPtr(value - (other * Int.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): Int =
         Memory.readInt(value + index.toNUInt() * Int.SIZE_BYTES.toNUInt())
 
@@ -156,6 +192,18 @@ value class LongPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): LongPtr = LongPtr(value + other * Long.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): LongPtr = LongPtr(value - other * Long.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): LongPtr = LongPtr(value + (other * Long.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): LongPtr = LongPtr(value - (other * Long.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): LongPtr = LongPtr(value + (other * Long.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): LongPtr = LongPtr(value - (other * Long.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): LongPtr = LongPtr(value + (other * Long.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): LongPtr = LongPtr(value - (other * Long.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): LongPtr = LongPtr(value + (other * Long.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): LongPtr = LongPtr(value - (other * Long.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): Long =
         Memory.readLong(value + index.toNUInt() * Long.SIZE_BYTES.toNUInt())
 
@@ -198,6 +246,18 @@ inline fun Pointer.asLongPtr(): LongPtr = LongPtr(this)
 value class NIntPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): NIntPtr = NIntPtr(value + other * Pointer.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): NIntPtr = NIntPtr(value - other * Pointer.SIZE_BYTES.toNUInt())
+
+    inline operator fun plus(other: ULong): NIntPtr = NIntPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): NIntPtr = NIntPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): NIntPtr = NIntPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): NIntPtr = NIntPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): NIntPtr = NIntPtr(value + (other * Pointer.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): NIntPtr = NIntPtr(value - (other * Pointer.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): NIntPtr = NIntPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): NIntPtr = NIntPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
 
     inline operator fun get(index: Int): NInt =
         Memory.readNInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
@@ -244,6 +304,18 @@ value class UBytePtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): UBytePtr = UBytePtr(value + other * UByte.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): UBytePtr = UBytePtr(value - other * UByte.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): UBytePtr = UBytePtr(value + (other * UByte.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): UBytePtr = UBytePtr(value - (other * UByte.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): UBytePtr = UBytePtr(value + (other * UByte.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): UBytePtr = UBytePtr(value - (other * UByte.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): UBytePtr = UBytePtr(value + (other * UByte.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): UBytePtr = UBytePtr(value - (other * UByte.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): UBytePtr = UBytePtr(value + (other * UByte.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): UBytePtr = UBytePtr(value - (other * UByte.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): UByte =
         Memory.readUByte(value + index.toNUInt() * UByte.SIZE_BYTES.toNUInt())
 
@@ -286,6 +358,23 @@ inline fun Pointer.asUBytePtr(): UBytePtr = UBytePtr(this)
 value class UShortPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): UShortPtr = UShortPtr(value + other * UShort.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): UShortPtr = UShortPtr(value - other * UShort.SIZE_BYTES.toNUInt())
+
+    inline operator fun plus(other: ULong): UShortPtr =
+        UShortPtr(value + (other * UShort.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun minus(other: ULong): UShortPtr =
+        UShortPtr(value - (other * UShort.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): UShortPtr = UShortPtr(value + (other * UShort.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): UShortPtr =
+        UShortPtr(value - (other * UShort.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): UShortPtr = UShortPtr(value + (other * UShort.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): UShortPtr =
+        UShortPtr(value - (other * UShort.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): UShortPtr = UShortPtr(value + (other * UShort.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): UShortPtr = UShortPtr(value - (other * UShort.SIZE_BYTES).toNUInt())
 
     inline operator fun get(index: Int): UShort =
         Memory.readUShort(value + index.toNUInt() * UShort.SIZE_BYTES.toNUInt())
@@ -330,6 +419,18 @@ value class UIntPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): UIntPtr = UIntPtr(value + other * UInt.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): UIntPtr = UIntPtr(value - other * UInt.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): UIntPtr = UIntPtr(value + (other * UInt.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): UIntPtr = UIntPtr(value - (other * UInt.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): UIntPtr = UIntPtr(value + (other * UInt.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): UIntPtr = UIntPtr(value - (other * UInt.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): UIntPtr = UIntPtr(value + (other * UInt.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): UIntPtr = UIntPtr(value - (other * UInt.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): UIntPtr = UIntPtr(value + (other * UInt.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): UIntPtr = UIntPtr(value - (other * UInt.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): UInt =
         Memory.readUInt(value + index.toNUInt() * UInt.SIZE_BYTES.toNUInt())
 
@@ -373,6 +474,18 @@ value class ULongPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): ULongPtr = ULongPtr(value + other * ULong.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): ULongPtr = ULongPtr(value - other * ULong.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): ULongPtr = ULongPtr(value + (other * ULong.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): ULongPtr = ULongPtr(value - (other * ULong.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): ULongPtr = ULongPtr(value + (other * ULong.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): ULongPtr = ULongPtr(value - (other * ULong.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): ULongPtr = ULongPtr(value + (other * ULong.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): ULongPtr = ULongPtr(value - (other * ULong.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): ULongPtr = ULongPtr(value + (other * ULong.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): ULongPtr = ULongPtr(value - (other * ULong.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): ULong =
         Memory.readULong(value + index.toNUInt() * ULong.SIZE_BYTES.toNUInt())
 
@@ -415,6 +528,21 @@ inline fun Pointer.asULongPtr(): ULongPtr = ULongPtr(this)
 value class NUIntPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): NUIntPtr = NUIntPtr(value + other * Pointer.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): NUIntPtr = NUIntPtr(value - other * Pointer.SIZE_BYTES.toNUInt())
+
+    inline operator fun plus(other: ULong): NUIntPtr =
+        NUIntPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun minus(other: ULong): NUIntPtr =
+        NUIntPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): NUIntPtr = NUIntPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): NUIntPtr = NUIntPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): NUIntPtr = NUIntPtr(value + (other * Pointer.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): NUIntPtr = NUIntPtr(value - (other * Pointer.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): NUIntPtr = NUIntPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): NUIntPtr = NUIntPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
 
     inline operator fun get(index: Int): NUInt =
         Memory.readNUInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
@@ -461,6 +589,18 @@ value class FloatPtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): FloatPtr = FloatPtr(value + other * Float.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): FloatPtr = FloatPtr(value - other * Float.SIZE_BYTES.toNUInt())
 
+    inline operator fun plus(other: ULong): FloatPtr = FloatPtr(value + (other * Float.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): FloatPtr = FloatPtr(value - (other * Float.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): FloatPtr = FloatPtr(value + (other * Float.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): FloatPtr = FloatPtr(value - (other * Float.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): FloatPtr = FloatPtr(value + (other * Float.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): FloatPtr = FloatPtr(value - (other * Float.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): FloatPtr = FloatPtr(value + (other * Float.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): FloatPtr = FloatPtr(value - (other * Float.SIZE_BYTES).toNUInt())
+
     inline operator fun get(index: Int): Float =
         Memory.readFloat(value + index.toNUInt() * Float.SIZE_BYTES.toNUInt())
 
@@ -503,6 +643,23 @@ inline fun Pointer.asFloatPtr(): FloatPtr = FloatPtr(this)
 value class DoublePtr(val value: Pointer) : Reinterpretable {
     inline operator fun plus(other: NUInt): DoublePtr = DoublePtr(value + other * Double.SIZE_BYTES.toNUInt())
     inline operator fun minus(other: NUInt): DoublePtr = DoublePtr(value - other * Double.SIZE_BYTES.toNUInt())
+
+    inline operator fun plus(other: ULong): DoublePtr =
+        DoublePtr(value + (other * Double.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun minus(other: ULong): DoublePtr =
+        DoublePtr(value - (other * Double.SIZE_BYTES.toULong()).toNUInt())
+
+    inline operator fun plus(other: UInt): DoublePtr = DoublePtr(value + (other * Double.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): DoublePtr =
+        DoublePtr(value - (other * Double.SIZE_BYTES.toUInt()).toNUInt())
+
+    inline operator fun plus(other: Long): DoublePtr = DoublePtr(value + (other * Double.SIZE_BYTES.toLong()).toNUInt())
+    inline operator fun minus(other: Long): DoublePtr =
+        DoublePtr(value - (other * Double.SIZE_BYTES.toLong()).toNUInt())
+
+    inline operator fun plus(other: Int): DoublePtr = DoublePtr(value + (other * Double.SIZE_BYTES).toNUInt())
+    inline operator fun minus(other: Int): DoublePtr = DoublePtr(value - (other * Double.SIZE_BYTES).toNUInt())
 
     inline operator fun get(index: Int): Double =
         Memory.readDouble(value + index.toNUInt() * Double.SIZE_BYTES.toNUInt())
