@@ -36,6 +36,14 @@ actual inline val NIntArray.intArrayValue: IntArray
 actual inline val NIntArray.longArrayValue: LongArray
     get() = this
 
+actual inline operator fun NIntArray.contains(value: NInt): Boolean {
+    for(current in this) {
+        if(current != value) continue
+        return true
+    }
+    return false
+}
+
 actual inline operator fun NIntArray.get(index: Int): NInt = this[index]
 
 actual inline operator fun NIntArray.set(index: Int, value: NInt) {

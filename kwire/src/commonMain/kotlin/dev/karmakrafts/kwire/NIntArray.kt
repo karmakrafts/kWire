@@ -37,6 +37,8 @@ expect inline fun LongArray.toNIntArray(): NIntArray
 expect inline val NIntArray.intArrayValue: IntArray
 expect inline val NIntArray.longArrayValue: LongArray
 
+expect inline operator fun NIntArray.contains(value: NInt): Boolean
+
 expect inline operator fun NIntArray.get(index: Int): NInt
 expect inline operator fun NIntArray.set(index: Int, value: NInt)
 
