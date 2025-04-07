@@ -72,6 +72,15 @@ expect inline fun ULong.toNUInt(): NUInt
 expect inline fun Long.toNUInt(): NUInt
 
 /**
+ * Converts a native floating-point number to a native unsigned integer.
+ *
+ * @return A native unsigned integer representation of this NFloat value
+ * @note This may result in truncation of the fractional part
+ * @note Negative values will be converted to their unsigned representation
+ */
+expect inline fun NFloat.toNUInt(): NUInt
+
+/**
  * Gets the value of this native unsigned integer as a standard 32-bit unsigned integer.
  *
  * @return The UInt representation of this native unsigned integer

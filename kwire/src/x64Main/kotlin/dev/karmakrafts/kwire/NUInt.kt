@@ -22,6 +22,7 @@ actual inline fun UInt.toNUInt(): NUInt = NUInt(toLong())
 actual inline fun Int.toNUInt(): NUInt = NUInt(toLong())
 actual inline fun ULong.toNUInt(): NUInt = NUInt(toLong())
 actual inline fun Long.toNUInt(): NUInt = NUInt(this)
+actual inline fun NFloat.toNUInt(): NUInt = NUInt(toLong())
 
 actual inline val NUInt.uintValue: UInt
     get() = value.intValue.toUInt()

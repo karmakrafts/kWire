@@ -24,6 +24,7 @@ actual inline fun Int.toNInt(): NInt = this
 actual inline fun UInt.toNInt(): NInt = toInt()
 actual inline fun Long.toNInt(): NInt = toInt()
 actual inline fun ULong.toNInt(): NInt = toInt()
+actual inline fun NFloat.toNInt(): NInt = toInt()
 
 actual inline val NInt.intValue: Int
     get() = this

@@ -66,6 +66,14 @@ expect inline fun Long.toNInt(): NInt
 expect inline fun ULong.toNInt(): NInt
 
 /**
+ * Converts a native floating-point number to a native integer.
+ *
+ * @return A native integer representation of this NFloat value
+ * @note This may result in truncation of the fractional part
+ */
+expect inline fun NFloat.toNInt(): NInt
+
+/**
  * Gets the value of this native integer as a standard 32-bit signed integer.
  *
  * @return The Int representation of this native integer

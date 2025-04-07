@@ -22,6 +22,8 @@ actual typealias NFloat = Double
 
 actual inline fun Float.toNFloat(): NFloat = toDouble()
 actual inline fun Double.toNFloat(): NFloat = this
+actual inline fun NInt.toNFloat(): NFloat = toDouble()
+actual inline fun NUInt.toNFloat(): NFloat = value.toDouble()
 
 actual inline val NFloat.floatValue: Float
     get() = toFloat()
