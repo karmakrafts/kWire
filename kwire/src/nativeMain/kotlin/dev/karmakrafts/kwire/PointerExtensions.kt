@@ -18,15 +18,98 @@
 
 package dev.karmakrafts.kwire
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CFunction
+import kotlinx.cinterop.COpaque
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.CPointed
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.DoubleVar
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.FloatVar
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.LongVar
+import kotlinx.cinterop.ShortVar
+import kotlinx.cinterop.UByteVar
+import kotlinx.cinterop.UIntVar
+import kotlinx.cinterop.ULongVar
+import kotlinx.cinterop.UShortVar
+import kotlinx.cinterop.toCPointer
 
 @ExperimentalForeignApi
 inline fun CPointer<*>.toPointer(): Pointer = Pointer(rawValue.toLong().toNUInt())
 
 @ExperimentalForeignApi
-inline fun <reified T : CPointed> Pointer.toCPointer(): CPointer<T>? {
-    return value.ulongValue.toLong().toCPointer()
-}
+inline fun <reified T : CPointed> Pointer.toCPointer(): CPointer<T>? = value.value.longValue.toCPointer()
+
+@ExperimentalForeignApi
+inline fun <reified T : Function<*>> Pointer.toCFunctionPointer(): CPointer<CFunction<T>>? = toCPointer()
 
 @ExperimentalForeignApi
 inline fun Pointer.toCOpaquePointer(): COpaquePointer? = toCPointer<COpaque>()
+
+// Signed integer pointer conversions
+
+@ExperimentalForeignApi
+inline fun CPointer<ByteVar>.toBytePtr(): BytePtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<ShortVar>.toShortPtr(): ShortPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<IntVar>.toIntPtr(): IntPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<LongVar>.toLongPtr(): LongPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun BytePtr.toCPointer(): CPointer<ByteVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun ShortPtr.toCPointer(): CPointer<ShortVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun IntPtr.toCPointer(): CPointer<IntVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun LongPtr.toCPointer(): CPointer<LongVar>? = reinterpret<Pointer>().toCPointer()
+
+// Unsigned integer pointer conversions
+
+@ExperimentalForeignApi
+inline fun CPointer<UByteVar>.toBytePtr(): UBytePtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<UShortVar>.toShortPtr(): UShortPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<UIntVar>.toIntPtr(): UIntPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<ULongVar>.toLongPtr(): ULongPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun UBytePtr.toCPointer(): CPointer<UByteVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun UShortPtr.toCPointer(): CPointer<UShortVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun UIntPtr.toCPointer(): CPointer<UIntVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun ULongPtr.toCPointer(): CPointer<ULongVar>? = reinterpret<Pointer>().toCPointer()
+
+// IEEE-754 pointeer conversions
+
+@ExperimentalForeignApi
+inline fun CPointer<FloatVar>.toFloatPtr(): FloatPtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun CPointer<DoubleVar>.toDoublePtr(): DoublePtr = toPointer().reinterpret()
+
+@ExperimentalForeignApi
+inline fun FloatPtr.toCPointer(): CPointer<FloatVar>? = reinterpret<Pointer>().toCPointer()
+
+@ExperimentalForeignApi
+inline fun DoublePtr.toCPointer(): CPointer<DoubleVar>? = reinterpret<Pointer>().toCPointer()
