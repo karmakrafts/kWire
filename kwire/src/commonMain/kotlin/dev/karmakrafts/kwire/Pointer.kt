@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
-@file:JvmName("Pointer$")
+@file:Suppress("NOTHING_TO_INLINE") @file:JvmName("Pointer$")
 
 package dev.karmakrafts.kwire
 
@@ -25,8 +24,11 @@ import kotlin.jvm.JvmName
 internal expect fun getPointerSize(): Int
 
 // TODO: document this
+sealed interface Reinterpretable
+
+// TODO: document this
 @JvmInline
-value class Pointer(val value: NUInt) {
+value class Pointer(val value: NUInt) : Reinterpretable {
     companion object {
         val SIZE_BYTES: Int = getPointerSize()
     }
@@ -41,11 +43,27 @@ value class Pointer(val value: NUInt) {
     inline operator fun minus(other: UInt): Pointer = Pointer(value - other.toNUInt())
 
     // TODO: document this
-    inline fun align(alignment: NUInt = Memory.defaultAlignment): Pointer =
-        Pointer(Memory.align(value, alignment))
+    inline fun align(alignment: NUInt = Memory.defaultAlignment): Pointer = Pointer(Memory.align(value, alignment))
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String = "0x${value.toHexString()}"
+
+    inline fun <reified T : Reinterpretable> reinterpret(): T = when (T::class) {
+        Pointer::class -> this
+        BytePtr::class -> asBytePtr()
+        ShortPtr::class -> asShortPtr()
+        IntPtr::class -> asIntPtr()
+        LongPtr::class -> asLongPtr()
+        NIntPtr::class -> asNIntPtr()
+        UBytePtr::class -> asUBytePtr()
+        UShortPtr::class -> asUShortPtr()
+        UIntPtr::class -> asUIntPtr()
+        ULongPtr::class -> asULongPtr()
+        NUIntPtr::class -> asNUIntPtr()
+        FloatPtr::class -> asFloatPtr()
+        DoublePtr::class -> asDoublePtr()
+        else -> error("Unknown pointer type ${T::class}")
+    } as T
 }
 
 // TODO: document this

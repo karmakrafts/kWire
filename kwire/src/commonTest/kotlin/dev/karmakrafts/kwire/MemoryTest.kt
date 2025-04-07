@@ -36,16 +36,16 @@ class MemoryTest {
 
     @Test
     fun `Write and read`() {
-        val address = Memory.allocate(testSize)
-        assertNotEquals(nullptr, address)
-        Memory.writeUInt(address, TEST_VALUE_1)
-        Memory.writeUInt(address + UInt.SIZE_BYTES.toNUInt(), TEST_VALUE_2)
-        Memory.writeUInt(address + (UInt.SIZE_BYTES * 2).toNUInt(), TEST_VALUE_1)
-        Memory.writeUInt(address + (UInt.SIZE_BYTES * 3).toNUInt(), TEST_VALUE_2)
-        assertEquals(TEST_VALUE_1, Memory.readUInt(address))
-        assertEquals(TEST_VALUE_2, Memory.readUInt(address + UInt.SIZE_BYTES.toNUInt()))
-        assertEquals(TEST_VALUE_1, Memory.readUInt(address + (UInt.SIZE_BYTES * 2).toNUInt()))
-        assertEquals(TEST_VALUE_2, Memory.readUInt(address + (UInt.SIZE_BYTES * 3).toNUInt()))
-        Memory.free(address)
+        val address = Memory.allocate(testSize).asUIntPtr()
+        assertNotEquals(nullptr.reinterpret(), address)
+        address[0] = TEST_VALUE_1
+        address[1] = TEST_VALUE_2
+        address[2] = TEST_VALUE_1
+        address[3] = TEST_VALUE_2
+        assertEquals(TEST_VALUE_1, address[0])
+        assertEquals(TEST_VALUE_2, address[1])
+        assertEquals(TEST_VALUE_1, address[2])
+        assertEquals(TEST_VALUE_2, address[3])
+        Memory.free(address.reinterpret())
     }
 }
