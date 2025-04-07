@@ -18,17 +18,52 @@ package dev.karmakrafts.kwire
 
 import kotlin.reflect.KClass
 
-// TODO: document this
+/**
+ * Descriptor for a foreign function interface (FFI) function signature.
+ *
+ * This class describes the signature of a native function, including its return type
+ * and parameter types. It is used when calling native functions through the FFI system
+ * to specify the expected types of the function's return value and parameters.
+ *
+ * @property returnType The return type of the function, defaults to [FFIType.VOID]
+ * @property parameterTypes List of parameter types for the function, defaults to an empty list
+ */
 @Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
 data class FFIDescriptor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()
 ) { // @formatter:on
+    /**
+     * Constructs a descriptor with a return type and variable number of parameter types.
+     *
+     * @param returnType The return type of the function
+     * @param parameterTypes Variable number of parameter types for the function
+     */
     inline constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
 
+    /**
+     * Constructs a descriptor using Kotlin classes for the return type and parameter types.
+     *
+     * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
+     * using the [getFFIType] extension function.
+     *
+     * @param returnType The Kotlin class representing the return type
+     * @param parameterTypes List of Kotlin classes representing parameter types
+     * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
+     */
     inline constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
         returnType.getFFIType(), parameterTypes.map { it.getFFIType() })
 
+    /**
+     * Constructs a descriptor using Kotlin classes for the return type and variable number of parameter types.
+     *
+     * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
+     * using the [getFFIType] extension function.
+     *
+     * @param returnType The Kotlin class representing the return type
+     * @param parameterTypes Variable number of Kotlin classes representing parameter types
+     * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
+     */
     inline constructor(returnType: KClass<*>, vararg parameterTypes: KClass<*>) : this(
         returnType, parameterTypes.toList()
     )
