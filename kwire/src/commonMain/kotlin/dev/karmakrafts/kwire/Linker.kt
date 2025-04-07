@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+@file:JvmName("Linker$")
+
 package dev.karmakrafts.kwire
+
+import kotlin.jvm.JvmName
 
 /**
  * Internal function to get the platform-specific implementation of the Linker interface.

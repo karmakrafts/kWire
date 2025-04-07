@@ -16,4 +16,10 @@
 
 package dev.karmakrafts.kwire
 
-internal actual fun getPlatformLinker(): Linker = TODO("Not yet implemented")
+import platform.posix.RTLD_LAZY
+import platform.posix.RTLD_NOW
+
+fun LinkMode.getDLLinkMode(): Int = when(this) {
+    LinkMode.NOW -> RTLD_NOW
+    LinkMode.LAZY -> RTLD_LAZY
+}

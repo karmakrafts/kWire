@@ -1,3 +1,0 @@
-package = libffi
-headers = libffi/ffi.h
-linkerOpts = -lffi
