@@ -24,6 +24,7 @@ data class StructField internal constructor(
         internal set
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 @Suppress("NOTHING_TO_INLINE", "WRONG_MODIFIER_TARGET")
 class Struct private constructor(
     val address: Pointer, val fields: List<StructField>
@@ -64,6 +65,19 @@ class Struct private constructor(
     inline fun getDouble(index: Int): Double = Memory.readDouble(getFieldAddress(index))
     inline fun getPointer(index: Int): Pointer = Memory.readPointer(getFieldAddress(index))
 
+    inline fun getBytes(index: Int, size: Int): ByteArray = Memory.readBytes(getFieldAddress(index), size)
+    inline fun getShorts(index: Int, size: Int): ShortArray = Memory.readShorts(getFieldAddress(index), size)
+    inline fun getInts(index: Int, size: Int): IntArray = Memory.readInts(getFieldAddress(index), size)
+    inline fun getLongs(index: Int, size: Int): LongArray = Memory.readLongs(getFieldAddress(index), size)
+    inline fun getNInts(index: Int, size: Int): NIntArray = Memory.readNInts(getFieldAddress(index), size)
+    inline fun getUBytes(index: Int, size: Int): UByteArray = Memory.readUBytes(getFieldAddress(index), size)
+    inline fun getUShorts(index: Int, size: Int): UShortArray = Memory.readUShorts(getFieldAddress(index), size)
+    inline fun getUInts(index: Int, size: Int): UIntArray = Memory.readUInts(getFieldAddress(index), size)
+    inline fun getULongs(index: Int, size: Int): ULongArray = Memory.readULongs(getFieldAddress(index), size)
+    inline fun getNUInts(index: Int, size: Int): NUIntArray = Memory.readNUInts(getFieldAddress(index), size)
+    inline fun getFloats(index: Int, size: Int): FloatArray = Memory.readFloats(getFieldAddress(index), size)
+    inline fun getDoubles(index: Int, size: Int): DoubleArray = Memory.readDoubles(getFieldAddress(index), size)
+
     inline fun setByte(index: Int, value: Byte) = Memory.writeByte(getFieldAddress(index), value)
     inline fun setShort(index: Int, value: Short) = Memory.writeShort(getFieldAddress(index), value)
     inline fun setInt(index: Int, value: Int) = Memory.writeInt(getFieldAddress(index), value)
@@ -77,6 +91,19 @@ class Struct private constructor(
     inline fun setFloat(index: Int, value: Float) = Memory.writeFloat(getFieldAddress(index), value)
     inline fun setDouble(index: Int, value: Double) = Memory.writeDouble(getFieldAddress(index), value)
     inline fun setPointer(index: Int, value: Pointer) = Memory.writePointer(getFieldAddress(index), value)
+
+    inline fun setBytes(index: Int, data: ByteArray) = Memory.writeBytes(getFieldAddress(index), data)
+    inline fun setShorts(index: Int, data: ShortArray) = Memory.writeShorts(getFieldAddress(index), data)
+    inline fun setInts(index: Int, data: IntArray) = Memory.writeInts(getFieldAddress(index), data)
+    inline fun setLongs(index: Int, data: LongArray) = Memory.writeLongs(getFieldAddress(index), data)
+    inline fun setNInts(index: Int, data: NIntArray) = Memory.writeNInts(getFieldAddress(index), data)
+    inline fun setUBytes(index: Int, data: UByteArray) = Memory.writeUBytes(getFieldAddress(index), data)
+    inline fun setUShorts(index: Int, data: UShortArray) = Memory.writeUShorts(getFieldAddress(index), data)
+    inline fun setUInts(index: Int, data: UIntArray) = Memory.writeUInts(getFieldAddress(index), data)
+    inline fun setULongs(index: Int, data: ULongArray) = Memory.writeULongs(getFieldAddress(index), data)
+    inline fun setNUInts(index: Int, data: NUIntArray) = Memory.writeNUInts(getFieldAddress(index), data)
+    inline fun setFloats(index: Int, data: FloatArray) = Memory.writeFloats(getFieldAddress(index), data)
+    inline fun setDoubles(index: Int, data: DoubleArray) = Memory.writeDoubles(getFieldAddress(index), data)
 
     override fun close() {
         Memory.free(address)
