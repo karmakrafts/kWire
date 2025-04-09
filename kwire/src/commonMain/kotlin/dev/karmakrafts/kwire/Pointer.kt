@@ -236,3 +236,17 @@ value class Pointer(val value: NUInt) : Reinterpretable, AutoCloseable {
  * to indicate the absence of a valid memory address.
  */
 val nullptr: Pointer = Pointer(0U.toNUInt())
+
+/**
+ * Returns a null pointer (address 0) of the specified reinterpretable type.
+ *
+ * This function provides a type-safe way to get a null pointer of a specific type.
+ * It is equivalent to casting NULL or nullptr to a specific pointer type in C/C++.
+ * This is useful when you need a null pointer of a specific type for function parameters
+ * or when initializing pointer variables.
+ *
+ * @param T The target pointer type, must be a subtype of [Reinterpretable]
+ * @return A null pointer of the specified type
+ * @throws IllegalArgumentException if the requested type is not a supported pointer type
+ */
+inline fun <reified T : Reinterpretable> nullptr(): T = nullptr.reinterpret()
