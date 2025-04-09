@@ -16,11 +16,30 @@
 
 package dev.karmakrafts.kwire
 
-// TODO: document this
+/**
+ * Specifies how symbols in a shared library should be loaded.
+ *
+ * This enum is used when loading shared libraries to control the resolution strategy
+ * for symbols (functions and variables) within the library.
+ */
 enum class LinkMode {
-    // TODO: document this
+    /**
+     * Resolves all undefined symbols immediately when the library is loaded.
+     *
+     * When this mode is used, all symbols in the library are resolved before the
+     * dlopen() call returns. If any symbols cannot be resolved, the library loading fails.
+     * This mode can be slower for initial loading but prevents runtime errors from
+     * unresolved symbols.
+     */
     NOW,
 
-    // TODO: document this
+    /**
+     * Resolves undefined symbols as they are referenced.
+     *
+     * When this mode is used, symbols are resolved only when they are first accessed
+     * by the application. This is the default mode and typically provides faster
+     * initial loading of the library, but may result in runtime errors if a symbol
+     * cannot be resolved when it is accessed.
+     */
     LAZY
 }
