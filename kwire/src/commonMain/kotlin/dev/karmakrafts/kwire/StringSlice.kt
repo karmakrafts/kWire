@@ -32,7 +32,7 @@ package dev.karmakrafts.kwire
  * @property address The memory address where the string slice begins
  * @property nativeLength The length of the string slice in native unsigned integer format
  */
-class StringSlice @PublishedApi internal constructor( // @formatter:off
+class StringSlice( // @formatter:off
     val address: Pointer,
     length: NUInt
 ) : CharSequence { // @formatter:on
