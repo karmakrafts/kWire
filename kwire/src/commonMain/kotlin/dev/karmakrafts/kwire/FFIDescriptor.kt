@@ -25,10 +25,13 @@ import kotlin.reflect.KClass
  * and parameter types. It is used when calling native functions through the FFI system
  * to specify the expected types of the function's return value and parameters.
  *
+ * FFIDescriptor objects are typically used by the [FFIFunction] class to define the
+ * signature of a native function, which is essential for proper type marshalling
+ * when calling the function.
+ *
  * @property returnType The return type of the function, defaults to [FFIType.VOID]
  * @property parameterTypes List of parameter types for the function, defaults to an empty list
  */
-@Suppress("NOTHING_TO_INLINE")
 data class FFIDescriptor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()
@@ -45,7 +48,7 @@ data class FFIDescriptor( // @formatter:off
      * Constructs a descriptor using Kotlin classes for the return type and parameter types.
      *
      * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
-     * using the [getFFIType] extension function.
+     * using the [FFIType.fromType] method.
      *
      * @param returnType The Kotlin class representing the return type
      * @param parameterTypes List of Kotlin classes representing parameter types
@@ -58,7 +61,7 @@ data class FFIDescriptor( // @formatter:off
      * Constructs a descriptor using Kotlin classes for the return type and variable number of parameter types.
      *
      * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
-     * using the [getFFIType] extension function.
+     * using the [FFIType.fromType] method.
      *
      * @param returnType The Kotlin class representing the return type
      * @param parameterTypes Variable number of Kotlin classes representing parameter types
