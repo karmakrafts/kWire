@@ -104,6 +104,17 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
         get() = Memory.strlen(address).toSigned().longValue
 
     /**
+     * Returns the length of this C-style string as a native unsigned integer.
+     *
+     * This property returns the raw result of [Memory.strlen] as a [NUInt] without conversion,
+     * which is useful for native API calls that expect unsigned size values.
+     *
+     * @return The length of the string as a [NUInt]
+     */
+    inline val nativeLength: NUInt
+        get() = Memory.strlen(address)
+
+    /**
      * Compares this C-style string with another for content equality.
      *
      * This method uses the [Memory.strcmp] function to compare the content of two C-style strings.
@@ -114,6 +125,22 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      */
     inline fun contentEquals(other: CString): Boolean {
         return Memory.strcmp(address, other.address) == 0
+    }
+
+    /**
+     * Compares this C-style string with another lexicographically.
+     *
+     * This method uses the [Memory.strcmp] function to compare the content of two C-style strings.
+     * It returns a negative value if this string is lexicographically less than the other string,
+     * zero if the strings are equal, or a positive value if this string is lexicographically greater
+     * than the other string.
+     *
+     * @param other The C-style string to compare with
+     * @return A negative value if this string is less than the other, zero if they are equal,
+     *         or a positive value if this string is greater than the other
+     */
+    inline fun compare(other: CString): Int {
+        return Memory.strcmp(address, other.address)
     }
 
     /**
@@ -178,6 +205,17 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
     }
 
     /**
+     * Converts this C-style string to a [StringSlice].
+     *
+     * This method creates a [StringSlice] that references the same underlying memory as this C-style string.
+     * A [StringSlice] provides additional string manipulation capabilities and can represent a portion of a string
+     * without copying the data.
+     *
+     * @return A [StringSlice] representing the same string data
+     */
+    inline fun asSlice(): StringSlice = StringSlice.fromCString(address)
+
+    /**
      * Returns a subsequence of this C-style string.
      *
      * This method extracts a portion of the C-style string starting at [startIndex] (inclusive)
@@ -200,6 +238,32 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
     override fun close() = Memory.free(address)
 
     /**
+     * Compares this C-style string with another for equality.
+     *
+     * This operator overload delegates to [contentEquals] to compare the content of two C-style strings.
+     * It returns true if the strings have the same content, false otherwise.
+     *
+     * @param other The C-style string to compare with
+     * @return True if the strings have the same content, false otherwise
+     */
+    inline operator fun equals(other: CString): Boolean = contentEquals(other)
+
+    /**
+     * Compares this C-style string with another object for equality.
+     *
+     * This method overrides the standard equals method to provide proper equality comparison
+     * for C-style strings. It returns true only if the other object is also a C-style string
+     * and has the same content as this string.
+     *
+     * @param other The object to compare with
+     * @return True if the other object is a C-style string with the same content, false otherwise
+     */
+    override fun equals(other: Any?): Boolean {
+        return if (other !is CString) false
+        else contentEquals(other)
+    }
+
+    /**
      * Converts this C-style string to a Kotlin String.
      *
      * This method reads the bytes of the C-style string and decodes them to a Kotlin String.
@@ -208,6 +272,39 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      */
     override fun toString(): String = toByteArray().decodeToString()
 
+    /**
+     * Computes a hash code for this C-style string.
+     *
+     * This method calculates a hash code based on the content of the C-style string.
+     * It iterates through each byte of the string and computes a hash value using
+     * the standard algorithm (31 * result + current byte). This ensures that two
+     * C-style strings with the same content will have the same hash code.
+     *
+     * @return The hash code value for this C-style string
+     */
+    override fun hashCode(): Int {
+        var result = 0
+        val bytePtr = address.asBytePtr()
+        var index = 0U.toNUInt()
+        while (index < nativeLength) {
+            result = 31 * result + bytePtr[index]
+            ++index
+        }
+        return result
+    }
+
+    /**
+     * Reinterprets this C-style string as another [Reinterpretable] type.
+     *
+     * This method allows for type conversion between different pointer types in the library.
+     * It converts the underlying address of this C-style string to the specified type.
+     * This is useful when you need to pass the same memory address to functions expecting
+     * different pointer types.
+     *
+     * @param T The target [Reinterpretable] type to convert to
+     * @return The reinterpreted value as type T
+     * @throws IllegalStateException if the requested type is not supported
+     */
     inline fun <reified T : Reinterpretable> reinterpret(): T = when (T::class) {
         Pointer::class -> address
         BytePtr::class -> address.asBytePtr()

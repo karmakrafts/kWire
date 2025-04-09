@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.konan.target.Family
 import java.time.ZonedDateTime
 
 /*
@@ -29,7 +28,10 @@ plugins {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.addAll( // @formatter:off
+            "-Xexpect-actual-classes",
+            "-XXLanguage:+CustomEqualsInValueClasses"
+        ) // @formatter:on
     }
     withSourcesJar(true)
     mingwX64()
