@@ -143,6 +143,10 @@ expect inline operator fun NUInt.div(other: NUInt): NUInt
  */
 expect inline operator fun NUInt.rem(other: NUInt): NUInt
 
+expect inline operator fun NUInt.inc(): NUInt
+
+expect inline operator fun NUInt.dec(): NUInt
+
 /**
  * Performs a bitwise AND operation between this native unsigned integer and another native unsigned integer.
  *

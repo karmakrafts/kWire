@@ -43,6 +43,9 @@ actual inline operator fun NInt.times(other: NInt): NInt = this * other
 actual inline operator fun NInt.div(other: NInt): NInt = this / other
 actual inline operator fun NInt.rem(other: NInt): NInt = this % other
 
+actual inline operator fun NInt.inc(): NInt = this + 1
+actual inline operator fun NInt.dec(): NInt = this - 1
+
 actual inline infix fun NInt.and(other: NInt): NInt = this and other
 actual inline infix fun NInt.or(other: NInt): NInt = this or other
 actual inline infix fun NInt.xor(other: NInt): NInt = this xor other

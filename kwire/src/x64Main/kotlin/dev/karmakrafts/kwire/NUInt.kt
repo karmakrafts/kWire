@@ -38,6 +38,9 @@ actual inline operator fun NUInt.times(other: NUInt): NUInt = NUInt((ulongValue 
 actual inline operator fun NUInt.div(other: NUInt): NUInt = NUInt((ulongValue / other.ulongValue).toLong())
 actual inline operator fun NUInt.rem(other: NUInt): NUInt = NUInt((ulongValue % other.ulongValue).toLong())
 
+actual inline operator fun NUInt.inc(): NUInt = this + 1U.toNUInt()
+actual inline operator fun NUInt.dec(): NUInt = this - 1U.toNUInt()
+
 actual inline infix fun NUInt.and(other: NUInt): NUInt = NUInt((ulongValue and other.ulongValue).toLong())
 actual inline infix fun NUInt.or(other: NUInt): NUInt = NUInt((ulongValue or other.ulongValue).toLong())
 actual inline infix fun NUInt.xor(other: NUInt): NUInt = NUInt((ulongValue xor other.ulongValue).toLong())

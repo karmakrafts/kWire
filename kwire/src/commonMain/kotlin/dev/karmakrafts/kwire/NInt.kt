@@ -133,6 +133,10 @@ expect inline operator fun NInt.div(other: NInt): NInt
  */
 expect inline operator fun NInt.rem(other: NInt): NInt
 
+expect inline operator fun NInt.inc(): NInt
+
+expect inline operator fun NInt.dec(): NInt
+
 /**
  * Performs a bitwise AND operation between this native integer and another native integer.
  *
