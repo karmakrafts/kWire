@@ -137,7 +137,7 @@ class Struct @PublishedApi internal constructor( // @formatter:off
          * @param fieldTypes A list of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(fieldTypes: List<FFIType>): Struct = allocate(StructType.of(fieldTypes))
+        inline fun allocate(fieldTypes: List<FFIType>): Struct = allocate(StructType.of(fieldTypes))
 
         /**
          * Allocates a new struct with the specified field types.
@@ -148,7 +148,7 @@ class Struct @PublishedApi internal constructor( // @formatter:off
          * @param fieldTypes Variable number of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(StructType.of(*fieldTypes))
+        inline fun allocate(vararg fieldTypes: FFIType): Struct = allocate(StructType.of(*fieldTypes))
 
         /**
          * Allocates a new struct with the specified struct type.
@@ -159,7 +159,20 @@ class Struct @PublishedApi internal constructor( // @formatter:off
          * @param type The struct type defining the layout of the struct
          * @return A new Struct instance
          */
-        fun allocate(type: StructType): Struct = Struct(Memory.allocate(type.size.toNUInt()), type)
+        inline fun allocate(type: StructType): Struct = Struct(Memory.allocate(type.size.toNUInt()), type)
+
+        /**
+         * Creates a struct from an existing memory address with the specified struct type.
+         *
+         * This function allows working with struct data that already exists in memory,
+         * such as data returned from native functions or manually allocated memory.
+         * Unlike the allocate methods, this does not allocate new memory.
+         *
+         * @param address The memory address where the struct data is located
+         * @param type The struct type defining the layout of the struct
+         * @return A new Struct instance that provides access to the data at the specified address
+         */
+        inline fun fromAddress(address: Pointer, type: StructType): Struct = Struct(address, type)
     }
 
     /**
