@@ -25,10 +25,12 @@ import java.lang.foreign.MemoryLayout
  * This extension function maps each parameter type of this descriptor to its corresponding
  * memory layout and returns them as an array.
  *
+ * @param useSegments When true, pointer types will use ValueLayout.ADDRESS which is appropriate for memory segments.
+ *                    When false, they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
  * @return An array of [MemoryLayout]s representing the memory layouts of the parameter types.
  */
-fun FFIDescriptor.toArgumentMemoryLayouts(): Array<MemoryLayout> {
-    return parameterTypes.map { it.getMemoryLayout() }.toTypedArray()
+fun FFIDescriptor.toArgumentMemoryLayouts(useSegments: Boolean = false): Array<MemoryLayout> {
+    return parameterTypes.map { it.getMemoryLayout(useSegments) }.toTypedArray()
 }
 
 /**
@@ -37,10 +39,12 @@ fun FFIDescriptor.toArgumentMemoryLayouts(): Array<MemoryLayout> {
  * This extension function maps the return type of this descriptor to its corresponding
  * memory layout.
  *
+ * @param useSegments When true, pointer types will use ValueLayout.ADDRESS which is appropriate for memory segments.
+ *                    When false, they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
  * @return A [MemoryLayout] representing the memory layout of the return type.
  */
-fun FFIDescriptor.toResultMemoryLayout(): MemoryLayout {
-    return returnType.getMemoryLayout()
+fun FFIDescriptor.toResultMemoryLayout(useSegments: Boolean = false): MemoryLayout {
+    return returnType.getMemoryLayout(useSegments)
 }
 
 /**
@@ -50,12 +54,15 @@ fun FFIDescriptor.toResultMemoryLayout(): MemoryLayout {
  * Foreign Function Interface. If the return type is VOID, it creates a void function descriptor;
  * otherwise, it creates a function descriptor with the specified return type and parameter types.
  *
+ * @param useSegments When true, pointer types will use ValueLayout.ADDRESS which is appropriate for memory segments.
+ *                    When false, they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
  * @return A [FunctionDescriptor] that represents this FFI descriptor.
  */
-fun FFIDescriptor.toFunctionDescriptor(): FunctionDescriptor {
+fun FFIDescriptor.toFunctionDescriptor(useSegments: Boolean = false): FunctionDescriptor {
     return if (returnType == FFIType.VOID) {
-        FunctionDescriptor.ofVoid(*toArgumentMemoryLayouts())
-    } else {
-        FunctionDescriptor.of(toResultMemoryLayout(), *toArgumentMemoryLayouts())
+        FunctionDescriptor.ofVoid(*toArgumentMemoryLayouts(useSegments))
+    }
+    else {
+        FunctionDescriptor.of(toResultMemoryLayout(useSegments), *toArgumentMemoryLayouts(useSegments))
     }
 }

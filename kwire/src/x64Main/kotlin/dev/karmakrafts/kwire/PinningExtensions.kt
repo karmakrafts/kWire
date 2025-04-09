@@ -19,6 +19,7 @@
 package dev.karmakrafts.kwire
 
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.COpaquePointerVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.Pinned
@@ -41,3 +42,8 @@ actual inline fun Pinned<NUIntArray>.addressOf(index: Int): CPointer<size_tVar>?
 // TODO: make the returned pointer type safe
 @ExperimentalForeignApi
 actual inline fun Pinned<NFloatArray>.addressOf(index: Int): COpaquePointer? = this.addressOf(index)
+
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+actual inline fun Pinned<PointerArray>.addressOf(index: Int): CPointer<COpaquePointerVar>? =
+    get().value.usePinned { it.addressOf(index) }?.reinterpret()

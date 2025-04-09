@@ -127,6 +127,16 @@ interface FFI {
      * @return The double value returned by the native function
      */
     fun callDouble(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Double
+
+    /**
+     * Calls a native function at the specified address with pointer return type.
+     *
+     * @param address The memory address of the function to call
+     * @param descriptor The descriptor specifying the function signature
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The pointer value returned by the native function
+     */
+    fun callPointer(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Pointer
 }
 
 /**
@@ -183,14 +193,3 @@ inline fun FFI.callULong(address: Pointer, descriptor: FFIDescriptor, noinline a
  */
 inline fun FFI.callNUInt(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): NUInt =
     callNInt(address, descriptor, args).toUnsigned()
-
-/**
- * Calls a native function at the specified address with pointer return type.
- *
- * @param address The memory address of the function to call
- * @param descriptor The descriptor specifying the function signature
- * @param args A lambda with receiver for specifying function arguments
- * @return The pointer value returned by the native function
- */
-inline fun FFI.callPointer(address: Pointer, descriptor: FFIDescriptor, noinline args: FFIArgSpec = {}): Pointer =
-    Pointer(callNUInt(address, descriptor, args))

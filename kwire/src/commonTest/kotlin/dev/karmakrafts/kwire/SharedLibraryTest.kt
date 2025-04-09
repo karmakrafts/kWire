@@ -73,7 +73,7 @@ class SharedLibraryTest {
     fun `Get function throws exception when no function is found`() {
         val library = SharedLibrary.cRuntime
         assertFails("Getting non-existent function should throw an exception") {
-            library.getFunction("nonsense", FFIDescriptor(FFIType.VOID))
+            library["nonsense", FFIType.VOID]
         }
     }
 }

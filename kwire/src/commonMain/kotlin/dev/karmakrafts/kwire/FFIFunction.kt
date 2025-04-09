@@ -147,4 +147,56 @@ data class FFIFunction( // @formatter:off
      * @return The pointer value returned by the native function
      */
     inline fun callPointer(noinline args: FFIArgSpec = {}): Pointer = FFI.callPointer(address, descriptor, args)
+
+    /**
+     * Calls the native function with a return type specified by the type parameter.
+     *
+     * This method automatically selects the appropriate specialized call method based on the
+     * reified type parameter. It supports all primitive types, their unsigned variants,
+     * native-sized integers, and pointers.
+     *
+     * @param R The return type of the function call
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The value returned by the native function, cast to type R
+     * @throws IllegalStateException if the specified return type is not supported
+     */
+    @Suppress("IMPLICIT_CAST_TO_ANY")
+    inline fun <reified R : Any> call(noinline args: FFIArgSpec = {}): R = when(R::class) {
+        Byte::class -> callByte(args)
+        Short::class -> callShort(args)
+        Int::class -> callInt(args)
+        Long::class -> callLong(args)
+        NInt::class -> callNInt(args)
+        UByte::class -> callUByte(args)
+        UShort::class -> callUShort(args)
+        UInt::class -> callUInt(args)
+        ULong::class -> callULong(args)
+        NUInt::class -> callNUInt(args)
+        Float::class -> callFloat(args)
+        Double::class -> callDouble(args)
+        Pointer::class -> callPointer(args)
+        else -> error("Unsupported FFI function return type ${R::class}")
+    } as R
+
+    /**
+     * Calls the native function with a return type specified by the type parameter, optimized for common primitive types.
+     *
+     * This method is a faster alternative to [call] that only supports the most common primitive types:
+     * Byte, Short, Int, Long, Float, and Double. It doesn't support unsigned types, native-sized integers,
+     * or pointers, making it more efficient for the supported types.
+     *
+     * @param R The return type of the function call (must be one of the supported primitive types)
+     * @param args A lambda with receiver for specifying function arguments
+     * @return The value returned by the native function, cast to type R
+     * @throws IllegalStateException if the specified return type is not supported
+     */
+    inline fun <reified R : Any> callFast(noinline args: FFIArgSpec = {}): R = when(R::class) {
+        Byte::class -> callByte(args)
+        Short::class -> callShort(args)
+        Int::class -> callInt(args)
+        Long::class -> callLong(args)
+        Float::class -> callFloat(args)
+        Double::class -> callDouble(args)
+        else -> error("Unsupported FFI function return type ${R::class}")
+    } as R
 }

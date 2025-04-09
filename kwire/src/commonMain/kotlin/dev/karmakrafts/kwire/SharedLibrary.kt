@@ -18,6 +18,8 @@
 
 package dev.karmakrafts.kwire
 
+import dev.karmakrafts.kwire.SharedLibrary.Companion.open
+import dev.karmakrafts.kwire.SharedLibrary.Companion.tryOpen
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.jvm.JvmName
@@ -80,6 +82,25 @@ class SharedLibrary internal constructor(
                 }
             ).apply {
                 closeOnExit()
+            }
+        }
+
+        /**
+         * Lazily loaded reference to the math library.
+         *
+         * This property provides access to the standard math library functions.
+         * On Linux platforms, it loads the dedicated math library ("libm.so.6" or "libm.so") and falls back to the CRT if that fails.
+         * On other platforms, it falls back to the C runtime library which typically
+         * includes math functions.
+         *
+         * @return A SharedLibrary instance representing the math library
+         */
+        val cMath: SharedLibrary by lazy {
+            when (Platform.current) {
+                Platform.LINUX -> tryOpen("libm.so.6", "libm.so")?.apply {
+                    closeOnExit()
+                } ?: cRuntime
+                else -> cRuntime
             }
         }
 

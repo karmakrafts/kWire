@@ -198,4 +198,5 @@ inline fun NInt.toUnsigned(): NUInt = NUInt(this)
  * @return A string containing the hexadecimal representation of this native integer
  */
 @ExperimentalStdlibApi
-inline fun NInt.toHexString(): String = longValue.toHexString()
+inline fun NInt.toHexString(): String = if(Pointer.SIZE_BYTES == Int.SIZE_BYTES) intValue.toHexString()
+else longValue.toHexString()

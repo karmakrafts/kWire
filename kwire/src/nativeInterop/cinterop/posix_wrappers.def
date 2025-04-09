@@ -1,0 +1,25 @@
+package = platform.posix
+headers = stddef.h stdlib.h malloc.h string.h
+
+---
+
+#ifdef __cplusplus
+#define PW_CALL extern "C"
+#else
+#define PW_CALL
+#endif //__cplusplus
+
+#define PW_EXPORT __attribute__((visibility("default")))
+#define PW_API PW_EXPORT PW_CALL
+
+PW_API static inline size_t strlen_with_address(const void* address) {
+    return strlen((const char*)address);
+}
+
+PW_API static inline int strcmp_with_address(const void* first, const void* second) {
+    return strcmp((const char*)first, (const char*)second);
+}
+
+PW_API static inline void* strcpy_with_address(void* dest, const void* source) {
+    return strcpy((char*)dest, (const char*)source);
+}

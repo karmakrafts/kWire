@@ -54,6 +54,15 @@ kotlin {
     androidTarget {
         publishLibraryVariants("release")
     }
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations {
+            val main by getting {
+                cinterops {
+                    val posix_wrappers by creating
+                }
+            }
+        }
+    }
     applyDefaultHierarchyTemplate()
     sourceSets {
         commonTest {

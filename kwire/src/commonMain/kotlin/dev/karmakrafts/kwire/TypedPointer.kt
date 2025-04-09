@@ -37,6 +37,7 @@ import kotlin.jvm.JvmInline
  * - Pointer arithmetic operations (plus, minus) for different numeric types
  * - Indexing operations (get, set) for accessing array elements
  * - Type reinterpretation through the [Reinterpretable.reinterpret] method
+ * - Resource management through the [AutoCloseable] interface
  */
 
 // Signed
@@ -45,12 +46,20 @@ import kotlin.jvm.JvmInline
  * A strongly-typed pointer for byte (8-bit signed integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for byte values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class BytePtr(val value: Pointer) : Reinterpretable {
+value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -258,6 +267,8 @@ value class BytePtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -276,12 +287,20 @@ inline fun Pointer.asBytePtr(): BytePtr = BytePtr(this)
  * A strongly-typed pointer for short (16-bit signed integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for short values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class ShortPtr(val value: Pointer) : Reinterpretable {
+value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -489,6 +508,8 @@ value class ShortPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -507,12 +528,20 @@ inline fun Pointer.asShortPtr(): ShortPtr = ShortPtr(this)
  * A strongly-typed pointer for int (32-bit signed integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for int values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class IntPtr(val value: Pointer) : Reinterpretable {
+value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -720,6 +749,8 @@ value class IntPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -738,12 +769,20 @@ inline fun Pointer.asIntPtr(): IntPtr = IntPtr(this)
  * A strongly-typed pointer for long (64-bit signed integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for long values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class LongPtr(val value: Pointer) : Reinterpretable {
+value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -951,6 +990,8 @@ value class LongPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -971,11 +1012,19 @@ inline fun Pointer.asLongPtr(): LongPtr = LongPtr(this)
  * This value class wraps a [Pointer] and provides type-specific operations for native integer values,
  * including pointer arithmetic, array indexing, and type reinterpretation. The size of a native
  * integer depends on the platform (typically 32 bits on 32-bit platforms and 64 bits on 64-bit platforms).
+ * It implements [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class NIntPtr(val value: Pointer) : Reinterpretable {
+value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1183,6 +1232,8 @@ value class NIntPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -1203,12 +1254,20 @@ inline fun Pointer.asNIntPtr(): NIntPtr = NIntPtr(this)
  * A strongly-typed pointer for unsigned byte (8-bit unsigned integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for unsigned byte values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class UBytePtr(val value: Pointer) : Reinterpretable {
+value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1416,6 +1475,8 @@ value class UBytePtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -1434,12 +1495,20 @@ inline fun Pointer.asUBytePtr(): UBytePtr = UBytePtr(this)
  * A strongly-typed pointer for unsigned short (16-bit unsigned integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for unsigned short values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class UShortPtr(val value: Pointer) : Reinterpretable {
+value class UShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1651,6 +1720,8 @@ value class UShortPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -1669,12 +1740,20 @@ inline fun Pointer.asUShortPtr(): UShortPtr = UShortPtr(this)
  * A strongly-typed pointer for unsigned int (32-bit unsigned integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for unsigned int values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class UIntPtr(val value: Pointer) : Reinterpretable {
+value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1882,6 +1961,8 @@ value class UIntPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -1900,12 +1981,20 @@ inline fun Pointer.asUIntPtr(): UIntPtr = UIntPtr(this)
  * A strongly-typed pointer for unsigned long (64-bit unsigned integer) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for unsigned long values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class ULongPtr(val value: Pointer) : Reinterpretable {
+value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2113,6 +2202,8 @@ value class ULongPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -2133,11 +2224,19 @@ inline fun Pointer.asULongPtr(): ULongPtr = ULongPtr(this)
  * This value class wraps a [Pointer] and provides type-specific operations for native unsigned integer values,
  * including pointer arithmetic, array indexing, and type reinterpretation. The size of a native
  * unsigned integer depends on the platform (typically 32 bits on 32-bit platforms and 64 bits on 64-bit platforms).
+ * It implements [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class NUIntPtr(val value: Pointer) : Reinterpretable {
+value class NUIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2347,6 +2446,8 @@ value class NUIntPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> this
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -2367,12 +2468,20 @@ inline fun Pointer.asNUIntPtr(): NUIntPtr = NUIntPtr(this)
  * A strongly-typed pointer for float (32-bit floating-point) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for float values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class FloatPtr(val value: Pointer) : Reinterpretable {
+value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2580,6 +2689,8 @@ value class FloatPtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> this
         DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -2598,12 +2709,20 @@ inline fun Pointer.asFloatPtr(): FloatPtr = FloatPtr(this)
  * A strongly-typed pointer for double (64-bit floating-point) values.
  *
  * This value class wraps a [Pointer] and provides type-specific operations for double values,
- * including pointer arithmetic, array indexing, and type reinterpretation.
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
  *
  * @property value The underlying memory address as a [Pointer]
  */
 @JvmInline
-value class DoublePtr(val value: Pointer) : Reinterpretable {
+value class DoublePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2815,6 +2934,8 @@ value class DoublePtr(val value: Pointer) : Reinterpretable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> this
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
     } as T
 }
@@ -2828,3 +2949,245 @@ value class DoublePtr(val value: Pointer) : Reinterpretable {
  * @return A [DoublePtr] pointing to the same memory address as this pointer
  */
 inline fun Pointer.asDoublePtr(): DoublePtr = DoublePtr(this)
+
+/**
+ * Represents a strongly-typed pointer to a memory location containing pointers.
+ *
+ * This value class wraps a generic [Pointer] and provides type-safe operations
+ * for working with memory that contains pointer values. It includes methods for
+ * pointer arithmetic, array-like access, and type reinterpretation.
+ *
+ * @property value The underlying generic pointer to the memory location
+ */
+@JvmInline
+value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
+
+    /**
+     * Adds a native unsigned integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding a native unsigned integer
+     * value to the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The native unsigned integer value to add
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun plus(other: NUInt): PointerPtr = PointerPtr(value + other * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Subtracts a native unsigned integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting a native unsigned integer
+     * value from the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The native unsigned integer value to subtract
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun minus(other: NUInt): PointerPtr = PointerPtr(value - other * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Adds an unsigned long offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an unsigned long
+     * value to the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The unsigned long value to add
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun plus(other: ULong): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    /**
+     * Subtracts an unsigned long offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an unsigned long
+     * value from the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The unsigned long value to subtract
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun minus(other: ULong): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    /**
+     * Adds an unsigned integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an unsigned integer
+     * value to the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The unsigned integer value to add
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun plus(other: UInt): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    /**
+     * Subtracts an unsigned integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an unsigned integer
+     * value from the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The unsigned integer value to subtract
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun minus(other: UInt): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    /**
+     * Adds a long offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding a long
+     * value to the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The long value to add
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun plus(other: Long): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Subtracts a long offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting a long
+     * value from the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The long value to subtract
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun minus(other: Long): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Adds an integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an integer
+     * value to the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The integer value to add
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun plus(other: Int): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Subtracts an integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an integer
+     * value from the pointer's address, scaled by the size of a pointer.
+     *
+     * @param other The integer value to subtract
+     * @return A new pointer pointer with the resulting address
+     */
+    inline operator fun minus(other: Int): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Accesses the pointer value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a pointer array and indexing into it.
+     *
+     * @param index The integer index of the pointer to access
+     * @return The pointer value at the specified index
+     */
+    inline operator fun get(index: Int): Pointer =
+        Pointer(Memory.readNUInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt()))
+
+    /**
+     * Sets the pointer value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a pointer array and indexing into it.
+     *
+     * @param index The integer index of the pointer to modify
+     * @param value The new pointer value to set
+     */
+    inline operator fun set(index: Int, value: Pointer) =
+        Memory.writeNUInt(this.value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt(), value.value)
+
+    /**
+     * Accesses the pointer value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a pointer array and indexing into it with a long index.
+     *
+     * @param index The long index of the pointer to access
+     * @return The pointer value at the specified index
+     */
+    inline operator fun get(index: Long): Pointer =
+        Pointer(Memory.readNUInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt()))
+
+    /**
+     * Sets the pointer value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a pointer array and indexing into it with a long index.
+     *
+     * @param index The long index of the pointer to modify
+     * @param value The new pointer value to set
+     */
+    inline operator fun set(index: Long, value: Pointer) =
+        Memory.writeNUInt(this.value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt(), value.value)
+
+    /**
+     * Accesses the pointer value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a pointer array and indexing into it with a native unsigned integer index.
+     *
+     * @param index The native unsigned integer index of the pointer to access
+     * @return The pointer value at the specified index
+     */
+    inline operator fun get(index: NUInt): Pointer =
+        Pointer(Memory.readNUInt(value + index * Pointer.SIZE_BYTES.toNUInt()))
+
+    /**
+     * Sets the pointer value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a pointer array and indexing into it with a native unsigned integer index.
+     *
+     * @param index The native unsigned integer index of the pointer to modify
+     * @param value The new pointer value to set
+     */
+    inline operator fun set(index: NUInt, value: Pointer) =
+        Memory.writeNUInt(this.value + index * Pointer.SIZE_BYTES.toNUInt(), value.value)
+
+    /**
+     * Reinterprets this pointer as a different pointer type.
+     *
+     * This method allows for type-safe casting between different pointer types
+     * while maintaining the same underlying memory address. It's useful when
+     * you need to access memory with a different type than the original pointer.
+     *
+     * @param T The target pointer type, must be a subtype of [Reinterpretable]
+     * @return The pointer reinterpreted as the specified type
+     * @throws IllegalArgumentException if the requested type is not a supported pointer type
+     */
+    inline fun <reified T : Reinterpretable> reinterpret(): T = when (T::class) {
+        Pointer::class -> value
+        BytePtr::class -> value.asBytePtr()
+        ShortPtr::class -> value.asShortPtr()
+        IntPtr::class -> value.asIntPtr()
+        LongPtr::class -> value.asLongPtr()
+        NIntPtr::class -> value.asNIntPtr()
+        UBytePtr::class -> value.asUBytePtr()
+        UShortPtr::class -> value.asUShortPtr()
+        UIntPtr::class -> value.asUIntPtr()
+        ULongPtr::class -> value.asULongPtr()
+        NUIntPtr::class -> value.asNUIntPtr()
+        FloatPtr::class -> value.asFloatPtr()
+        DoublePtr::class -> value.asDoublePtr()
+        PointerPtr::class -> this
+        CString::class -> CString(value)
+        else -> error("Unknown pointer type ${T::class}")
+    } as T
+}
+
+/**
+ * Reinterprets this pointer as a pointer pointer.
+ *
+ * This extension function provides a convenient way to convert a generic [Pointer]
+ * to a strongly-typed [PointerPtr] for type-safe memory access to pointer values.
+ *
+ * @return A [PointerPtr] pointing to the same memory address as this pointer
+ */
+inline fun Pointer.asPointerPtr(): PointerPtr = PointerPtr(this)

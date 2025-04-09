@@ -25,7 +25,9 @@ import java.lang.invoke.MethodHandle
  * directly using Java's Foreign Function Interface. The method handle is created using the function's
  * address and descriptor.
  *
+ * @param useSegments When true, pointer types will use ValueLayout.ADDRESS which is appropriate for memory segments.
+ *                    When false, they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
  * @return A [MethodHandle] that can be used to invoke the native function.
  * @throws IllegalArgumentException if the method handle could not be obtained.
  */
-fun FFIFunction.toMethodHandle(): MethodHandle = PanamaFFI.getHandle(address, descriptor)
+fun FFIFunction.toMethodHandle(useSegments: Boolean = false): MethodHandle = PanamaFFI.getHandle(address, descriptor, useSegments)

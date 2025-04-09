@@ -52,7 +52,7 @@ sealed interface Reinterpretable
  * @property value The underlying memory address as a native unsigned integer
  */
 @JvmInline
-value class Pointer(val value: NUInt) : Reinterpretable {
+value class Pointer(val value: NUInt) : Reinterpretable, AutoCloseable {
     /**
      * Companion object containing constants related to pointers.
      */
@@ -221,28 +221,16 @@ value class Pointer(val value: NUInt) : Reinterpretable {
         NUIntPtr::class -> asNUIntPtr()
         FloatPtr::class -> asFloatPtr()
         DoublePtr::class -> asDoublePtr()
+        PointerPtr::class -> asPointerPtr()
+        CString::class -> CString(this)
         else -> error("Unknown pointer type ${T::class}")
     } as T
+
+    override fun close() = Memory.free(this)
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String = "0x${value.toHexString()}"
 }
-
-/**
- * Converts this pointer to a platform-specific representation.
- *
- * This internal function is used to convert the platform-independent [Pointer]
- * to a representation that can be used with platform-specific APIs, particularly
- * for FFI (Foreign Function Interface) calls.
- *
- * The return type varies by platform:
- * - On JVM/Android: Returns a MemorySegment (from Java's Foreign Memory Access API)
- * - On x64 native platforms: Returns a boxed [Long] representing the memory address
- * - On x32 native platforms: Returns a boxed [Int] representing the memory address
- *
- * @return A platform-specific representation of this pointer
- */
-internal expect inline fun Pointer.toPlatformRepresentation(): Any
 
 /**
  * A constant representing a null pointer (address 0).

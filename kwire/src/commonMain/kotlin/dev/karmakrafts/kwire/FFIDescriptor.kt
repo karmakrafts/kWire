@@ -52,7 +52,7 @@ data class FFIDescriptor( // @formatter:off
      * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
      */
     constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
-        returnType.getFFIType(), parameterTypes.map { it.getFFIType() })
+        FFIType.fromType(returnType), parameterTypes.map(FFIType::fromType))
 
     /**
      * Constructs a descriptor using Kotlin classes for the return type and variable number of parameter types.

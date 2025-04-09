@@ -315,6 +315,15 @@ class Struct private constructor( // @formatter:off
     inline fun getDoubles(index: Int, size: Int): DoubleArray = Memory.readDoubles(getFieldAddress(index), size)
 
     /**
+     * Gets an array of pointers from a field in the struct.
+     *
+     * @param index The index of the field
+     * @param size The number of pointers to read
+     * @return The array of pointers read from the field
+     */
+    inline fun getPointers(index: Int, size: Int): PointerArray = Memory.readPointers(getFieldAddress(index), size)
+
+    /**
      * Sets the byte value of a field in the struct.
      *
      * @param index The index of the field
@@ -513,6 +522,14 @@ class Struct private constructor( // @formatter:off
      * @param data The array of doubles to set
      */
     inline fun setDoubles(index: Int, data: DoubleArray) = Memory.writeDoubles(getFieldAddress(index), data)
+
+    /**
+     * Sets an array of pointers in a field in the struct.
+     *
+     * @param index The index of the field
+     * @param data The array of pointers to set
+     */
+    inline fun setPointers(index: Int, data: PointerArray) = Memory.writePointers(getFieldAddress(index), data)
 
     /**
      * Frees the memory allocated for this struct.

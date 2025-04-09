@@ -16,22 +16,34 @@
 
 package dev.karmakrafts.kwire
 
+import java.lang.foreign.MemorySegment
 import java.lang.invoke.MethodHandle
-import java.util.concurrent.ConcurrentHashMap
 import java.lang.foreign.Linker as JvmLinker
 
 internal object PanamaFFI : FFI {
-    private val handleCache: ConcurrentHashMap<Pointer, MethodHandle> = ConcurrentHashMap()
-
-    internal fun getHandle(address: Pointer, descriptor: FFIDescriptor): MethodHandle {
-        var handle = handleCache[address]
-        if (handle == null) {
-            handle = JvmLinker.nativeLinker()
-                .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor())
-            handleCache[address] = handle
+    fun FFIArgBuffer.toArray(): Array<Any> {
+        var offset = 0UL
+        return Array(types.size) { index ->
+            val type = types[index]
+            val value: Any = when (type) {
+                FFIType.BYTE, FFIType.UBYTE -> Memory.readByte(address + offset)
+                FFIType.SHORT, FFIType.USHORT -> Memory.readShort(address + offset)
+                FFIType.INT, FFIType.UINT -> Memory.readInt(address + offset)
+                FFIType.LONG, FFIType.ULONG -> Memory.readLong(address + offset)
+                FFIType.NINT, FFIType.NUINT -> Memory.readNInt(address + offset).longValue
+                FFIType.FLOAT -> Memory.readFloat(address + offset)
+                FFIType.DOUBLE -> Memory.readDouble(address + offset)
+                FFIType.PTR -> Memory.readPointer(address + offset).toMemorySegment()
+                else -> throw IllegalStateException("Cannot map FFI parameter type $type")
+            }
+            offset += type.size.toULong()
+            value
         }
-        // TODO: Improve error message, possibly including function name
-        return requireNotNull(handle) { "Could not obtain method handle for native function at $address" }
+    }
+
+    internal fun getHandle(address: Pointer, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
+        return JvmLinker.nativeLinker()
+            .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
     }
 
     override fun call(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec) {
@@ -67,7 +79,12 @@ internal object PanamaFFI : FFI {
     override fun callNInt(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec): NInt {
         val buffer = FFIArgBuffer.get()
         buffer.args()
-        return (getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as Long).toNInt()
+        return if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+            (getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as Int).toNInt()
+        }
+        else {
+            (getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as Long).toNInt()
+        }
     }
 
     override fun callFloat(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec): Float {
@@ -80,6 +97,12 @@ internal object PanamaFFI : FFI {
         val buffer = FFIArgBuffer.get()
         buffer.args()
         return getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as Double
+    }
+
+    override fun callPointer(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec): Pointer {
+        val buffer = FFIArgBuffer.get()
+        buffer.args()
+        return (getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as MemorySegment).toPointer()
     }
 }
 

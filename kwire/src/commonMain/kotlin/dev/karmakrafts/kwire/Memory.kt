@@ -15,7 +15,7 @@
  */
 
 // @formatter:off
-@file:OptIn(ExperimentalUnsignedTypes::class) 
+@file:OptIn(ExperimentalUnsignedTypes::class)
 @file:Suppress("NOTHING_TO_INLINE") 
 @file:JvmName("Memory$")
 // @formatter:on
@@ -137,6 +137,31 @@ interface Memory {
     fun compare(first: Pointer, second: Pointer, size: NUInt): Int
 
     /**
+     * Gets the length of a null-terminated string, similar to C's strlen.
+     *
+     * @param address The pointer to the null-terminated string
+     * @return The length of the string in bytes, not including the null terminator
+     */
+    fun strlen(address: Pointer): NUInt
+
+    /**
+     * Copies a null-terminated string from source to destination, similar to C's strcpy.
+     *
+     * @param source The pointer to the source null-terminated string
+     * @param dest The pointer to the destination buffer where the string will be copied
+     */
+    fun strcpy(source: Pointer, dest: Pointer)
+
+    /**
+     * Compares two null-terminated strings lexicographically, similar to C's strcmp.
+     *
+     * @param first The pointer to the first null-terminated string
+     * @param second The pointer to the second null-terminated string
+     * @return A negative value if first < second, zero if first == second, or a positive value if first > second
+     */
+    fun strcmp(first: Pointer, second: Pointer): Int
+
+    /**
      * Reads a byte value from the specified memory address.
      *
      * @param address The memory address to read from
@@ -177,6 +202,14 @@ interface Memory {
     fun readNInt(address: Pointer): NInt
 
     /**
+     * Reads a pointer value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The pointer value at the specified address
+     */
+    fun readPointer(address: Pointer): Pointer
+
+    /**
      * Reads a float value from the specified memory address.
      *
      * @param address The memory address to read from
@@ -196,64 +229,81 @@ interface Memory {
      * Reads an array of bytes from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of bytes to read
-     * @return The array of bytes read from the specified address
+     * @param data The array to store the read bytes
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readBytes(address: Pointer, size: Int): ByteArray
+    fun readBytes(address: Pointer, data: ByteArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of shorts from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of shorts to read
-     * @return The array of shorts read from the specified address
+     * @param data The array to store the read shorts
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readShorts(address: Pointer, size: Int): ShortArray
+    fun readShorts(address: Pointer, data: ShortArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of ints from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of ints to read
-     * @return The array of ints read from the specified address
+     * @param data The array to store the read ints
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readInts(address: Pointer, size: Int): IntArray
+    fun readInts(address: Pointer, data: IntArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of longs from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of longs to read
-     * @return The array of longs read from the specified address
+     * @param data The array to store the read longs
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readLongs(address: Pointer, size: Int): LongArray
+    fun readLongs(address: Pointer, data: LongArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of native integers from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of native integers to read
-     * @return The array of native integers read from the specified address
+     * @param data The array to store the read native integers
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readNInts(address: Pointer, size: Int): NIntArray
+    fun readNInts(address: Pointer, data: NIntArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of floats from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of floats to read
-     * @return The array of floats read from the specified address
+     * @param data The array to store the read floats
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readFloats(address: Pointer, size: Int): FloatArray
+    fun readFloats(address: Pointer, data: FloatArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of doubles from the specified memory address.
      *
      * @param address The memory address to read from
-     * @param size The number of doubles to read
-     * @return The array of doubles read from the specified address
+     * @param data The array to store the read doubles
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun readDoubles(address: Pointer, size: Int): DoubleArray
+    fun readDoubles(address: Pointer, data: DoubleArray, dataStart: Int = 0, dataEnd: Int = data.size)
+
+    /**
+     * Reads an array of pointers from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @param data The array to store the read pointers
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
+     */
+    fun readPointers(address: Pointer, data: PointerArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes a byte value to the specified memory address.
@@ -296,6 +346,14 @@ interface Memory {
     fun writeNInt(address: Pointer, value: NInt)
 
     /**
+     * Writes a pointer value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The pointer value to write
+     */
+    fun writePointer(address: Pointer, value: Pointer)
+
+    /**
      * Writes a float value to the specified memory address.
      *
      * @param address The memory address to write to
@@ -316,56 +374,80 @@ interface Memory {
      *
      * @param address The memory address to write to
      * @param data The array of bytes to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeBytes(address: Pointer, data: ByteArray)
+    fun writeBytes(address: Pointer, data: ByteArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of shorts to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of shorts to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeShorts(address: Pointer, data: ShortArray)
+    fun writeShorts(address: Pointer, data: ShortArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of ints to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of ints to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeInts(address: Pointer, data: IntArray)
+    fun writeInts(address: Pointer, data: IntArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of longs to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of longs to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeLongs(address: Pointer, data: LongArray)
+    fun writeLongs(address: Pointer, data: LongArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of native integers to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of native integers to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeNInts(address: Pointer, data: NIntArray)
+    fun writeNInts(address: Pointer, data: NIntArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of floats to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of floats to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeFloats(address: Pointer, data: FloatArray)
+    fun writeFloats(address: Pointer, data: FloatArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of doubles to the specified memory address.
      *
      * @param address The memory address to write to
      * @param data The array of doubles to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
      */
-    fun writeDoubles(address: Pointer, data: DoubleArray)
+    fun writeDoubles(address: Pointer, data: DoubleArray, dataStart: Int = 0, dataEnd: Int = data.size)
+
+    /**
+     * Writes an array of pointers to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param data The array of pointers to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
+     */
+    fun writePointers(address: Pointer, data: PointerArray, dataStart: Int = 0, dataEnd: Int = data.size)
 }
 
 /**
@@ -375,6 +457,19 @@ interface Memory {
  * @param size The number of bytes to set to zero
  */
 inline fun Memory.zero(address: Pointer, size: NUInt) = set(address, 0, size)
+
+/**
+ * Allocates a block of memory of the specified size and fills it with the specified byte value.
+ *
+ * @param value The byte value to fill the memory with
+ * @param size The size of the memory block to allocate in bytes
+ * @param alignment The alignment of the memory block (defaults to the platform's default alignment)
+ * @return A pointer to the allocated and initialized memory block
+ */
+inline fun Memory.splat(value: Byte, size: NUInt, alignment: NUInt = defaultAlignment): Pointer =
+    Memory.allocate(size, alignment).apply {
+        set(this, value, size)
+    }
 
 /**
  * Reads an unsigned byte value from the specified memory address.
@@ -417,57 +512,59 @@ inline fun Memory.readULong(address: Pointer): ULong = readLong(address).toULong
 inline fun Memory.readNUInt(address: Pointer): NUInt = readNInt(address).toUnsigned()
 
 /**
- * Reads a pointer value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The pointer value at the specified address
- */
-inline fun Memory.readPointer(address: Pointer): Pointer = Pointer(readNUInt(address))
-
-/**
  * Reads an array of unsigned bytes from the specified memory address.
  *
  * @param address The memory address to read from
- * @param size The number of unsigned bytes to read
- * @return The array of unsigned bytes read from the specified address
+ * @param data The array to store the read unsigned bytes
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.readUBytes(address: Pointer, size: Int): UByteArray = readBytes(address, size).asUByteArray()
+inline fun Memory.readUBytes(address: Pointer, data: UByteArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    readBytes(address, data.asByteArray(), dataStart, dataEnd)
 
 /**
  * Reads an array of unsigned shorts from the specified memory address.
  *
  * @param address The memory address to read from
- * @param size The number of unsigned shorts to read
- * @return The array of unsigned shorts read from the specified address
+ * @param data The array to store the read unsigned shorts
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.readUShorts(address: Pointer, size: Int): UShortArray = readShorts(address, size).asUShortArray()
+inline fun Memory.readUShorts(address: Pointer, data: UShortArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    readShorts(address, data.asShortArray(), dataStart, dataEnd)
 
 /**
  * Reads an array of unsigned ints from the specified memory address.
  *
  * @param address The memory address to read from
- * @param size The number of unsigned ints to read
- * @return The array of unsigned ints read from the specified address
+ * @param data The array to store the read unsigned ints
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.readUInts(address: Pointer, size: Int): UIntArray = readInts(address, size).asUIntArray()
+inline fun Memory.readUInts(address: Pointer, data: UIntArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    readInts(address, data.asIntArray(), dataStart, dataEnd)
 
 /**
  * Reads an array of unsigned longs from the specified memory address.
  *
  * @param address The memory address to read from
- * @param size The number of unsigned longs to read
- * @return The array of unsigned longs read from the specified address
+ * @param data The array to store the read unsigned longs
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.readULongs(address: Pointer, size: Int): ULongArray = readLongs(address, size).asULongArray()
+inline fun Memory.readULongs(address: Pointer, data: ULongArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    readLongs(address, data.asLongArray(), dataStart, dataEnd)
 
 /**
  * Reads an array of native unsigned integers from the specified memory address.
  *
  * @param address The memory address to read from
- * @param size The number of native unsigned integers to read
- * @return The array of native unsigned integers read from the specified address
+ * @param data The array to store the read native unsigned integers
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.readNUInts(address: Pointer, size: Int): NUIntArray = readNInts(address, size).asNUIntArray()
+inline fun Memory.readNUInts(address: Pointer, data: NUIntArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    readNInts(address, data.asNIntArray(), dataStart, dataEnd)
 
 /**
  * Writes an unsigned byte value to the specified memory address.
@@ -510,49 +607,201 @@ inline fun Memory.writeULong(address: Pointer, value: ULong) = writeLong(address
 inline fun Memory.writeNUInt(address: Pointer, value: NUInt) = writeNInt(address, value.toSigned())
 
 /**
- * Writes a pointer value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The pointer value to write
- */
-inline fun Memory.writePointer(address: Pointer, value: Pointer) = writeNUInt(address, value.value)
-
-/**
  * Writes an array of unsigned bytes to the specified memory address.
  *
  * @param address The memory address to write to
  * @param data The array of unsigned bytes to write
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.writeUBytes(address: Pointer, data: UByteArray) = writeBytes(address, data.asByteArray())
+inline fun Memory.writeUBytes(address: Pointer, data: UByteArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    writeBytes(address, data.asByteArray(), dataStart, dataEnd)
 
 /**
  * Writes an array of unsigned shorts to the specified memory address.
  *
  * @param address The memory address to write to
  * @param data The array of unsigned shorts to write
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.writeUShorts(address: Pointer, data: UShortArray) = writeShorts(address, data.asShortArray())
+inline fun Memory.writeUShorts(address: Pointer, data: UShortArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    writeShorts(address, data.asShortArray(), dataStart, dataEnd)
 
 /**
  * Writes an array of unsigned ints to the specified memory address.
  *
  * @param address The memory address to write to
  * @param data The array of unsigned ints to write
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.writeUInts(address: Pointer, data: UIntArray) = writeInts(address, data.asIntArray())
+inline fun Memory.writeUInts(address: Pointer, data: UIntArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    writeInts(address, data.asIntArray(), dataStart, dataEnd)
 
 /**
  * Writes an array of unsigned longs to the specified memory address.
  *
  * @param address The memory address to write to
  * @param data The array of unsigned longs to write
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.writeULongs(address: Pointer, data: ULongArray) = writeLongs(address, data.asLongArray())
+inline fun Memory.writeULongs(address: Pointer, data: ULongArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    writeLongs(address, data.asLongArray(), dataStart, dataEnd)
 
 /**
  * Writes an array of native unsigned integers to the specified memory address.
  *
  * @param address The memory address to write to
  * @param data The array of native unsigned integers to write
+ * @param dataStart The starting index in the array (inclusive)
+ * @param dataEnd The ending index in the array (exclusive)
  */
-inline fun Memory.writeNUInts(address: Pointer, data: NUIntArray) = writeNInts(address, data.asNIntArray())
+inline fun Memory.writeNUInts(address: Pointer, data: NUIntArray, dataStart: Int = 0, dataEnd: Int = data.size) =
+    writeNInts(address, data.asNIntArray(), dataStart, dataEnd)
+
+// Allocating reads
+
+/**
+ * Reads an array of bytes from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of bytes to read
+ * @return A newly allocated array containing the bytes read from the specified address
+ */
+inline fun Memory.readBytes(address: Pointer, size: Int): ByteArray = ByteArray(size).apply {
+    readBytes(address, this)
+}
+
+/**
+ * Reads an array of shorts from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of shorts to read
+ * @return A newly allocated array containing the shorts read from the specified address
+ */
+inline fun Memory.readShorts(address: Pointer, size: Int): ShortArray = ShortArray(size).apply {
+    readShorts(address, this)
+}
+
+/**
+ * Reads an array of ints from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of ints to read
+ * @return A newly allocated array containing the ints read from the specified address
+ */
+inline fun Memory.readInts(address: Pointer, size: Int): IntArray = IntArray(size).apply {
+    readInts(address, this)
+}
+
+/**
+ * Reads an array of longs from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of longs to read
+ * @return A newly allocated array containing the longs read from the specified address
+ */
+inline fun Memory.readLongs(address: Pointer, size: Int): LongArray = LongArray(size).apply {
+    readLongs(address, this)
+}
+
+/**
+ * Reads an array of native integers from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of native integers to read
+ * @return A newly allocated array containing the native integers read from the specified address
+ */
+inline fun Memory.readNInts(address: Pointer, size: Int): NIntArray = nIntArray(size).apply {
+    readNInts(address, this)
+}
+
+/**
+ * Reads an array of unsigned bytes from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of unsigned bytes to read
+ * @return A newly allocated array containing the unsigned bytes read from the specified address
+ */
+inline fun Memory.readUBytes(address: Pointer, size: Int): UByteArray = UByteArray(size).apply {
+    readUBytes(address, this)
+}
+
+/**
+ * Reads an array of unsigned shorts from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of unsigned shorts to read
+ * @return A newly allocated array containing the unsigned shorts read from the specified address
+ */
+inline fun Memory.readUShorts(address: Pointer, size: Int): UShortArray = UShortArray(size).apply {
+    readUShorts(address, this)
+}
+
+/**
+ * Reads an array of unsigned ints from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of unsigned ints to read
+ * @return A newly allocated array containing the unsigned ints read from the specified address
+ */
+inline fun Memory.readUInts(address: Pointer, size: Int): UIntArray = UIntArray(size).apply {
+    readUInts(address, this)
+}
+
+/**
+ * Reads an array of unsigned longs from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of unsigned longs to read
+ * @return A newly allocated array containing the unsigned longs read from the specified address
+ */
+inline fun Memory.readULongs(address: Pointer, size: Int): ULongArray = ULongArray(size).apply {
+    readULongs(address, this)
+}
+
+/**
+ * Reads an array of native unsigned integers from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of native unsigned integers to read
+ * @return A newly allocated array containing the native unsigned integers read from the specified address
+ */
+inline fun Memory.readNUInts(address: Pointer, size: Int): NUIntArray = nUIntArray(size).apply {
+    readNUInts(address, this)
+}
+
+/**
+ * Reads an array of floats from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of floats to read
+ * @return A newly allocated array containing the floats read from the specified address
+ */
+inline fun Memory.readFloats(address: Pointer, size: Int): FloatArray = FloatArray(size).apply {
+    readFloats(address, this)
+}
+
+/**
+ * Reads an array of doubles from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of doubles to read
+ * @return A newly allocated array containing the doubles read from the specified address
+ */
+inline fun Memory.readDoubles(address: Pointer, size: Int): DoubleArray = DoubleArray(size).apply {
+    readDoubles(address, this)
+}
+
+/**
+ * Reads an array of pointers from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of pointers to read
+ * @return A newly allocated array containing the pointers read from the specified address
+ */
+inline fun Memory.readPointers(address: Pointer, size: Int): PointerArray = pointerArray(size).apply { 
+    readPointers(address, this)
+}

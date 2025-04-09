@@ -19,6 +19,7 @@
 package dev.karmakrafts.kwire
 
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.COpaquePointerVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.Pinned
@@ -62,6 +63,17 @@ expect inline fun Pinned<NUIntArray>.addressOf(index: Int): CPointer<size_tVar>?
  * @return A pointer to the element at the specified index, or null if the index is out of bounds.
  * @note The returned pointer is not type-safe and should be used with caution.
  */
-// TODO: make the returned pointer type safe
 @ExperimentalForeignApi
 expect inline fun Pinned<NFloatArray>.addressOf(index: Int): COpaquePointer?
+
+/**
+ * Gets a pointer to the element at the specified [index] in a pinned [PointerArray].
+ *
+ * This function allows direct memory access to elements in a native pointer array.
+ * The array must be pinned to prevent it from being moved by the garbage collector.
+ *
+ * @param index The index of the element to get a pointer to.
+ * @return A pointer to the element at the specified index, or null if the index is out of bounds.
+ */
+@ExperimentalForeignApi
+expect inline fun Pinned<PointerArray>.addressOf(index: Int): CPointer<COpaquePointerVar>?
