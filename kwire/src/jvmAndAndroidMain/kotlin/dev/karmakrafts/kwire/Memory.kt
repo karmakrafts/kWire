@@ -42,7 +42,7 @@ private object PanamaMemory : Memory {
     private val strlen: MethodHandle =
         SharedLibrary.cRuntime["strlen", FFIType.NUINT, FFIType.PTR].toMethodHandle(true)
     private val strcpy: MethodHandle =
-        SharedLibrary.cRuntime["strcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime["strcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR].toMethodHandle(true)
     private val strcmp: MethodHandle =
         SharedLibrary.cRuntime["strcmp", FFIType.INT, FFIType.PTR, FFIType.PTR].toMethodHandle(true)
     // @formatter:on
