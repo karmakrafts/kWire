@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-// @formatter:off
-@file:JvmName("NInt$")
 @file:Suppress("NOTHING_TO_INLINE")
-// @formatter:on
 
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 /**
  * Represents a platform-dependent signed integer type.

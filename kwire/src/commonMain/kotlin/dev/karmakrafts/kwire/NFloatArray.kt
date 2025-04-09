@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-// @formatter:off
 @file:Suppress("NOTHING_TO_INLINE")
-@file:JvmName("NFloatArray$")
-// @formatter:on
 
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 /**
  * A platform-specific array of [NFloat] values.

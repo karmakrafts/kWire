@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:JvmName("PointerImpl")
+
 package dev.karmakrafts.kwire
 
 internal actual fun getPointerSize(): Int {

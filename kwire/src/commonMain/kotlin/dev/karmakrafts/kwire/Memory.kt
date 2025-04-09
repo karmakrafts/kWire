@@ -16,13 +16,10 @@
 
 // @formatter:off
 @file:OptIn(ExperimentalUnsignedTypes::class)
-@file:Suppress("NOTHING_TO_INLINE") 
-@file:JvmName("Memory$")
+@file:Suppress("NOTHING_TO_INLINE")
 // @formatter:on
 
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 /**
  * Internal function to get the platform-specific implementation of the Memory interface.

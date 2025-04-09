@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-// @formatter:off
 @file:Suppress("NOTHING_TO_INLINE")
-@file:JvmName("NIntArray$")
-// @formatter:on
 
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 /**
  * A platform-specific array of [NInt] values.

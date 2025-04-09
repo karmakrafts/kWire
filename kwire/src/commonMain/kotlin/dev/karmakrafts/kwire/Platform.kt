@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-@file:JvmName("Platform$")
-
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 private const val UNIX_EXTENSION: String = "so"
 private const val APPLE_EXTENSION: String = "dylib"

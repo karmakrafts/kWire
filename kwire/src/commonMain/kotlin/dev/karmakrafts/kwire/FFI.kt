@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-// @formatter:off
-@file:Suppress("NOTHING_TO_INLINE") 
-@file:JvmName("FFI$")
-// @formatter:on
+@file:Suppress("NOTHING_TO_INLINE")
 
 package dev.karmakrafts.kwire
 
+import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 
 /**

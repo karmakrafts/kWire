@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:JvmName("PlatformImpl")
+
 package dev.karmakrafts.kwire
 
 @PublishedApi

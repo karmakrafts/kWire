@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE") @file:JvmName("NFloat$")
+@file:Suppress("NOTHING_TO_INLINE")
 
 package dev.karmakrafts.kwire
-
-import kotlin.jvm.JvmName
 
 /**
  * Represents a platform-dependent floating-point number type.

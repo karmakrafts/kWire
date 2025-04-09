@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-// @formatter:off
 @file:Suppress("NOTHING_TO_INLINE")
-@file:JvmName("Pointer$")
-// @formatter:on
 
 package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmInline
-import kotlin.jvm.JvmName
 
 /**
  * Internal function to get the size of a pointer in bytes on the current platform.

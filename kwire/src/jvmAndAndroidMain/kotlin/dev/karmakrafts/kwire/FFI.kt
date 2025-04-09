@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+// @formatter:off
+@file:JvmName("FFIImpl")
+// @formatter:on
+
 package dev.karmakrafts.kwire
 
 import java.lang.invoke.MethodHandle

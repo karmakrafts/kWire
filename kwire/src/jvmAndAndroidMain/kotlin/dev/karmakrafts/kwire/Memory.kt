@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:JvmName("MemoryImpl")
+
 package dev.karmakrafts.kwire
 
 import java.lang.foreign.AddressLayout

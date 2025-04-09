@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-// @formatter:off
-@file:JvmName("NUInt$")
 @file:Suppress("NOTHING_TO_INLINE")
-// @formatter:on
 
 package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmInline
+import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 
 /**

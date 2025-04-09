@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+// @formatter:off
 @file:Suppress("NOTHING_TO_INLINE")
+@file:JvmName("NIntImpl")
+// @formatter:on
 
 package dev.karmakrafts.kwire
 

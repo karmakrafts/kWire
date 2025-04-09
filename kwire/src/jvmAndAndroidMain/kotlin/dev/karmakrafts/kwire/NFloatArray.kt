@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+// @formatter:off
 @file:Suppress("NOTHING_TO_INLINE")
+@file:JvmName("NFloatArrayImpl")
+// @formatter:on
 
 package dev.karmakrafts.kwire
 

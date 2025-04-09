@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-@file:JvmName("SharedLibrary$")
-
 package dev.karmakrafts.kwire
 
 import dev.karmakrafts.kwire.SharedLibrary.Companion.open
 import dev.karmakrafts.kwire.SharedLibrary.Companion.tryOpen
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.jvm.JvmName
 
 internal interface SharedLibraryHandle : AutoCloseable {
     val name: String
