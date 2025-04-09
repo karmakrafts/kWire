@@ -133,8 +133,18 @@ expect inline operator fun NInt.div(other: NInt): NInt
  */
 expect inline operator fun NInt.rem(other: NInt): NInt
 
+/**
+ * Increments this native integer by one.
+ *
+ * @return The incremented native integer
+ */
 expect inline operator fun NInt.inc(): NInt
 
+/**
+ * Decrements this native integer by one.
+ *
+ * @return The decremented native integer
+ */
 expect inline operator fun NInt.dec(): NInt
 
 /**

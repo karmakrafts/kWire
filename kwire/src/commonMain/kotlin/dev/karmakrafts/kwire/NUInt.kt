@@ -143,8 +143,18 @@ expect inline operator fun NUInt.div(other: NUInt): NUInt
  */
 expect inline operator fun NUInt.rem(other: NUInt): NUInt
 
+/**
+ * Increments this native unsigned integer by one.
+ *
+ * @return The incremented native unsigned integer
+ */
 expect inline operator fun NUInt.inc(): NUInt
 
+/**
+ * Decrements this native unsigned integer by one.
+ *
+ * @return The decremented native unsigned integer
+ */
 expect inline operator fun NUInt.dec(): NUInt
 
 /**
