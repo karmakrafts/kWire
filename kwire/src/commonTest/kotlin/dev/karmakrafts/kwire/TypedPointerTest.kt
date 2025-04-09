@@ -37,7 +37,7 @@ class TypedPointerTest {
     fun `BytePtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val bytePtr = BytePtr(ptr)
-        assertNotEquals(nullptr, bytePtr.value, "BytePtr should have a valid pointer")
+        assertNotEquals(nullptr(), bytePtr, "BytePtr should have a valid pointer")
 
         bytePtr.close()
         // If we reach here without crashing, the test passes
@@ -253,7 +253,7 @@ class TypedPointerTest {
     fun `ShortPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val shortPtr = ShortPtr(ptr)
-        assertNotEquals(nullptr, shortPtr.value, "ShortPtr should have a valid pointer")
+        assertNotEquals(nullptr(), shortPtr, "ShortPtr should have a valid pointer")
 
         shortPtr.close()
         // If we reach here without crashing, the test passes
@@ -471,7 +471,7 @@ class TypedPointerTest {
     fun `IntPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val intPtr = IntPtr(ptr)
-        assertNotEquals(nullptr, intPtr.value, "IntPtr should have a valid pointer")
+        assertNotEquals(nullptr(), intPtr, "IntPtr should have a valid pointer")
 
         intPtr.close()
         // If we reach here without crashing, the test passes
@@ -687,7 +687,7 @@ class TypedPointerTest {
     fun `LongPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val longPtr = LongPtr(ptr)
-        assertNotEquals(nullptr, longPtr.value, "LongPtr should have a valid pointer")
+        assertNotEquals(nullptr(), longPtr, "LongPtr should have a valid pointer")
 
         longPtr.close()
         // If we reach here without crashing, the test passes
@@ -905,7 +905,7 @@ class TypedPointerTest {
     fun `NIntPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val nIntPtr = NIntPtr(ptr)
-        assertNotEquals(nullptr, nIntPtr.value, "NIntPtr should have a valid pointer")
+        assertNotEquals(nullptr(), nIntPtr, "NIntPtr should have a valid pointer")
 
         nIntPtr.close()
         // If we reach here without crashing, the test passes
@@ -1123,7 +1123,7 @@ class TypedPointerTest {
     fun `UBytePtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val uBytePtr = UBytePtr(ptr)
-        assertNotEquals(nullptr, uBytePtr.value, "UBytePtr should have a valid pointer")
+        assertNotEquals(nullptr(), uBytePtr, "UBytePtr should have a valid pointer")
 
         uBytePtr.close()
         // If we reach here without crashing, the test passes
@@ -1339,7 +1339,7 @@ class TypedPointerTest {
     fun `UShortPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val uShortPtr = UShortPtr(ptr)
-        assertNotEquals(nullptr, uShortPtr.value, "UShortPtr should have a valid pointer")
+        assertNotEquals(nullptr(), uShortPtr, "UShortPtr should have a valid pointer")
 
         uShortPtr.close()
         // If we reach here without crashing, the test passes
@@ -1557,7 +1557,7 @@ class TypedPointerTest {
     fun `UIntPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val uIntPtr = UIntPtr(ptr)
-        assertNotEquals(nullptr, uIntPtr.value, "UIntPtr should have a valid pointer")
+        assertNotEquals(nullptr(), uIntPtr, "UIntPtr should have a valid pointer")
 
         uIntPtr.close()
         // If we reach here without crashing, the test passes
@@ -1775,7 +1775,7 @@ class TypedPointerTest {
     fun `ULongPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val uLongPtr = ULongPtr(ptr)
-        assertNotEquals(nullptr, uLongPtr.value, "ULongPtr should have a valid pointer")
+        assertNotEquals(nullptr(), uLongPtr, "ULongPtr should have a valid pointer")
 
         uLongPtr.close()
         // If we reach here without crashing, the test passes
@@ -1993,7 +1993,7 @@ class TypedPointerTest {
     fun `NUIntPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val nUIntPtr = NUIntPtr(ptr)
-        assertNotEquals(nullptr, nUIntPtr.value, "NUIntPtr should have a valid pointer")
+        assertNotEquals(nullptr(), nUIntPtr, "NUIntPtr should have a valid pointer")
 
         nUIntPtr.close()
         // If we reach here without crashing, the test passes
@@ -2211,7 +2211,7 @@ class TypedPointerTest {
     fun `FloatPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val floatPtr = FloatPtr(ptr)
-        assertNotEquals(nullptr, floatPtr.value, "FloatPtr should have a valid pointer")
+        assertNotEquals(nullptr(), floatPtr, "FloatPtr should have a valid pointer")
 
         floatPtr.close()
         // If we reach here without crashing, the test passes
@@ -2429,7 +2429,7 @@ class TypedPointerTest {
     fun `DoublePtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val doublePtr = DoublePtr(ptr)
-        assertNotEquals(nullptr, doublePtr.value, "DoublePtr should have a valid pointer")
+        assertNotEquals(nullptr(), doublePtr, "DoublePtr should have a valid pointer")
 
         doublePtr.close()
         // If we reach here without crashing, the test passes
@@ -2649,7 +2649,7 @@ class TypedPointerTest {
     fun `PointerPtr close works correctly`() {
         val ptr = Memory.allocate(16.toNUInt())
         val pointerPtr = PointerPtr(ptr)
-        assertNotEquals(nullptr, pointerPtr.value, "PointerPtr should have a valid pointer")
+        assertNotEquals(nullptr(), pointerPtr, "PointerPtr should have a valid pointer")
 
         pointerPtr.close()
         // If we reach here without crashing, the test passes
