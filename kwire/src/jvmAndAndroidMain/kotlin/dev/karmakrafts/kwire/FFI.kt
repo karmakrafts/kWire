@@ -33,7 +33,7 @@ internal object PanamaFFI : FFI {
                 FFIType.NINT, FFIType.NUINT -> Memory.readNInt(address + offset).longValue
                 FFIType.FLOAT -> Memory.readFloat(address + offset)
                 FFIType.DOUBLE -> Memory.readDouble(address + offset)
-                FFIType.PTR -> Memory.readPointer(address + offset).toMemorySegment()
+                FFIType.PTR -> Memory.readPointer(address + offset).value.value.longValue
                 else -> throw IllegalStateException("Cannot map FFI parameter type $type")
             }
             offset += type.size.toULong()
@@ -41,7 +41,7 @@ internal object PanamaFFI : FFI {
         }
     }
 
-    internal fun getHandle(address: Pointer, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
+    internal fun  getHandle(address: Pointer, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
         return JvmLinker.nativeLinker()
             .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
     }
@@ -102,7 +102,7 @@ internal object PanamaFFI : FFI {
     override fun callPointer(address: Pointer, descriptor: FFIDescriptor, args: FFIArgSpec): Pointer {
         val buffer = FFIArgBuffer.get()
         buffer.args()
-        return (getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as MemorySegment).toPointer()
+        return Pointer((getHandle(address, descriptor).invokeWithArguments(*buffer.toArray()) as Long).toNUInt())
     }
 }
 

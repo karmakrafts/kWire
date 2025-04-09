@@ -25,7 +25,9 @@ import kotlin.contracts.contract
 import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 
-internal interface SharedLibraryHandle : AutoCloseable
+internal interface SharedLibraryHandle : AutoCloseable {
+    val name: String
+}
 
 @OptIn(ExperimentalContracts::class)
 internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkHandle() {
@@ -183,7 +185,7 @@ class SharedLibrary internal constructor(
      * @throws IllegalArgumentException if the function was not found in the library
      */
     fun getFunctionAddress(name: String): Pointer =
-        requireNotNull(findFunctionAddress(name)) { "Could not find function $name in library $name" }
+        requireNotNull(findFunctionAddress(name)) { "Could not find function '$name' in library ${handle.name}" }
 
     /**
      * Attempts to find a function in this library with the specified signature.

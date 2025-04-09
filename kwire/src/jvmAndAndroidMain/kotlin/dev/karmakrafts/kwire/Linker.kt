@@ -26,6 +26,7 @@ import kotlin.io.path.readSymbolicLink
 import kotlin.jvm.optionals.getOrNull
 
 private data class PanamaSharedLibraryHandle( // @formatter:off
+    override val name: String,
     val lookup: SymbolLookup,
     val arena: Arena
 ) : SharedLibraryHandle { // @formatter:on
@@ -64,7 +65,7 @@ private object PanamaLinker : Linker {
                     var libraryPath = searchPath / name
                     // Resolve possible symbolic links beforehand
                     if (libraryPath.isSymbolicLink()) libraryPath = libraryPath.readSymbolicLink()
-                    return PanamaSharedLibraryHandle(SymbolLookup.libraryLookup(libraryPath, arena), arena)
+                    return PanamaSharedLibraryHandle(name, SymbolLookup.libraryLookup(libraryPath, arena), arena)
                 } catch (error: IllegalArgumentException) { // Only skip if lib name is invalid
                     continue
                 }
