@@ -173,7 +173,7 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      *
      * @return A new [CString] instance containing the same content as this string
      */
-    inline fun copy(): CString = CString(Memory.allocate(Memory.strlen(address))).apply { 
+    inline fun copy(): CString = CString(Memory.allocate(Memory.strlen(address))).apply {
         Memory.strcpy(this@CString.address, address)
     }
 

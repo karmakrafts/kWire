@@ -60,6 +60,7 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -179,8 +180,7 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the byte to access
      * @return The byte value at the specified index
      */
-    inline operator fun get(index: Int): Byte =
-        Memory.readByte(value + index.toNUInt() * Byte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): Byte = Memory.readByte(value + index.toNUInt() * Byte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the byte value at the specified index.
@@ -203,8 +203,7 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the byte to access
      * @return The byte value at the specified index
      */
-    inline operator fun get(index: Long): Byte =
-        Memory.readByte(value + index.toNUInt() * Byte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): Byte = Memory.readByte(value + index.toNUInt() * Byte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the byte value at the specified index.
@@ -227,8 +226,7 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the byte to access
      * @return The byte value at the specified index
      */
-    inline operator fun get(index: NUInt): Byte =
-        Memory.readByte(value + index * Byte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Byte = Memory.readByte(value + index * Byte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the byte value at the specified index.
@@ -301,6 +299,7 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -420,8 +419,7 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the short to access
      * @return The short value at the specified index
      */
-    inline operator fun get(index: Int): Short =
-        Memory.readShort(value + index.toNUInt() * Short.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): Short = Memory.readShort(value + index.toNUInt() * Short.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the short value at the specified index.
@@ -444,8 +442,7 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the short to access
      * @return The short value at the specified index
      */
-    inline operator fun get(index: Long): Short =
-        Memory.readShort(value + index.toNUInt() * Short.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): Short = Memory.readShort(value + index.toNUInt() * Short.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the short value at the specified index.
@@ -468,8 +465,7 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the short to access
      * @return The short value at the specified index
      */
-    inline operator fun get(index: NUInt): Short =
-        Memory.readShort(value + index * Short.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Short = Memory.readShort(value + index * Short.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the short value at the specified index.
@@ -542,6 +538,7 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -661,8 +658,7 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the int to access
      * @return The int value at the specified index
      */
-    inline operator fun get(index: Int): Int =
-        Memory.readInt(value + index.toNUInt() * Int.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): Int = Memory.readInt(value + index.toNUInt() * Int.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the int value at the specified index.
@@ -685,8 +681,7 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the int to access
      * @return The int value at the specified index
      */
-    inline operator fun get(index: Long): Int =
-        Memory.readInt(value + index.toNUInt() * Int.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): Int = Memory.readInt(value + index.toNUInt() * Int.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the int value at the specified index.
@@ -709,8 +704,7 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the int to access
      * @return The int value at the specified index
      */
-    inline operator fun get(index: NUInt): Int =
-        Memory.readInt(value + index * Int.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Int = Memory.readInt(value + index * Int.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the int value at the specified index.
@@ -783,6 +777,7 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -902,8 +897,7 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the long to access
      * @return The long value at the specified index
      */
-    inline operator fun get(index: Int): Long =
-        Memory.readLong(value + index.toNUInt() * Long.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): Long = Memory.readLong(value + index.toNUInt() * Long.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the long value at the specified index.
@@ -926,8 +920,7 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the long to access
      * @return The long value at the specified index
      */
-    inline operator fun get(index: Long): Long =
-        Memory.readLong(value + index.toNUInt() * Long.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): Long = Memory.readLong(value + index.toNUInt() * Long.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the long value at the specified index.
@@ -950,8 +943,7 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the long to access
      * @return The long value at the specified index
      */
-    inline operator fun get(index: NUInt): Long =
-        Memory.readLong(value + index * Long.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Long = Memory.readLong(value + index * Long.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the long value at the specified index.
@@ -1025,6 +1017,7 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1144,8 +1137,7 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the native integer to access
      * @return The native integer value at the specified index
      */
-    inline operator fun get(index: Int): NInt =
-        Memory.readNInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): NInt = Memory.readNInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the native integer value at the specified index.
@@ -1168,8 +1160,7 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the native integer to access
      * @return The native integer value at the specified index
      */
-    inline operator fun get(index: Long): NInt =
-        Memory.readNInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): NInt = Memory.readNInt(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the native integer value at the specified index.
@@ -1192,8 +1183,7 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the native integer to access
      * @return The native integer value at the specified index
      */
-    inline operator fun get(index: NUInt): NInt =
-        Memory.readNInt(value + index * Pointer.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): NInt = Memory.readNInt(value + index * Pointer.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the native integer value at the specified index.
@@ -1268,6 +1258,7 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1387,8 +1378,7 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the unsigned byte to access
      * @return The unsigned byte value at the specified index
      */
-    inline operator fun get(index: Int): UByte =
-        Memory.readUByte(value + index.toNUInt() * UByte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): UByte = Memory.readUByte(value + index.toNUInt() * UByte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned byte value at the specified index.
@@ -1411,8 +1401,7 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the unsigned byte to access
      * @return The unsigned byte value at the specified index
      */
-    inline operator fun get(index: Long): UByte =
-        Memory.readUByte(value + index.toNUInt() * UByte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): UByte = Memory.readUByte(value + index.toNUInt() * UByte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned byte value at the specified index.
@@ -1435,8 +1424,7 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the unsigned byte to access
      * @return The unsigned byte value at the specified index
      */
-    inline operator fun get(index: NUInt): UByte =
-        Memory.readUByte(value + index * UByte.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): UByte = Memory.readUByte(value + index * UByte.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned byte value at the specified index.
@@ -1509,6 +1497,7 @@ value class UShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1680,8 +1669,7 @@ value class UShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the unsigned short to access
      * @return The unsigned short value at the specified index
      */
-    inline operator fun get(index: NUInt): UShort =
-        Memory.readUShort(value + index * UShort.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): UShort = Memory.readUShort(value + index * UShort.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned short value at the specified index.
@@ -1754,6 +1742,7 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -1873,8 +1862,7 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the unsigned int to access
      * @return The unsigned int value at the specified index
      */
-    inline operator fun get(index: Int): UInt =
-        Memory.readUInt(value + index.toNUInt() * UInt.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): UInt = Memory.readUInt(value + index.toNUInt() * UInt.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned int value at the specified index.
@@ -1897,8 +1885,7 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the unsigned int to access
      * @return The unsigned int value at the specified index
      */
-    inline operator fun get(index: Long): UInt =
-        Memory.readUInt(value + index.toNUInt() * UInt.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): UInt = Memory.readUInt(value + index.toNUInt() * UInt.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned int value at the specified index.
@@ -1921,8 +1908,7 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the unsigned int to access
      * @return The unsigned int value at the specified index
      */
-    inline operator fun get(index: NUInt): UInt =
-        Memory.readUInt(value + index * UInt.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): UInt = Memory.readUInt(value + index * UInt.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned int value at the specified index.
@@ -1995,6 +1981,7 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2114,8 +2101,7 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the unsigned long to access
      * @return The unsigned long value at the specified index
      */
-    inline operator fun get(index: Int): ULong =
-        Memory.readULong(value + index.toNUInt() * ULong.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): ULong = Memory.readULong(value + index.toNUInt() * ULong.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned long value at the specified index.
@@ -2138,8 +2124,7 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the unsigned long to access
      * @return The unsigned long value at the specified index
      */
-    inline operator fun get(index: Long): ULong =
-        Memory.readULong(value + index.toNUInt() * ULong.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): ULong = Memory.readULong(value + index.toNUInt() * ULong.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned long value at the specified index.
@@ -2162,8 +2147,7 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the unsigned long to access
      * @return The unsigned long value at the specified index
      */
-    inline operator fun get(index: NUInt): ULong =
-        Memory.readULong(value + index * ULong.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): ULong = Memory.readULong(value + index * ULong.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the unsigned long value at the specified index.
@@ -2237,6 +2221,7 @@ value class NUIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2406,8 +2391,7 @@ value class NUIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the native unsigned integer to access
      * @return The native unsigned integer value at the specified index
      */
-    inline operator fun get(index: NUInt): NUInt =
-        Memory.readNUInt(value + index * Pointer.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): NUInt = Memory.readNUInt(value + index * Pointer.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the native unsigned integer value at the specified index.
@@ -2482,6 +2466,7 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2601,8 +2586,7 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The integer index of the float to access
      * @return The float value at the specified index
      */
-    inline operator fun get(index: Int): Float =
-        Memory.readFloat(value + index.toNUInt() * Float.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Int): Float = Memory.readFloat(value + index.toNUInt() * Float.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the float value at the specified index.
@@ -2625,8 +2609,7 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The long index of the float to access
      * @return The float value at the specified index
      */
-    inline operator fun get(index: Long): Float =
-        Memory.readFloat(value + index.toNUInt() * Float.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: Long): Float = Memory.readFloat(value + index.toNUInt() * Float.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the float value at the specified index.
@@ -2649,8 +2632,7 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the float to access
      * @return The float value at the specified index
      */
-    inline operator fun get(index: NUInt): Float =
-        Memory.readFloat(value + index * Float.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Float = Memory.readFloat(value + index * Float.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the float value at the specified index.
@@ -2723,6 +2705,7 @@ value class DoublePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * It frees the memory allocated at the address pointed to by this pointer.
      */
     override fun close() = Memory.free(value)
+
     /**
      * Adds a native unsigned integer offset to this pointer.
      *
@@ -2894,8 +2877,7 @@ value class DoublePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param index The native unsigned integer index of the double to access
      * @return The double value at the specified index
      */
-    inline operator fun get(index: NUInt): Double =
-        Memory.readDouble(value + index * Double.SIZE_BYTES.toNUInt())
+    inline operator fun get(index: NUInt): Double = Memory.readDouble(value + index * Double.SIZE_BYTES.toNUInt())
 
     /**
      * Sets the double value at the specified index.
@@ -3000,7 +2982,8 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param other The unsigned long value to add
      * @return A new pointer pointer with the resulting address
      */
-    inline operator fun plus(other: ULong): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun plus(other: ULong): PointerPtr =
+        PointerPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
 
     /**
      * Subtracts an unsigned long offset from this pointer.
@@ -3011,7 +2994,8 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param other The unsigned long value to subtract
      * @return A new pointer pointer with the resulting address
      */
-    inline operator fun minus(other: ULong): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+    inline operator fun minus(other: ULong): PointerPtr =
+        PointerPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
 
     /**
      * Adds an unsigned integer offset to this pointer.
@@ -3022,7 +3006,8 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param other The unsigned integer value to add
      * @return A new pointer pointer with the resulting address
      */
-    inline operator fun plus(other: UInt): PointerPtr = PointerPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun plus(other: UInt): PointerPtr =
+        PointerPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
 
     /**
      * Subtracts an unsigned integer offset from this pointer.
@@ -3033,7 +3018,8 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
      * @param other The unsigned integer value to subtract
      * @return A new pointer pointer with the resulting address
      */
-    inline operator fun minus(other: UInt): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+    inline operator fun minus(other: UInt): PointerPtr =
+        PointerPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
 
     /**
      * Adds a long offset to this pointer.

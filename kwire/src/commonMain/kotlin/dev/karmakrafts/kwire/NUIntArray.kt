@@ -22,7 +22,7 @@ import kotlin.jvm.JvmInline
 
 /**
  * A platform-specific array of [NUInt] values.
- * 
+ *
  * This class provides a cross-platform way to work with arrays of unsigned integer numbers.
  * It wraps an [NIntArray] and interprets the values as unsigned integers.
  */
@@ -38,7 +38,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Checks if the array contains the specified [value].
-     * 
+     *
      * @param value The value to check for.
      * @return `true` if the array contains the specified value, `false` otherwise.
      */
@@ -46,7 +46,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Gets the element at the specified [index].
-     * 
+     *
      * @param index The index of the element to retrieve.
      * @return The element at the specified index.
      * @throws IndexOutOfBoundsException if the index is out of bounds of this array.
@@ -55,7 +55,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Sets the element at the specified [index] to the specified [value].
-     * 
+     *
      * @param index The index of the element to set.
      * @param value The value to set.
      * @throws IndexOutOfBoundsException if the index is out of bounds of this array.
@@ -66,7 +66,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Returns a new array that is a concatenation of this array and the [other] array.
-     * 
+     *
      * @param other The array to concatenate with this array.
      * @return A new array that contains all elements of this array followed by all elements of the [other] array.
      */
@@ -74,7 +74,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Returns a new array containing all elements of this array except those that are present in the [other] array.
-     * 
+     *
      * @param other The array containing elements to exclude.
      * @return A new array containing elements from this array that are not present in the [other] array.
      */
@@ -82,14 +82,14 @@ value class NUIntArray @PublishedApi internal constructor(
 
     /**
      * Creates a [Sequence] that iterates over all elements in this array.
-     * 
+     *
      * @return A sequence that yields all elements of this array.
      */
     inline fun asSequence(): Sequence<NUInt> = value.asSequence().map(::NUInt)
 
     /**
      * Converts this [NUIntArray] to an [NIntArray].
-     * 
+     *
      * @return The underlying [NIntArray] that this [NUIntArray] wraps.
      */
     inline fun asNIntArray(): NIntArray = value
@@ -97,7 +97,7 @@ value class NUIntArray @PublishedApi internal constructor(
 
 /**
  * Creates a new [NUIntArray] with the specified [size].
- * 
+ *
  * @param size The size of the array to create.
  * @return A new [NUIntArray] of the specified size.
  */
@@ -105,7 +105,7 @@ inline fun nUIntArray(size: Int): NUIntArray = NUIntArray(nIntArray(size))
 
 /**
  * Creates a new [NUIntArray] with the specified [size] and initializes it using the provided [initializer] function.
- * 
+ *
  * @param size The size of the array to create.
  * @param initializer A function that takes an index and returns the [NUInt] value to store at that index.
  * @return A new initialized [NUIntArray] of the specified size.

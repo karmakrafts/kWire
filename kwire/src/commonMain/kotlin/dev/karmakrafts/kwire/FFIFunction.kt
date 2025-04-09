@@ -161,7 +161,7 @@ data class FFIFunction( // @formatter:off
      * @throws IllegalStateException if the specified return type is not supported
      */
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    inline fun <reified R : Any> call(noinline args: FFIArgSpec = {}): R = when(R::class) {
+    inline fun <reified R : Any> call(noinline args: FFIArgSpec = {}): R = when (R::class) {
         Byte::class -> callByte(args)
         Short::class -> callShort(args)
         Int::class -> callInt(args)
@@ -190,7 +190,7 @@ data class FFIFunction( // @formatter:off
      * @return The value returned by the native function, cast to type R
      * @throws IllegalStateException if the specified return type is not supported
      */
-    inline fun <reified R : Any> callFast(noinline args: FFIArgSpec = {}): R = when(R::class) {
+    inline fun <reified R : Any> callFast(noinline args: FFIArgSpec = {}): R = when (R::class) {
         Byte::class -> callByte(args)
         Short::class -> callShort(args)
         Int::class -> callInt(args)

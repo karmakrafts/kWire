@@ -23,7 +23,6 @@ import dev.karmakrafts.kwire.SharedLibrary.Companion.tryOpen
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.jvm.JvmName
-import kotlin.reflect.KClass
 
 internal interface SharedLibraryHandle : AutoCloseable {
     val name: String
@@ -102,6 +101,7 @@ class SharedLibrary internal constructor(
                 Platform.LINUX -> tryOpen("libm.so.6", "libm.so")?.apply {
                     closeOnExit()
                 } ?: cRuntime
+
                 else -> cRuntime
             }
         }

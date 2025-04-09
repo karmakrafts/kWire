@@ -27,7 +27,7 @@ import kotlin.jvm.JvmName
  * Represents a platform-dependent signed integer type.
  *
  * This class provides a consistent interface for working with native integers across different platforms.
- * The size of a native integer depends on the platform (typically 32 bits on 32-bit platforms and 
+ * The size of a native integer depends on the platform (typically 32 bits on 32-bit platforms and
  * 64 bits on 64-bit platforms).
  *
  * NInt supports standard arithmetic operations, comparisons, and bitwise operations, making it
@@ -198,5 +198,5 @@ inline fun NInt.toUnsigned(): NUInt = NUInt(this)
  * @return A string containing the hexadecimal representation of this native integer
  */
 @ExperimentalStdlibApi
-inline fun NInt.toHexString(): String = if(Pointer.SIZE_BYTES == Int.SIZE_BYTES) intValue.toHexString()
+inline fun NInt.toHexString(): String = if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) intValue.toHexString()
 else longValue.toHexString()

@@ -802,6 +802,6 @@ inline fun Memory.readDoubles(address: Pointer, size: Int): DoubleArray = Double
  * @param size The number of pointers to read
  * @return A newly allocated array containing the pointers read from the specified address
  */
-inline fun Memory.readPointers(address: Pointer, size: Int): PointerArray = pointerArray(size).apply { 
+inline fun Memory.readPointers(address: Pointer, size: Int): PointerArray = pointerArray(size).apply {
     readPointers(address, this)
 }

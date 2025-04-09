@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
-@file:JvmName("NFloat$")
+@file:Suppress("NOTHING_TO_INLINE") @file:JvmName("NFloat$")
 
 package dev.karmakrafts.kwire
 
@@ -25,7 +24,7 @@ import kotlin.jvm.JvmName
  * Represents a platform-dependent floating-point number type.
  *
  * This class provides a consistent interface for working with native floating-point numbers across different platforms.
- * The size of a native floating-point number depends on the platform (typically 32 bits on 32-bit platforms and 
+ * The size of a native floating-point number depends on the platform (typically 32 bits on 32-bit platforms and
  * 64 bits on 64-bit platforms). NFloat values are natively sized IEEE754 values.
  *
  * NFloat supports standard arithmetic operations and comparisons, making it

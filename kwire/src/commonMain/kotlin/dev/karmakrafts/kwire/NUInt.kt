@@ -27,8 +27,8 @@ import kotlin.jvm.JvmName
 /**
  * Represents a platform-dependent unsigned integer type.
  *
- * This value class wraps a [NInt] and provides a consistent interface for working with 
- * native unsigned integers across different platforms. The size of a native unsigned integer 
+ * This value class wraps a [NInt] and provides a consistent interface for working with
+ * native unsigned integers across different platforms. The size of a native unsigned integer
  * depends on the platform (typically 32 bits on 32-bit platforms and 64 bits on 64-bit platforms).
  *
  * NUInt supports standard arithmetic operations, comparisons, and bitwise operations, making it
