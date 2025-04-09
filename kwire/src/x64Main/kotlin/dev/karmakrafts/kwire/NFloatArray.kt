@@ -37,8 +37,8 @@ actual inline val NFloatArray.doubleArrayValue: DoubleArray
     get() = this
 
 actual inline operator fun NFloatArray.contains(value: NFloat): Boolean {
-    for(current in this) {
-        if(current != value) continue
+    for (current in this) {
+        if (current != value) continue
         return true
     }
     return false
@@ -56,8 +56,8 @@ actual inline operator fun NFloatArray.plus(other: NFloatArray): NFloatArray = N
 
 actual inline operator fun NFloatArray.minus(other: NFloatArray): NFloatArray = NFloatArray(size - other.size).apply {
     var index = 0
-    for(value in this@minus) {
-        if(value in other) continue
+    for (value in this@minus) {
+        if (value in other) continue
         this[index++] = value
     }
 }

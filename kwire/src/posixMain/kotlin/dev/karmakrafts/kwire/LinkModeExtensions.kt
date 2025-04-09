@@ -19,7 +19,7 @@ package dev.karmakrafts.kwire
 import platform.posix.RTLD_LAZY
 import platform.posix.RTLD_NOW
 
-fun LinkMode.getDLLinkMode(): Int = when(this) {
+fun LinkMode.getDLLinkMode(): Int = when (this) {
     LinkMode.NOW -> RTLD_NOW
     LinkMode.LAZY -> RTLD_LAZY
 }

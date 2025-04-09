@@ -37,8 +37,8 @@ actual inline val NIntArray.longArrayValue: LongArray
     get() = this
 
 actual inline operator fun NIntArray.contains(value: NInt): Boolean {
-    for(current in this) {
-        if(current != value) continue
+    for (current in this) {
+        if (current != value) continue
         return true
     }
     return false
@@ -56,8 +56,8 @@ actual inline operator fun NIntArray.plus(other: NIntArray): NIntArray = NIntArr
 
 actual inline operator fun NIntArray.minus(other: NIntArray): NIntArray = NIntArray(size - other.size).apply {
     var index = 0
-    for(value in this@minus) {
-        if(value in other) continue
+    for (value in this@minus) {
+        if (value in other) continue
         this[index++] = value
     }
 }

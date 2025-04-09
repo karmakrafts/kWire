@@ -24,8 +24,7 @@ import platform.posix.dlsym
 
 @OptIn(ExperimentalForeignApi::class)
 private data class PosixSharedLibraryHandle(
-    override val name: String,
-    val handle: COpaquePointer
+    override val name: String, val handle: COpaquePointer
 ) : SharedLibraryHandle {
     override fun close() {
         dlclose(handle)
