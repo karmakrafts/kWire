@@ -24,6 +24,7 @@ import platform.posix.dlsym
 
 @OptIn(ExperimentalForeignApi::class)
 private data class PosixSharedLibraryHandle(
+    override val name: String,
     val handle: COpaquePointer
 ) : SharedLibraryHandle {
     override fun close() {
@@ -36,7 +37,7 @@ private object PosixLinker : Linker {
     override fun findLibrary(names: List<String>, linkMode: LinkMode): SharedLibraryHandle? {
         for (name in names) {
             val handle = dlopen(name, linkMode.getDLLinkMode()) ?: continue
-            return PosixSharedLibraryHandle(handle)
+            return PosixSharedLibraryHandle(name, handle)
         }
         return null
     }
