@@ -477,4 +477,42 @@ class StructTest {
         // We can't directly check the allocated size, but we can verify that the address is not null
         assertNotEquals(nullptr, struct.address, "Struct should allocate a valid memory address")
     }
+
+    // Struct field tests
+
+    @Test
+    fun `setStruct and getStruct work correctly with nested structs`() = deferring {
+        // Create an inner struct type
+        val innerStructType = StructType.of(FFIType.INT, FFIType.FLOAT)
+
+        // Create a middle struct type that contains the inner struct type
+        val outerStructType = StructType.of(innerStructType, FFIType.DOUBLE)
+
+        // Create a middle struct
+        val outerStruct by dropping { Struct.allocate(outerStructType) }
+
+        // Create an inner struct
+        val innerStruct by dropping { Struct.allocate(innerStructType) }
+
+        // Set values in the inner struct
+        val intValue = 123
+        val floatValue = 4.56f
+        innerStruct.setInt(0, intValue)
+        innerStruct.setFloat(1, floatValue)
+
+        // Set the inner struct in the middle struct
+        outerStruct.setStruct(0, innerStruct)
+
+        // Set a double value in the middle struct
+        val doubleValue = 7.89
+        outerStruct.setDouble(1, doubleValue)
+
+        // Get the inner struct from the retrieved middle struct
+        val retrievedInnerStruct = outerStruct.getStruct(0)
+
+        // Verify that all values are correctly retrieved
+        assertEquals(intValue, retrievedInnerStruct.getInt(0), "Inner struct int value should be retrieved correctly")
+        assertEquals(floatValue, retrievedInnerStruct.getFloat(1), "Inner struct float value should be retrieved correctly")
+        assertEquals(doubleValue, outerStruct.getDouble(1), "Middle struct double value should be retrieved correctly")
+    }
 }

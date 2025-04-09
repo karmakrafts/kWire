@@ -31,7 +31,7 @@ import kotlin.jvm.JvmInline
  * @property offset The memory offset of this field within the struct, initialized to 0
  */
 @ConsistentCopyVisibility
-data class StructField internal constructor(
+data class StructField @PublishedApi internal constructor(
     val type: FFIType
 ) {
     var offset: NUInt = 0U.toNUInt()
@@ -48,9 +48,29 @@ data class StructField internal constructor(
  * @property fields The list of fields that make up this struct type
  */
 @JvmInline
-value class StructType(
+value class StructType @PublishedApi internal constructor(
     val fields: List<StructField>
 ) : FFIType {
+    companion object {
+        inline fun of(fieldTypes: List<FFIType>): StructType = StructType(fieldTypes.map(::StructField))
+
+        inline fun of(vararg fieldTypes: FFIType): StructType = StructType(fieldTypes.map(::StructField))
+    }
+
+    /**
+     * Initializes the struct type by calculating the memory offset for each field.
+     *
+     * The offset of each field is determined by the sum of the sizes of all preceding fields.
+     * This ensures that fields are laid out sequentially in memory without gaps.
+     */
+    init {
+        for (field in fields) { // @formatter:off
+            field.offset = fields.asSequence()
+                .take(fields.indexOf(field))
+                .sumOf { it.type.size }.toNUInt()
+        } // @formatter:on
+    }
+
     /**
      * The element type of this struct type.
      *
@@ -75,20 +95,6 @@ value class StructType(
      */
     override val dimensions: Int
         get() = 0
-
-    /**
-     * Initializes the struct type by calculating the memory offset for each field.
-     *
-     * The offset of each field is determined by the sum of the sizes of all preceding fields.
-     * This ensures that fields are laid out sequentially in memory without gaps.
-     */
-    init {
-        for (field in fields) { // @formatter:off
-            field.offset = fields.asSequence()
-                .take(fields.indexOf(field))
-                .sumOf { it.type.size }.toNUInt()
-        } // @formatter:on
-    }
 
     /**
      * Gets the memory offset of a field in the struct.
@@ -117,7 +123,7 @@ value class StructType(
  */
 @OptIn(ExperimentalUnsignedTypes::class)
 @Suppress("NOTHING_TO_INLINE")
-class Struct private constructor( // @formatter:off
+class Struct @PublishedApi internal constructor( // @formatter:off
     val address: Pointer,
     val type: StructType
 ) : AutoCloseable { // @formatter:on
@@ -131,7 +137,7 @@ class Struct private constructor( // @formatter:off
          * @param fieldTypes A list of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(fieldTypes: List<FFIType>): Struct = allocate(StructType(fieldTypes.map { StructField(it) }))
+        fun allocate(fieldTypes: List<FFIType>): Struct = allocate(StructType.of(fieldTypes))
 
         /**
          * Allocates a new struct with the specified field types.
@@ -142,7 +148,7 @@ class Struct private constructor( // @formatter:off
          * @param fieldTypes Variable number of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(StructType(fieldTypes.map { StructField(it) }))
+        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(StructType.of(*fieldTypes))
 
         /**
          * Allocates a new struct with the specified struct type.
@@ -386,6 +392,14 @@ class Struct private constructor( // @formatter:off
     inline fun getPointers(index: Int, size: Int): PointerArray = Memory.readPointers(getFieldAddress(index), size)
 
     /**
+     * Gets a struct from a field in the struct.
+     *
+     * @param index The index of the field
+     * @return The struct retrieved from the field
+     */
+    inline fun getStruct(index: Int): Struct = Struct(getFieldAddress(index), type.fields[index].type as StructType)
+
+    /**
      * Sets the byte value of a field in the struct.
      *
      * @param index The index of the field
@@ -592,6 +606,15 @@ class Struct private constructor( // @formatter:off
      * @param data The array of pointers to set
      */
     inline fun setPointers(index: Int, data: PointerArray) = Memory.writePointers(getFieldAddress(index), data)
+
+    /**
+     * Sets a struct in a field in the struct.
+     *
+     * @param index The index of the field
+     * @param value The struct to set in the field
+     */
+    inline fun setStruct(index: Int, value: Struct) =
+        Memory.copy(value.address, getFieldAddress(index), type.fields[index].type.size.toNUInt())
 
     /**
      * Frees the memory allocated for this struct.
