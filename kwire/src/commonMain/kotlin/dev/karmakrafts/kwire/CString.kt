@@ -90,7 +90,7 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      * @return The length of the string as an Int
      */
     override val length: Int
-        get() = Memory.strlen(address).toSigned().intValue
+        get() = Memory.strlen(address).value.intValue
 
     /**
      * Returns the length of this C-style string as a Long.
@@ -101,7 +101,7 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      * @return The length of the string as a Long
      */
     inline val longLength: Long
-        get() = Memory.strlen(address).toSigned().longValue
+        get() = Memory.strlen(address).value.longValue
 
     /**
      * Returns the length of this C-style string as a native unsigned integer.

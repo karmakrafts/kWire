@@ -245,7 +245,7 @@ class StringSlice( // @formatter:off
      * @return A StringSlice containing the specified portion of the original string slice
      * @throws IllegalArgumentException if the range is invalid or out of bounds
      */
-    inline fun subSlice(range: IntRange): StringSlice = subSlice(range.first, range.last)
+    inline fun subSlice(range: IntRange): StringSlice = subSlice(range.first, range.last + 1)
 
     /**
      * Returns a subsequence of this string slice as a StringSlice.
@@ -256,7 +256,7 @@ class StringSlice( // @formatter:off
      * @return A StringSlice containing the specified portion of the original string slice
      * @throws IllegalArgumentException if the range is invalid or out of bounds
      */
-    inline operator fun get(range: IntRange): StringSlice = subSlice(range.first, range.last)
+    inline operator fun get(range: IntRange): StringSlice = subSlice(range.first, range.last + 1)
 
     /**
      * Converts this string slice to a new C-style string.
@@ -267,7 +267,7 @@ class StringSlice( // @formatter:off
      * @return A new [CString] instance containing the same content as this string slice
      */
     inline fun intoCString(): CString = CString.allocate(nativeLength).apply {
-        Memory.copy(this@StringSlice.address, address, nativeLength)
+        Memory.copy(this@StringSlice.address, address, this@StringSlice.nativeLength)
     }
 
     /**
