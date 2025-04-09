@@ -198,9 +198,7 @@ class FFITypeTest {
         val twoDimArray = FFIType.INT.array(3).array(2)
         assertEquals(2, twoDimArray.dimensions, "Two-dimensional array should have 2 dimensions")
         assertSame(
-            FFIType.INT,
-            twoDimArray.elementType.elementType,
-            "Two-dimensional array base element type should be INT"
+            FFIType.INT, twoDimArray.elementType.elementType, "Two-dimensional array base element type should be INT"
         )
         assertEquals(
             Int.SIZE_BYTES * 3 * 2,

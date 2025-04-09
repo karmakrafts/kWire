@@ -92,9 +92,7 @@ class NUIntTest {
             "NUInt ulongValue should be the truncated value of NFloat (decimal part removed)"
         )
         assertEquals(
-            42u,
-            nUIntValue.uintValue,
-            "NUInt uintValue should be the truncated value of NFloat (decimal part removed)"
+            42u, nUIntValue.uintValue, "NUInt uintValue should be the truncated value of NFloat (decimal part removed)"
         )
     }
 
@@ -162,9 +160,7 @@ class NUIntTest {
         val b = 0b1100u.toNUInt()
         val result = a and b
         assertEquals(
-            0b1000u.toNUInt().ulongValue,
-            result.ulongValue,
-            "Bitwise AND of 0b1010u and 0b1100u should equal 0b1000u"
+            0b1000u.toNUInt().ulongValue, result.ulongValue, "Bitwise AND of 0b1010u and 0b1100u should equal 0b1000u"
         )
     }
 
@@ -174,9 +170,7 @@ class NUIntTest {
         val b = 0b1100u.toNUInt()
         val result = a or b
         assertEquals(
-            0b1110u.toNUInt().ulongValue,
-            result.ulongValue,
-            "Bitwise OR of 0b1010u and 0b1100u should equal 0b1110u"
+            0b1110u.toNUInt().ulongValue, result.ulongValue, "Bitwise OR of 0b1010u and 0b1100u should equal 0b1110u"
         )
     }
 
@@ -186,9 +180,7 @@ class NUIntTest {
         val b = 0b1100u.toNUInt()
         val result = a xor b
         assertEquals(
-            0b0110u.toNUInt().ulongValue,
-            result.ulongValue,
-            "Bitwise XOR of 0b1010u and 0b1100u should equal 0b0110u"
+            0b0110u.toNUInt().ulongValue, result.ulongValue, "Bitwise XOR of 0b1010u and 0b1100u should equal 0b0110u"
         )
     }
 
@@ -197,9 +189,7 @@ class NUIntTest {
         val a = 0b0001u.toNUInt()
         val result = a shl 2
         assertEquals(
-            0b0100u.toNUInt().ulongValue,
-            result.ulongValue,
-            "Left shift of 0b0001u by 2 bits should equal 0b0100u"
+            0b0100u.toNUInt().ulongValue, result.ulongValue, "Left shift of 0b0001u by 2 bits should equal 0b0100u"
         )
     }
 
@@ -208,9 +198,7 @@ class NUIntTest {
         val a = 0b1000u.toNUInt()
         val result = a shr 2
         assertEquals(
-            0b0010u.toNUInt().ulongValue,
-            result.ulongValue,
-            "Right shift of 0b1000u by 2 bits should equal 0b0010u"
+            0b0010u.toNUInt().ulongValue, result.ulongValue, "Right shift of 0b1000u by 2 bits should equal 0b0010u"
         )
     }
 
@@ -243,9 +231,7 @@ class NUIntTest {
         val nUIntValue = 42u.toNUInt()
         val nIntValue = nUIntValue.toSigned()
         assertEquals(
-            42L,
-            nIntValue.longValue,
-            "Converting NUInt(42u) to NInt should result in a value with longValue of 42L"
+            42L, nIntValue.longValue, "Converting NUInt(42u) to NInt should result in a value with longValue of 42L"
         )
     }
 

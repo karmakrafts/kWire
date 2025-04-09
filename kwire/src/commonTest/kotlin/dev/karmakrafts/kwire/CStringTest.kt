@@ -18,9 +18,8 @@ package dev.karmakrafts.kwire
 
 import dev.karmakrafts.rakii.deferring
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertContentEquals
-import kotlin.test.assertNotEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class CStringTest {
@@ -105,7 +104,11 @@ class CStringTest {
         val testString = "Another Test String"
         val cString by dropping { CString.allocate(testString) }
 
-        assertEquals(testString.length.toLong(), cString.longLength, "longLength property should return the correct string length as Long")
+        assertEquals(
+            testString.length.toLong(),
+            cString.longLength,
+            "longLength property should return the correct string length as Long"
+        )
     }
 
     @Test
@@ -114,7 +117,10 @@ class CStringTest {
         val cString1 by dropping { CString.allocate(testString) }
         val cString2 by dropping { CString.allocate(testString) }
 
-        assertTrue(cString1.contentEquals(cString2), "contentEquals should return true for strings with identical content")
+        assertTrue(
+            cString1.contentEquals(cString2),
+            "contentEquals should return true for strings with identical content"
+        )
     }
 
     @Test
@@ -122,7 +128,10 @@ class CStringTest {
         val cString1 by dropping { CString.allocate("String One") }
         val cString2 by dropping { CString.allocate("String Two") }
 
-        assertTrue(!cString1.contentEquals(cString2), "contentEquals should return false for strings with different content")
+        assertTrue(
+            !cString1.contentEquals(cString2),
+            "contentEquals should return false for strings with different content"
+        )
     }
 
     @Test
@@ -135,7 +144,11 @@ class CStringTest {
         // Expected: the bytes of the string plus a null terminator
         val expected = testString.encodeToByteArray()
 
-        assertContentEquals(expected, byteArray, "toByteArray should return the correct bytes including null terminator")
+        assertContentEquals(
+            expected,
+            byteArray,
+            "toByteArray should return the correct bytes including null terminator"
+        )
     }
 
     @Test
@@ -157,7 +170,11 @@ class CStringTest {
         val end = 9
         val subSequence = cString.subSequence(start, end)
 
-        assertEquals(testString.substring(start, end), subSequence.toString(), "subSequence should return the correct substring")
+        assertEquals(
+            testString.substring(start, end),
+            subSequence.toString(),
+            "subSequence should return the correct substring"
+        )
     }
 
     @Test

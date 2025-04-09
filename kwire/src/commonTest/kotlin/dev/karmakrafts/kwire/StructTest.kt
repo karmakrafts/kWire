@@ -65,9 +65,7 @@ class StructTest {
         // Offsets should be calculated based on field sizes
         assertEquals(0U.toNUInt(), struct.fields[0].offset, "First field offset should be 0")
         assertEquals(
-            FFIType.BYTE.size.toNUInt(),
-            struct.fields[1].offset,
-            "Second field offset should be size of first field"
+            FFIType.BYTE.size.toNUInt(), struct.fields[1].offset, "Second field offset should be size of first field"
         )
         assertEquals(
             (FFIType.BYTE.size + FFIType.INT.size).toNUInt(),

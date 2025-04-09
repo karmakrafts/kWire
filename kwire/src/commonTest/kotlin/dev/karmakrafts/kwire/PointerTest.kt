@@ -36,9 +36,7 @@ class PointerTest {
         val result = ptr + offset
 
         assertEquals(
-            ptr.value + offset,
-            result.value,
-            "Pointer addition with NUInt should add the offset to the address"
+            ptr.value + offset, result.value, "Pointer addition with NUInt should add the offset to the address"
         )
     }
 
@@ -140,9 +138,7 @@ class PointerTest {
         val result = ptr + offset
 
         assertEquals(
-            ptr.value + offset.toNUInt(),
-            result.value,
-            "Pointer addition with Int should add the offset to the address"
+            ptr.value + offset.toNUInt(), result.value, "Pointer addition with Int should add the offset to the address"
         )
     }
 
@@ -166,9 +162,7 @@ class PointerTest {
         val aligned = ptr.align(alignment)
 
         assertEquals(
-            0.toNUInt(),
-            aligned.value % alignment,
-            "Aligned pointer should be divisible by the alignment value"
+            0.toNUInt(), aligned.value % alignment, "Aligned pointer should be divisible by the alignment value"
         )
     }
 

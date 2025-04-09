@@ -39,9 +39,7 @@ class PointerArrayTest {
 
         for (i in 0 until size) {
             assertEquals(
-                Pointer(i.toUInt().toNUInt()),
-                array[i],
-                "Array element at index $i should match the initializer value"
+                Pointer(i.toUInt().toNUInt()), array[i], "Array element at index $i should match the initializer value"
             )
         }
     }

@@ -47,9 +47,7 @@ class NIntTest {
             "NInt longValue should match the original UInt value converted to Long"
         )
         assertEquals(
-            uIntValue.toInt(),
-            nIntValue.intValue,
-            "NInt intValue should match the original UInt value converted to Int"
+            uIntValue.toInt(), nIntValue.intValue, "NInt intValue should match the original UInt value converted to Int"
         )
     }
 
@@ -59,9 +57,7 @@ class NIntTest {
         val nIntValue = longValue.toNInt()
         assertEquals(longValue, nIntValue.longValue, "NInt longValue should match the original Long value")
         assertEquals(
-            longValue.toInt(),
-            nIntValue.intValue,
-            "NInt intValue should match the original Long value converted to Int"
+            longValue.toInt(), nIntValue.intValue, "NInt intValue should match the original Long value converted to Int"
         )
     }
 
@@ -92,9 +88,7 @@ class NIntTest {
             "NInt longValue should be the truncated value of NFloat (decimal part removed)"
         )
         assertEquals(
-            42,
-            nIntValue.intValue,
-            "NInt intValue should be the truncated value of NFloat (decimal part removed)"
+            42, nIntValue.intValue, "NInt intValue should be the truncated value of NFloat (decimal part removed)"
         )
     }
 
@@ -162,9 +156,7 @@ class NIntTest {
         val b = 0b1100.toNInt()
         val result = a and b
         assertEquals(
-            0b1000.toNInt().longValue,
-            result.longValue,
-            "Bitwise AND of 0b1010 and 0b1100 should equal 0b1000"
+            0b1000.toNInt().longValue, result.longValue, "Bitwise AND of 0b1010 and 0b1100 should equal 0b1000"
         )
     }
 
@@ -182,9 +174,7 @@ class NIntTest {
         val b = 0b1100.toNInt()
         val result = a xor b
         assertEquals(
-            0b0110.toNInt().longValue,
-            result.longValue,
-            "Bitwise XOR of 0b1010 and 0b1100 should equal 0b0110"
+            0b0110.toNInt().longValue, result.longValue, "Bitwise XOR of 0b1010 and 0b1100 should equal 0b0110"
         )
     }
 
@@ -243,9 +233,7 @@ class NIntTest {
         val nIntValue = 0xABCD.toNInt()
         val padding = "0".repeat(2 * Pointer.SIZE_BYTES - 4)
         assertEquals(
-            "${padding}abcd",
-            nIntValue.toHexString(),
-            "Hexadecimal representation of 0xABCD should be '${padding}abcd'"
+            "${padding}abcd", nIntValue.toHexString(), "Hexadecimal representation of 0xABCD should be '${padding}abcd'"
         )
     }
 }

@@ -39,9 +39,7 @@ class NUIntArrayTest {
 
         for (i in 0 until size) {
             assertEquals(
-                (i.toUInt() * 2u).toNUInt(),
-                array[i],
-                "Array element at index $i should match the initializer value"
+                (i.toUInt() * 2u).toNUInt(), array[i], "Array element at index $i should match the initializer value"
             )
         }
     }

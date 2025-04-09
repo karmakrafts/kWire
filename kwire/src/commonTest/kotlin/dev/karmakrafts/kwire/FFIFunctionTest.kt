@@ -19,9 +19,9 @@ package dev.karmakrafts.kwire
 import dev.karmakrafts.rakii.deferring
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 /**
  * Tests for the FFIFunction class.
@@ -182,9 +182,7 @@ class FFIFunctionTest {
 
         // Verify the result is the length of the string
         assertEquals(
-            testString.length.toUInt().toNUInt(),
-            result,
-            "strlen(\"$testString\") should return ${testString.length}"
+            testString.length.toUInt().toNUInt(), result, "strlen(\"$testString\") should return ${testString.length}"
         )
     }
 

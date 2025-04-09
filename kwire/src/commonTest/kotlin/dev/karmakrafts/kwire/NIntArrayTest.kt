@@ -70,9 +70,7 @@ class NIntArrayTest {
         assertEquals(array.size, longArray.size, "LongArray size should match NIntArray size")
         for (i in 0 until array.size) {
             assertEquals(
-                array[i].longValue,
-                longArray[i],
-                "LongArray element at index $i should match NIntArray element"
+                array[i].longValue, longArray[i], "LongArray element at index $i should match NIntArray element"
             )
         }
     }
@@ -87,9 +85,7 @@ class NIntArrayTest {
         assertEquals(intArray.size, nIntArray.size, "NIntArray size should match IntArray size")
         for (i in intArray.indices) {
             assertEquals(
-                intArray[i].toNInt(),
-                nIntArray[i],
-                "NIntArray element at index $i should match IntArray element"
+                intArray[i].toNInt(), nIntArray[i], "NIntArray element at index $i should match IntArray element"
             )
         }
     }
@@ -102,9 +98,7 @@ class NIntArrayTest {
         assertEquals(longArray.size, nIntArray.size, "NIntArray size should match LongArray size")
         for (i in longArray.indices) {
             assertEquals(
-                longArray[i].toNInt(),
-                nIntArray[i],
-                "NIntArray element at index $i should match LongArray element"
+                longArray[i].toNInt(), nIntArray[i], "NIntArray element at index $i should match LongArray element"
             )
         }
     }
@@ -182,16 +176,13 @@ class NIntArrayTest {
         assertFalse(1.toNInt() in result, "Result should not contain elements from the second array")
         assertFalse(3.toNInt() in result, "Result should not contain elements from the second array")
         assertTrue(
-            0.toNInt() in result,
-            "Result should contain elements from the first array that are not in the second array"
+            0.toNInt() in result, "Result should contain elements from the first array that are not in the second array"
         )
         assertTrue(
-            2.toNInt() in result,
-            "Result should contain elements from the first array that are not in the second array"
+            2.toNInt() in result, "Result should contain elements from the first array that are not in the second array"
         )
         assertTrue(
-            4.toNInt() in result,
-            "Result should contain elements from the first array that are not in the second array"
+            4.toNInt() in result, "Result should contain elements from the first array that are not in the second array"
         )
     }
 

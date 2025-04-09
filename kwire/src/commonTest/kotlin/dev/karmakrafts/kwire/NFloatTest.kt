@@ -35,10 +35,7 @@ class NFloatTest {
             "NFloat doubleValue should match the original Float value converted to Double"
         )
         assertEquals(
-            floatValue,
-            nFloatValue.floatValue,
-            0.0001f,
-            "NFloat floatValue should match the original Float value"
+            floatValue, nFloatValue.floatValue, 0.0001f, "NFloat floatValue should match the original Float value"
         )
     }
 
@@ -47,10 +44,7 @@ class NFloatTest {
         val doubleValue = 42.5
         val nFloatValue = doubleValue.toNFloat()
         assertEquals(
-            doubleValue,
-            nFloatValue.doubleValue,
-            0.0001,
-            "NFloat doubleValue should match the original Double value"
+            doubleValue, nFloatValue.doubleValue, 0.0001, "NFloat doubleValue should match the original Double value"
         )
         assertEquals(
             doubleValue.toFloat(),
@@ -65,16 +59,10 @@ class NFloatTest {
         val nIntValue = 42.toNInt()
         val nFloatValue = nIntValue.toNFloat()
         assertEquals(
-            42.0,
-            nFloatValue.doubleValue,
-            0.0001,
-            "NFloat doubleValue should match the NInt value converted to Double"
+            42.0, nFloatValue.doubleValue, 0.0001, "NFloat doubleValue should match the NInt value converted to Double"
         )
         assertEquals(
-            42.0f,
-            nFloatValue.floatValue,
-            0.0001f,
-            "NFloat floatValue should match the NInt value converted to Float"
+            42.0f, nFloatValue.floatValue, 0.0001f, "NFloat floatValue should match the NInt value converted to Float"
         )
     }
 
@@ -83,16 +71,10 @@ class NFloatTest {
         val nUIntValue = 42u.toNUInt()
         val nFloatValue = nUIntValue.toNFloat()
         assertEquals(
-            42.0,
-            nFloatValue.doubleValue,
-            0.0001,
-            "NFloat doubleValue should match the NUInt value converted to Double"
+            42.0, nFloatValue.doubleValue, 0.0001, "NFloat doubleValue should match the NUInt value converted to Double"
         )
         assertEquals(
-            42.0f,
-            nFloatValue.floatValue,
-            0.0001f,
-            "NFloat floatValue should match the NUInt value converted to Float"
+            42.0f, nFloatValue.floatValue, 0.0001f, "NFloat floatValue should match the NUInt value converted to Float"
         )
     }
 
@@ -102,10 +84,7 @@ class NFloatTest {
     fun `floatValue property returns correct Float value`() {
         val nFloatValue = 42.5.toNFloat()
         assertEquals(
-            42.5f,
-            nFloatValue.floatValue,
-            0.0001f,
-            "floatValue property should return the correct Float representation"
+            42.5f, nFloatValue.floatValue, 0.0001f, "floatValue property should return the correct Float representation"
         )
     }
 
@@ -214,8 +193,7 @@ class NFloatTest {
 
         val result = normalValue / smallValue
         assertTrue(
-            result.doubleValue > 1.0e19,
-            "Division by a very small number should result in a very large number"
+            result.doubleValue > 1.0e19, "Division by a very small number should result in a very large number"
         ) // Should be very large
     }
 }

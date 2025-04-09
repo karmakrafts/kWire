@@ -189,9 +189,7 @@ class TypedPointerTest {
 
         bytePtr[0] = testValue
         assertEquals(
-            testValue,
-            bytePtr[0],
-            "BytePtr get/set with Int index should store and retrieve the correct value"
+            testValue, bytePtr[0], "BytePtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -203,9 +201,7 @@ class TypedPointerTest {
 
         bytePtr[0L] = testValue
         assertEquals(
-            testValue,
-            bytePtr[0L],
-            "BytePtr get/set with Long index should store and retrieve the correct value"
+            testValue, bytePtr[0L], "BytePtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -411,9 +407,7 @@ class TypedPointerTest {
 
         shortPtr[0] = testValue
         assertEquals(
-            testValue,
-            shortPtr[0],
-            "ShortPtr get/set with Int index should store and retrieve the correct value"
+            testValue, shortPtr[0], "ShortPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -425,9 +419,7 @@ class TypedPointerTest {
 
         shortPtr[0L] = testValue
         assertEquals(
-            testValue,
-            shortPtr[0L],
-            "ShortPtr get/set with Long index should store and retrieve the correct value"
+            testValue, shortPtr[0L], "ShortPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -643,9 +635,7 @@ class TypedPointerTest {
 
         intPtr[0L] = testValue
         assertEquals(
-            testValue,
-            intPtr[0L],
-            "IntPtr get/set with Long index should store and retrieve the correct value"
+            testValue, intPtr[0L], "IntPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -851,9 +841,7 @@ class TypedPointerTest {
 
         longPtr[0] = testValue
         assertEquals(
-            testValue,
-            longPtr[0],
-            "LongPtr get/set with Int index should store and retrieve the correct value"
+            testValue, longPtr[0], "LongPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -865,9 +853,7 @@ class TypedPointerTest {
 
         longPtr[0L] = testValue
         assertEquals(
-            testValue,
-            longPtr[0L],
-            "LongPtr get/set with Long index should store and retrieve the correct value"
+            testValue, longPtr[0L], "LongPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -1073,9 +1059,7 @@ class TypedPointerTest {
 
         nIntPtr[0] = testValue
         assertEquals(
-            testValue,
-            nIntPtr[0],
-            "NIntPtr get/set with Int index should store and retrieve the correct value"
+            testValue, nIntPtr[0], "NIntPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -1087,9 +1071,7 @@ class TypedPointerTest {
 
         nIntPtr[0L] = testValue
         assertEquals(
-            testValue,
-            nIntPtr[0L],
-            "NIntPtr get/set with Long index should store and retrieve the correct value"
+            testValue, nIntPtr[0L], "NIntPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -1293,9 +1275,7 @@ class TypedPointerTest {
 
         uBytePtr[0] = testValue
         assertEquals(
-            testValue,
-            uBytePtr[0],
-            "UBytePtr get/set with Int index should store and retrieve the correct value"
+            testValue, uBytePtr[0], "UBytePtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -1307,9 +1287,7 @@ class TypedPointerTest {
 
         uBytePtr[0L] = testValue
         assertEquals(
-            testValue,
-            uBytePtr[0L],
-            "UBytePtr get/set with Long index should store and retrieve the correct value"
+            testValue, uBytePtr[0L], "UBytePtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -1515,9 +1493,7 @@ class TypedPointerTest {
 
         uShortPtr[0] = testValue
         assertEquals(
-            testValue,
-            uShortPtr[0],
-            "UShortPtr get/set with Int index should store and retrieve the correct value"
+            testValue, uShortPtr[0], "UShortPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -1529,9 +1505,7 @@ class TypedPointerTest {
 
         uShortPtr[0L] = testValue
         assertEquals(
-            testValue,
-            uShortPtr[0L],
-            "UShortPtr get/set with Long index should store and retrieve the correct value"
+            testValue, uShortPtr[0L], "UShortPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -1737,9 +1711,7 @@ class TypedPointerTest {
 
         uIntPtr[0] = testValue
         assertEquals(
-            testValue,
-            uIntPtr[0],
-            "UIntPtr get/set with Int index should store and retrieve the correct value"
+            testValue, uIntPtr[0], "UIntPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -1751,9 +1723,7 @@ class TypedPointerTest {
 
         uIntPtr[0L] = testValue
         assertEquals(
-            testValue,
-            uIntPtr[0L],
-            "UIntPtr get/set with Long index should store and retrieve the correct value"
+            testValue, uIntPtr[0L], "UIntPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -1959,9 +1929,7 @@ class TypedPointerTest {
 
         uLongPtr[0] = testValue
         assertEquals(
-            testValue,
-            uLongPtr[0],
-            "ULongPtr get/set with Int index should store and retrieve the correct value"
+            testValue, uLongPtr[0], "ULongPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -1973,9 +1941,7 @@ class TypedPointerTest {
 
         uLongPtr[0L] = testValue
         assertEquals(
-            testValue,
-            uLongPtr[0L],
-            "ULongPtr get/set with Long index should store and retrieve the correct value"
+            testValue, uLongPtr[0L], "ULongPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -2181,9 +2147,7 @@ class TypedPointerTest {
 
         nUIntPtr[0] = testValue
         assertEquals(
-            testValue,
-            nUIntPtr[0],
-            "NUIntPtr get/set with Int index should store and retrieve the correct value"
+            testValue, nUIntPtr[0], "NUIntPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -2195,9 +2159,7 @@ class TypedPointerTest {
 
         nUIntPtr[0L] = testValue
         assertEquals(
-            testValue,
-            nUIntPtr[0L],
-            "NUIntPtr get/set with Long index should store and retrieve the correct value"
+            testValue, nUIntPtr[0L], "NUIntPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -2403,9 +2365,7 @@ class TypedPointerTest {
 
         floatPtr[0] = testValue
         assertEquals(
-            testValue,
-            floatPtr[0],
-            "FloatPtr get/set with Int index should store and retrieve the correct value"
+            testValue, floatPtr[0], "FloatPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -2417,9 +2377,7 @@ class TypedPointerTest {
 
         floatPtr[0L] = testValue
         assertEquals(
-            testValue,
-            floatPtr[0L],
-            "FloatPtr get/set with Long index should store and retrieve the correct value"
+            testValue, floatPtr[0L], "FloatPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -2625,9 +2583,7 @@ class TypedPointerTest {
 
         doublePtr[0] = testValue
         assertEquals(
-            testValue,
-            doublePtr[0],
-            "DoublePtr get/set with Int index should store and retrieve the correct value"
+            testValue, doublePtr[0], "DoublePtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -2639,9 +2595,7 @@ class TypedPointerTest {
 
         doublePtr[0L] = testValue
         assertEquals(
-            testValue,
-            doublePtr[0L],
-            "DoublePtr get/set with Long index should store and retrieve the correct value"
+            testValue, doublePtr[0L], "DoublePtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
@@ -2687,9 +2641,7 @@ class TypedPointerTest {
         val pointerPtr = PointerPtr(ptr)
 
         assertEquals(
-            ptr.value,
-            pointerPtr.value.value,
-            "PointerPtr should have the same address as the original pointer"
+            ptr.value, pointerPtr.value.value, "PointerPtr should have the same address as the original pointer"
         )
     }
 
@@ -2851,9 +2803,7 @@ class TypedPointerTest {
 
         pointerPtr[0] = testValue
         assertEquals(
-            testValue,
-            pointerPtr[0],
-            "PointerPtr get/set with Int index should store and retrieve the correct value"
+            testValue, pointerPtr[0], "PointerPtr get/set with Int index should store and retrieve the correct value"
         )
     }
 
@@ -2865,9 +2815,7 @@ class TypedPointerTest {
 
         pointerPtr[0L] = testValue
         assertEquals(
-            testValue,
-            pointerPtr[0L],
-            "PointerPtr get/set with Long index should store and retrieve the correct value"
+            testValue, pointerPtr[0L], "PointerPtr get/set with Long index should store and retrieve the correct value"
         )
     }
 
