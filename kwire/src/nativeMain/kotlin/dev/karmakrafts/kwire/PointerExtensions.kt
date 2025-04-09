@@ -24,6 +24,7 @@ import kotlinx.cinterop.COpaque
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointed
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.FloatVar
@@ -37,7 +38,6 @@ import kotlinx.cinterop.UShortVar
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.toCPointer
 import platform.posix.ptrdiff_tVar
-import platform.posix.size_t
 import platform.posix.size_tVar
 
 /**
@@ -326,6 +326,45 @@ inline fun ULongPtr.toCPointer(): CPointer<ULongVar>? = reinterpret<Pointer>().t
 @OptIn(UnsafeNumber::class)
 @ExperimentalForeignApi
 inline fun NUIntPtr.toCPointer(): CPointer<size_tVar>? = reinterpret<Pointer>().toCPointer()
+
+// Pointer to pointer conversions
+
+/**
+ * Converts a C pointer to a typed [PointerPtr].
+ *
+ * This extension function allows converting a C pointer
+ * to the library's typed pointer representation for pointers.
+ *
+ * @return A [PointerPtr] that points to the same memory address as this C pointer.
+ */
+@ExperimentalForeignApi
+inline fun CPointer<CPointerVar<*>>.toPointerPtr(): PointerPtr = toPointer().reinterpret()
+
+/**
+ * Converts a typed [PointerPtr] to a C opaque pointer.
+ *
+ * This extension function allows converting the library's typed pointer representation for pointers
+ * to a C pointer that can be used with Kotlin/Native C interop.
+ *
+ * @return A C opaque pointer that points to the same memory address as this pointer,
+ *         or null if the conversion fails.
+ */
+@ExperimentalForeignApi
+inline fun PointerPtr.toCOpaquePointer(): COpaquePointer? = reinterpret<Pointer>().toCOpaquePointer()
+
+/**
+ * Converts a typed [PointerPtr] to a typed C pointer.
+ *
+ * This extension function allows converting the library's typed pointer representation for pointers
+ * to a typed C pointer that can be used with Kotlin/Native C interop.
+ *
+ * @param T The C type that the pointer points to.
+ * @return A typed C pointer that points to the same memory address as this pointer,
+ *         or null if the conversion fails.
+ */
+@ExperimentalForeignApi
+inline fun <reified T : CPointed> PointerPtr.toCPointer(): CPointer<CPointerVar<T>>? =
+    reinterpret<Pointer>().toCPointer()
 
 // IEEE-754 pointeer conversions
 

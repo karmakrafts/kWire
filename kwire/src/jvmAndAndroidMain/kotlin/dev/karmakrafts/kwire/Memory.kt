@@ -51,7 +51,7 @@ private object PanamaMemory : Memory {
 
     override fun reallocate(address: Pointer, size: NUInt, alignment: NUInt): Pointer {
         return (realloc.invokeExact(
-            address.toMemorySegment(), Memory.align(size, alignment).value.longValue
+            address.toMemorySegment(), Memory.align(size, alignment).value
         ) as MemorySegment).toPointer().align(alignment)
     }
 

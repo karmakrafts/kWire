@@ -19,26 +19,14 @@
 package dev.karmakrafts.kwire
 
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.COpaquePointerVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.Pinned
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
 import platform.posix.ptrdiff_tVar
-import platform.posix.size_tVar
 
 @ExperimentalForeignApi
 actual inline fun Pinned<NIntArray>.addressOf(index: Int): CPointer<ptrdiff_tVar>? = this.addressOf(index)
 
 @ExperimentalForeignApi
-actual inline fun Pinned<NUIntArray>.addressOf(index: Int): CPointer<size_tVar>? =
-    get().value.usePinned { it.addressOf(index) }.reinterpret()
-
-@ExperimentalForeignApi
 actual inline fun Pinned<NFloatArray>.addressOf(index: Int): COpaquePointer? = this.addressOf(index)
-
-@ExperimentalForeignApi
-actual inline fun Pinned<PointerArray>.addressOf(index: Int): CPointer<COpaquePointerVar>? =
-    get().value.usePinned { it.addressOf(index) }?.reinterpret()

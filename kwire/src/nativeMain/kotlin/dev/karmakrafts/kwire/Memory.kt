@@ -27,12 +27,12 @@ import platform.posix.memcmp
 import platform.posix.memcpy
 import platform.posix.memmove
 import platform.posix.memset
+import platform.posix.strcmp_with_address
+import platform.posix.strcpy_with_address
+import platform.posix.strlen_with_address
 import platform.posix.free as posixFree
 import platform.posix.malloc as posixMalloc
 import platform.posix.realloc as posixRealloc
-import platform.posix.strlen_with_address
-import platform.posix.strcmp_with_address
-import platform.posix.strcpy_with_address
 
 @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
 private object NativeMemory : Memory {
@@ -167,7 +167,7 @@ private object NativeMemory : Memory {
     }
 
     override fun readPointers(address: Pointer, data: PointerArray, dataStart: Int, dataEnd: Int) {
-        data.usePinned { pinnedArray ->
+        data.value.value.usePinned { pinnedArray ->
             memcpy(
                 address.toCOpaquePointer(),
                 pinnedArray.addressOf(dataStart),
@@ -279,7 +279,7 @@ private object NativeMemory : Memory {
     }
 
     override fun writePointers(address: Pointer, data: PointerArray, dataStart: Int, dataEnd: Int) {
-        data.usePinned { pinnedArray ->
+        data.value.value.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
                 address.toCOpaquePointer(),
