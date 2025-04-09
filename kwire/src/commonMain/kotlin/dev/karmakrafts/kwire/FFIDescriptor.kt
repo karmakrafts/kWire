@@ -16,8 +16,6 @@
 
 package dev.karmakrafts.kwire
 
-import kotlin.reflect.KClass
-
 /**
  * Descriptor for a foreign function interface (FFI) function signature.
  *
@@ -43,31 +41,4 @@ data class FFIDescriptor( // @formatter:off
      * @param parameterTypes Variable number of parameter types for the function
      */
     constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
-
-    /**
-     * Constructs a descriptor using Kotlin classes for the return type and parameter types.
-     *
-     * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
-     * using the [FFIType.fromType] method.
-     *
-     * @param returnType The Kotlin class representing the return type
-     * @param parameterTypes List of Kotlin classes representing parameter types
-     * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
-     */
-    constructor(returnType: KClass<*>, parameterTypes: List<KClass<*>>) : this(
-        FFIType.fromType(returnType), parameterTypes.map(FFIType::fromType))
-
-    /**
-     * Constructs a descriptor using Kotlin classes for the return type and variable number of parameter types.
-     *
-     * This constructor converts the provided Kotlin classes to their corresponding [FFIType]
-     * using the [FFIType.fromType] method.
-     *
-     * @param returnType The Kotlin class representing the return type
-     * @param parameterTypes Variable number of Kotlin classes representing parameter types
-     * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
-     */
-    constructor(returnType: KClass<*>, vararg parameterTypes: KClass<*>) : this(
-        returnType, parameterTypes.toList()
-    )
 }

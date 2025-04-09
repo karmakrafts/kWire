@@ -242,29 +242,6 @@ class SharedLibrary internal constructor(
     }
 
     /**
-     * Gets a function from this library with the specified signature using [KClass] parameters.
-     *
-     * This operator provides a convenient syntax for getting a function from the library.
-     * It creates an [FFIDescriptor] from the provided return type and parameter types,
-     * then calls [getFunction] with that descriptor.
-     *
-     * Example usage:
-     * ```
-     * val exitFunc = library["exit", Unit::class, Int::class]
-     * ```
-     *
-     * @param name The name of the function to get
-     * @param returnType The return type of the function as a [KClass]
-     * @param parameterTypes The parameter types of the function as [KClass]es
-     * @return An [FFIFunction] representing the function
-     * @throws IllegalArgumentException if the function was not found in the library
-     * @throws IllegalArgumentException if any of the classes cannot be mapped to an [FFIType]
-     */
-    inline operator fun get(name: String, returnType: KClass<*>, vararg parameterTypes: KClass<*>): FFIFunction {
-        return getFunction(name, FFIDescriptor(returnType, *parameterTypes))
-    }
-
-    /**
      * Registers this library to be closed when the application exits.
      *
      * This method ensures that the library's resources are properly released when
