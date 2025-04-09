@@ -28,7 +28,7 @@ class StringSliceTest {
     @Test
     fun `constructor creates valid StringSlice`() = deferring {
         val cString by dropping { CString.allocate("Hello") }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals(5, slice.length, "StringSlice length should be 5")
         assertEquals(5L, slice.longLength, "StringSlice longLength should be 5L")
@@ -39,7 +39,7 @@ class StringSliceTest {
     @Test
     fun `fromCString creates StringSlice from CString`() = deferring {
         val cString by dropping { CString.allocate("Test String") }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals(cString.length, slice.length, "StringSlice length should match CString length")
         assertEquals(cString.toString(), slice.toString(), "StringSlice content should match CString content")
@@ -49,7 +49,7 @@ class StringSliceTest {
     fun `toByteArray returns correct byte array`() = deferring {
         val value = "Test"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val byteArray = slice.toByteArray()
         assertContentEquals(value.encodeToByteArray(), byteArray, "Byte array should match the encoded string")
@@ -77,7 +77,7 @@ class StringSliceTest {
     fun `contentEquals compares string content correctly with CString`() = deferring {
         val value = "Test String"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertTrue(slice.contentEquals(cString), "StringSlice should equal CString with same content")
 
@@ -98,9 +98,9 @@ class StringSliceTest {
         val cString2 by dropping { CString.allocate(value2) }
         val cString3 by dropping { CString.allocate(value3) }
 
-        val slice1 = cString1.asSlice()
-        val slice2 = cString2.asSlice()
-        val slice3 = cString3.asSlice()
+        val slice1 = cString1.toStringSlice()
+        val slice2 = cString2.toStringSlice()
+        val slice3 = cString3.toStringSlice()
 
         assertEquals(0, slice1.compare(slice2), "Equal StringSlices should return 0")
         assertTrue(slice1.compare(slice3) < 0, "ABC should be less than DEF")
@@ -115,7 +115,7 @@ class StringSliceTest {
         val cString1 by dropping { CString.allocate(value1) }
         val cString3 by dropping { CString.allocate(value3) }
 
-        val slice1 = cString1.asSlice()
+        val slice1 = cString1.toStringSlice()
 
         assertEquals(0, slice1.compare(cString1), "Equal content should return 0")
         assertTrue(slice1.compare(cString3) < 0, "ABC should be less than DEF")
@@ -125,7 +125,7 @@ class StringSliceTest {
     fun `get with Int index returns correct character`() = deferring {
         val value = "Hello"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals('H', slice[0], "Character at index 0 should be 'H'")
         assertEquals('e', slice[1], "Character at index 1 should be 'e'")
@@ -138,7 +138,7 @@ class StringSliceTest {
     fun `get with Long index returns correct character`() = deferring {
         val value = "Hello"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals('H', slice[0L], "Character at index 0 should be 'H'")
         assertEquals('e', slice[1L], "Character at index 1 should be 'e'")
@@ -151,7 +151,7 @@ class StringSliceTest {
     fun `get with NUInt index returns correct character`() = deferring {
         val value = "Hello"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals('H', slice[0U.toNUInt()], "Character at index 0 should be 'H'")
         assertEquals('e', slice[1U.toNUInt()], "Character at index 1 should be 'e'")
@@ -164,7 +164,7 @@ class StringSliceTest {
     fun `subSequence returns correct substring`() = deferring {
         val value = "Hello, World!"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val subSeq = slice.subSequence(7, 12)
         assertEquals("World", subSeq.toString(), "Subsequence should be 'World'")
@@ -174,7 +174,7 @@ class StringSliceTest {
     fun `subSlice returns correct substring as StringSlice`() = deferring {
         val value = "Hello, World!"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val subSlice = slice.subSlice(7, 12)
         assertEquals("World", subSlice.toString(), "Subslice should be 'World'")
@@ -185,7 +185,7 @@ class StringSliceTest {
     fun `subSlice with IntRange returns correct substring`() = deferring {
         val value = "Hello, World!"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val subSlice = slice.subSlice(0..4)
         assertEquals("Hello", subSlice.toString(), "Subslice should be 'Hello'")
@@ -195,7 +195,7 @@ class StringSliceTest {
     fun `get with IntRange returns correct substring`() = deferring {
         val value = "Hello, World!"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val subSlice = slice[0..4]
         assertEquals("Hello", subSlice.toString(), "Range indexing should return 'Hello'")
@@ -205,7 +205,7 @@ class StringSliceTest {
     fun `intoCString creates a CString with the same content`() = deferring {
         val value = "Test String"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         val newCString by dropping { slice.intoCString() }
 
@@ -223,9 +223,9 @@ class StringSliceTest {
         val cString2 by dropping { CString.allocate(value2) }
         val cString3 by dropping { CString.allocate(value3) }
 
-        val slice1 = cString1.asSlice()
-        val slice2 = cString2.asSlice()
-        val slice3 = cString3.asSlice()
+        val slice1 = cString1.toStringSlice()
+        val slice2 = cString2.toStringSlice()
+        val slice3 = cString3.toStringSlice()
 
         assertEquals(slice1, slice2, "StringSlices with same content should be equal")
         assertNotEquals(slice1, slice3, "StringSlices with different content should not be equal")
@@ -237,7 +237,7 @@ class StringSliceTest {
     fun `toString converts to correct Kotlin String`() = deferring {
         val value = "Hello, World!"
         val cString by dropping { CString.allocate(value) }
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals(value, slice.toString(), "toString should return the correct string content")
     }
@@ -248,8 +248,8 @@ class StringSliceTest {
         val cString1 by dropping { CString.allocate(value) }
         val cString2 by dropping { CString.allocate(value) }
 
-        val slice1 = cString1.asSlice()
-        val slice2 = cString2.asSlice()
+        val slice1 = cString1.toStringSlice()
+        val slice2 = cString2.toStringSlice()
 
         assertEquals(slice1.hashCode(), slice2.hashCode(), "Hash codes should be equal for equal content")
     }

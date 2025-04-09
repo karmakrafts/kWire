@@ -84,6 +84,16 @@ class StringSlice( // @formatter:off
         get() = nativeLength.value.longValue
 
     /**
+     * Converts this string slice to a general-purpose memory Slice.
+     *
+     * This method creates a Slice that references the same underlying memory as this string slice.
+     * A Slice provides general memory operations without string-specific functionality.
+     *
+     * @return A Slice representing the same memory region
+     */
+    inline fun toSlice(): Slice = Slice(address, nativeLength)
+
+    /**
      * Converts this string slice to a Kotlin ByteArray.
      *
      * This method reads the bytes of the string slice into a Kotlin ByteArray.

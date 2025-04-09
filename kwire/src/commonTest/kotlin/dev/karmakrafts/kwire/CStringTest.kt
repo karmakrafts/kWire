@@ -204,7 +204,7 @@ class CStringTest {
         val value = "Test String"
         val cString by dropping { CString.allocate(value) }
 
-        val slice = cString.asSlice()
+        val slice = cString.toStringSlice()
 
         assertEquals(cString.length, slice.length, "StringSlice should have the same length")
         assertEquals(cString.toString(), slice.toString(), "StringSlice should have the same content")

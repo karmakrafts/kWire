@@ -19,8 +19,6 @@
 package dev.karmakrafts.kwire
 
 import kotlin.jvm.JvmInline
-import kotlin.jvm.JvmMultifileClass
-import kotlin.jvm.JvmName
 
 /**
  * Represents a platform-dependent unsigned integer type.
@@ -37,7 +35,9 @@ import kotlin.jvm.JvmName
 @JvmInline
 value class NUInt @PublishedApi internal constructor(
     @PublishedApi internal val value: NInt
-)
+) {
+    override fun toString(): String = value.toString()
+}
 
 /**
  * Converts a standard 32-bit unsigned integer to a native unsigned integer.

@@ -213,7 +213,17 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
      *
      * @return A [StringSlice] representing the same string data
      */
-    inline fun asSlice(): StringSlice = StringSlice.fromCString(address)
+    inline fun toStringSlice(): StringSlice = StringSlice.fromCString(address)
+
+    /**
+     * Converts this C-style string to a general-purpose memory [Slice].
+     *
+     * This method creates a [Slice] that references the same underlying memory as this C-style string.
+     * A [Slice] provides general memory operations without string-specific functionality.
+     *
+     * @return A [Slice] representing the same memory region
+     */
+    inline fun toSlice(): Slice = Slice(address, Memory.strlen(address))
 
     /**
      * Returns a subsequence of this C-style string.
