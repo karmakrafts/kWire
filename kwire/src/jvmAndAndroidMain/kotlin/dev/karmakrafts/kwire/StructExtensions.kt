@@ -28,5 +28,5 @@ import java.lang.foreign.MemoryLayout
  * @return A [MemoryLayout] that represents the memory layout of this struct.
  */
 fun Struct.getMemoryLayout(): MemoryLayout {
-    return MemoryLayout.structLayout(*fields.map { it.type.getMemoryLayout() }.toTypedArray())
+    return MemoryLayout.structLayout(*type.fields.map { it.type.getMemoryLayout() }.toTypedArray())
 }

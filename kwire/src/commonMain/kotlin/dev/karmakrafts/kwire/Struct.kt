@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.karmakrafts.kwire
+
+import kotlin.jvm.JvmInline
 
 /**
  * Represents a field in a C-style struct.
@@ -35,6 +39,72 @@ data class StructField internal constructor(
 }
 
 /**
+ * Represents the type definition of a C-style struct.
+ *
+ * This class holds information about the structure's fields and provides methods
+ * for calculating field offsets. It implements [FFIType] to allow structs to be used
+ * as field types in other structs or as parameters in FFI functions.
+ *
+ * @property fields The list of fields that make up this struct type
+ */
+@JvmInline
+value class StructType(
+    val fields: List<StructField>
+) : FFIType {
+    /**
+     * The element type of this struct type.
+     *
+     * For struct types, the element type is the struct type itself.
+     */
+    override val elementType: FFIType
+        get() = this
+
+    /**
+     * The total size of the struct in bytes.
+     *
+     * This is calculated as the sum of the sizes of all fields in the struct.
+     */
+    override val size: Int
+        get() = fields.sumOf { it.type.size }
+
+    /**
+     * The number of dimensions of this struct type.
+     *
+     * Structs are considered to always have 0 dimensions because they are flattened
+     * into a single contiguous block of memory.
+     */
+    override val dimensions: Int
+        get() = 0
+
+    /**
+     * Initializes the struct type by calculating the memory offset for each field.
+     *
+     * The offset of each field is determined by the sum of the sizes of all preceding fields.
+     * This ensures that fields are laid out sequentially in memory without gaps.
+     */
+    init {
+        for (field in fields) { // @formatter:off
+            field.offset = fields.asSequence()
+                .take(fields.indexOf(field))
+                .sumOf { it.type.size }.toNUInt()
+        } // @formatter:on
+    }
+
+    /**
+     * Gets the memory offset of a field in the struct.
+     *
+     * @param index The index of the field
+     * @return The memory offset of the field
+     * @throws IllegalArgumentException if the field index does not exist
+     */
+    inline fun getFieldOffset(index: Int): NUInt {
+        return requireNotNull(fields.getOrNull(index)) {
+            "Struct field $index does not exist"
+        }.offset
+    }
+}
+
+/**
  * Represents a C-style struct in memory.
  *
  * This class provides a way to work with C-style structs in Kotlin. It allocates memory
@@ -43,13 +113,13 @@ data class StructField internal constructor(
  * freed when the instance is closed.
  *
  * @property address The memory address of the struct
- * @property fields The list of fields in the struct
+ * @property type The struct type that defines the layout and fields of this struct
  */
 @OptIn(ExperimentalUnsignedTypes::class)
 @Suppress("NOTHING_TO_INLINE")
 class Struct private constructor( // @formatter:off
     val address: Pointer,
-    val fields: List<StructField>
+    val type: StructType
 ) : AutoCloseable { // @formatter:on
     companion object {
         /**
@@ -61,8 +131,7 @@ class Struct private constructor( // @formatter:off
          * @param fieldTypes A list of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(fieldTypes: List<FFIType>): Struct =
-            Struct(Memory.allocate(fieldTypes.sumOf { it.size }.toNUInt()), fieldTypes.map { StructField(it) })
+        fun allocate(fieldTypes: List<FFIType>): Struct = allocate(StructType(fieldTypes.map { StructField(it) }))
 
         /**
          * Allocates a new struct with the specified field types.
@@ -73,28 +142,18 @@ class Struct private constructor( // @formatter:off
          * @param fieldTypes Variable number of FFI types representing the fields of the struct
          * @return A new Struct instance
          */
-        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(fieldTypes.toList())
-    }
+        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(StructType(fieldTypes.map { StructField(it) }))
 
-    init {
-        // Pre-compute all field offsets
-        for (field in fields) {
-            val index = fields.indexOf(field)
-            field.offset = fields.asSequence().take(index).sumOf { it.type.size }.toNUInt()
-        }
-    }
-
-    /**
-     * Gets the memory offset of a field in the struct.
-     *
-     * @param index The index of the field
-     * @return The memory offset of the field
-     * @throws IllegalArgumentException if the field index does not exist
-     */
-    fun getFieldOffset(index: Int): NUInt {
-        return requireNotNull(fields.getOrNull(index)) {
-            "Struct field $index does not exist"
-        }.offset
+        /**
+         * Allocates a new struct with the specified struct type.
+         *
+         * This function allocates memory for the struct based on the total size defined in the struct type.
+         * It's useful when you have a pre-defined struct type that you want to reuse.
+         *
+         * @param type The struct type defining the layout of the struct
+         * @return A new Struct instance
+         */
+        fun allocate(type: StructType): Struct = Struct(Memory.allocate(type.size.toNUInt()), type)
     }
 
     /**
@@ -103,7 +162,7 @@ class Struct private constructor( // @formatter:off
      * @param index The index of the field
      * @return The memory address of the field
      */
-    inline fun getFieldAddress(index: Int): Pointer = address + getFieldOffset(index)
+    inline fun getFieldAddress(index: Int): Pointer = address + type.getFieldOffset(index)
 
     /**
      * Gets the byte value of a field in the struct.

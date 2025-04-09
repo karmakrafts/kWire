@@ -42,9 +42,9 @@ class StructTest {
         val fieldTypes = listOf(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE)
         val struct by dropping { Struct.allocate(fieldTypes) }
 
-        assertEquals(fieldTypes.size, struct.fields.size, "Struct should have the correct number of fields")
+        assertEquals(fieldTypes.size, struct.type.fields.size, "Struct should have the correct number of fields")
         for (i in fieldTypes.indices) {
-            assertEquals(fieldTypes[i], struct.fields[i].type, "Field $i should have the correct type")
+            assertEquals(fieldTypes[i], struct.type.fields[i].type, "Field $i should have the correct type")
         }
     }
 
@@ -52,10 +52,10 @@ class StructTest {
     fun `Struct constructor with varargs creates struct with correct fields`() = deferring {
         val struct by dropping { Struct.allocate(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE) }
 
-        assertEquals(3, struct.fields.size, "Struct should have the correct number of fields")
-        assertEquals(FFIType.INT, struct.fields[0].type, "Field 0 should have INT type")
-        assertEquals(FFIType.FLOAT, struct.fields[1].type, "Field 1 should have FLOAT type")
-        assertEquals(FFIType.DOUBLE, struct.fields[2].type, "Field 2 should have DOUBLE type")
+        assertEquals(3, struct.type.fields.size, "Struct should have the correct number of fields")
+        assertEquals(FFIType.INT, struct.type.fields[0].type, "Field 0 should have INT type")
+        assertEquals(FFIType.FLOAT, struct.type.fields[1].type, "Field 1 should have FLOAT type")
+        assertEquals(FFIType.DOUBLE, struct.type.fields[2].type, "Field 2 should have DOUBLE type")
     }
 
     @Test
@@ -63,13 +63,13 @@ class StructTest {
         val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
 
         // Offsets should be calculated based on field sizes
-        assertEquals(0U.toNUInt(), struct.fields[0].offset, "First field offset should be 0")
+        assertEquals(0U.toNUInt(), struct.type.fields[0].offset, "First field offset should be 0")
         assertEquals(
-            FFIType.BYTE.size.toNUInt(), struct.fields[1].offset, "Second field offset should be size of first field"
+            FFIType.BYTE.size.toNUInt(), struct.type.fields[1].offset, "Second field offset should be size of first field"
         )
         assertEquals(
             (FFIType.BYTE.size + FFIType.INT.size).toNUInt(),
-            struct.fields[2].offset,
+            struct.type.fields[2].offset,
             "Third field offset should be sum of previous field sizes"
         )
     }
@@ -80,13 +80,13 @@ class StructTest {
     fun `getFieldOffset returns correct offset`() = deferring {
         val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
 
-        assertEquals(0U.toNUInt(), struct.getFieldOffset(0), "Offset of field 0 should be 0")
+        assertEquals(0U.toNUInt(), struct.type.getFieldOffset(0), "Offset of field 0 should be 0")
         assertEquals(
-            FFIType.BYTE.size.toNUInt(), struct.getFieldOffset(1), "Offset of field 1 should be size of field 0"
+            FFIType.BYTE.size.toNUInt(), struct.type.getFieldOffset(1), "Offset of field 1 should be size of field 0"
         )
         assertEquals(
             (FFIType.BYTE.size + FFIType.INT.size).toNUInt(),
-            struct.getFieldOffset(2),
+            struct.type.getFieldOffset(2),
             "Offset of field 2 should be sum of sizes of fields 0 and 1"
         )
     }
