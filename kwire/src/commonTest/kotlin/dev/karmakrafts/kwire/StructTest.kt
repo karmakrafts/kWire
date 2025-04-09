@@ -40,7 +40,7 @@ class StructTest {
     @Test
     fun `Struct constructor with list creates struct with correct fields`() = deferring {
         val fieldTypes = listOf(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE)
-        val struct by dropping { Struct(fieldTypes) }
+        val struct by dropping { Struct.allocate(fieldTypes) }
 
         assertEquals(fieldTypes.size, struct.fields.size, "Struct should have the correct number of fields")
         for (i in fieldTypes.indices) {
@@ -50,7 +50,7 @@ class StructTest {
 
     @Test
     fun `Struct constructor with varargs creates struct with correct fields`() = deferring {
-        val struct by dropping { Struct(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE) }
 
         assertEquals(3, struct.fields.size, "Struct should have the correct number of fields")
         assertEquals(FFIType.INT, struct.fields[0].type, "Field 0 should have INT type")
@@ -60,7 +60,7 @@ class StructTest {
 
     @Test
     fun `Struct initializes field offsets correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
 
         // Offsets should be calculated based on field sizes
         assertEquals(0U.toNUInt(), struct.fields[0].offset, "First field offset should be 0")
@@ -78,7 +78,7 @@ class StructTest {
 
     @Test
     fun `getFieldOffset returns correct offset`() = deferring {
-        val struct by dropping { Struct(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
 
         assertEquals(0U.toNUInt(), struct.getFieldOffset(0), "Offset of field 0 should be 0")
         assertEquals(
@@ -93,7 +93,7 @@ class StructTest {
 
     @Test
     fun `getFieldAddress returns correct address`() = deferring {
-        val struct by dropping { Struct(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE) }
 
         assertEquals(struct.address, struct.getFieldAddress(0), "Address of field 0 should be struct address")
         assertEquals(
@@ -112,7 +112,7 @@ class StructTest {
 
     @Test
     fun `setByte and getByte work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.BYTE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE) }
 
         val testValue: Byte = 42
         struct.setByte(0, testValue)
@@ -121,7 +121,7 @@ class StructTest {
 
     @Test
     fun `setShort and getShort work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.SHORT) }
+        val struct by dropping { Struct.allocate(FFIType.SHORT) }
 
         val testValue: Short = 12345
         struct.setShort(0, testValue)
@@ -130,7 +130,7 @@ class StructTest {
 
     @Test
     fun `setInt and getInt work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.INT) }
+        val struct by dropping { Struct.allocate(FFIType.INT) }
 
         val testValue = 123456789
         struct.setInt(0, testValue)
@@ -139,7 +139,7 @@ class StructTest {
 
     @Test
     fun `setLong and getLong work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.LONG) }
+        val struct by dropping { Struct.allocate(FFIType.LONG) }
 
         val testValue = 1234567890123456789L
         struct.setLong(0, testValue)
@@ -148,7 +148,7 @@ class StructTest {
 
     @Test
     fun `setNInt and getNInt work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.NINT) }
+        val struct by dropping { Struct.allocate(FFIType.NINT) }
 
         val testValue = 123456789.toNInt()
         struct.setNInt(0, testValue)
@@ -157,7 +157,7 @@ class StructTest {
 
     @Test
     fun `setUByte and getUByte work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.BYTE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE) }
 
         val testValue: UByte = 200u
         struct.setUByte(0, testValue)
@@ -166,7 +166,7 @@ class StructTest {
 
     @Test
     fun `setUShort and getUShort work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.SHORT) }
+        val struct by dropping { Struct.allocate(FFIType.SHORT) }
 
         val testValue: UShort = 50000u
         struct.setUShort(0, testValue)
@@ -175,7 +175,7 @@ class StructTest {
 
     @Test
     fun `setUInt and getUInt work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.INT) }
+        val struct by dropping { Struct.allocate(FFIType.INT) }
 
         val testValue: UInt = 3000000000u
         struct.setUInt(0, testValue)
@@ -184,7 +184,7 @@ class StructTest {
 
     @Test
     fun `setULong and getULong work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.LONG) }
+        val struct by dropping { Struct.allocate(FFIType.LONG) }
 
         val testValue: ULong = 10000000000000000000uL
         struct.setULong(0, testValue)
@@ -193,7 +193,7 @@ class StructTest {
 
     @Test
     fun `setNUInt and getNUInt work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.NUINT) }
+        val struct by dropping { Struct.allocate(FFIType.NUINT) }
 
         val testValue = 3000000000u.toNUInt()
         struct.setNUInt(0, testValue)
@@ -202,7 +202,7 @@ class StructTest {
 
     @Test
     fun `setFloat and getFloat work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.FLOAT) }
+        val struct by dropping { Struct.allocate(FFIType.FLOAT) }
 
         val testValue = 3.14159f
         struct.setFloat(0, testValue)
@@ -211,7 +211,7 @@ class StructTest {
 
     @Test
     fun `setDouble and getDouble work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.DOUBLE) }
 
         val testValue = 3.14159265358979
         struct.setDouble(0, testValue)
@@ -220,7 +220,7 @@ class StructTest {
 
     @Test
     fun `setPointer and getPointer work correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.PTR) }
+        val struct by dropping { Struct.allocate(FFIType.PTR) }
         val testPtr by dropping { Memory.allocate(4.toNUInt()) }
 
         struct.setPointer(0, testPtr)
@@ -232,7 +232,7 @@ class StructTest {
     @Test
     fun `setBytes and getBytes work correctly`() = deferring {
         // Allocate enough space for 5 bytes
-        val struct by dropping { Struct(FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE) }
 
         val testArray = byteArrayOf(1, 2, 3, 4, 5)
         struct.setBytes(0, testArray)
@@ -247,7 +247,7 @@ class StructTest {
     @Test
     fun `setInts and getInts work correctly`() = deferring {
         // Allocate enough space for 3 ints
-        val struct by dropping { Struct(FFIType.INT, FFIType.INT, FFIType.INT) }
+        val struct by dropping { Struct.allocate(FFIType.INT, FFIType.INT, FFIType.INT) }
 
         val testArray = intArrayOf(100, 200, 300)
         struct.setInts(0, testArray)
@@ -262,7 +262,7 @@ class StructTest {
     @Test
     fun `setFloats and getFloats work correctly`() = deferring {
         // Allocate enough space for 3 floats
-        val struct by dropping { Struct(FFIType.FLOAT, FFIType.FLOAT, FFIType.FLOAT) }
+        val struct by dropping { Struct.allocate(FFIType.FLOAT, FFIType.FLOAT, FFIType.FLOAT) }
 
         val testArray = floatArrayOf(1.1f, 2.2f, 3.3f)
         struct.setFloats(0, testArray)
@@ -277,7 +277,7 @@ class StructTest {
     @Test
     fun `setShorts and getShorts work correctly`() = deferring {
         // Allocate enough space for 3 shorts
-        val struct by dropping { Struct(FFIType.SHORT, FFIType.SHORT, FFIType.SHORT) }
+        val struct by dropping { Struct.allocate(FFIType.SHORT, FFIType.SHORT, FFIType.SHORT) }
 
         val testArray = shortArrayOf(100, 200, 300)
         struct.setShorts(0, testArray)
@@ -292,7 +292,7 @@ class StructTest {
     @Test
     fun `setLongs and getLongs work correctly`() = deferring {
         // Allocate enough space for 3 longs
-        val struct by dropping { Struct(FFIType.LONG, FFIType.LONG, FFIType.LONG) }
+        val struct by dropping { Struct.allocate(FFIType.LONG, FFIType.LONG, FFIType.LONG) }
 
         val testArray = longArrayOf(100L, 200L, 300L)
         struct.setLongs(0, testArray)
@@ -307,7 +307,7 @@ class StructTest {
     @Test
     fun `setNInts and getNInts work correctly`() = deferring {
         // Allocate enough space for 3 native integers
-        val struct by dropping { Struct(FFIType.NINT, FFIType.NINT, FFIType.NINT) }
+        val struct by dropping { Struct.allocate(FFIType.NINT, FFIType.NINT, FFIType.NINT) }
 
         val testArray = nIntArray(3) {
             when (it) {
@@ -328,7 +328,7 @@ class StructTest {
     @Test
     fun `setUBytes and getUBytes work correctly`() = deferring {
         // Allocate enough space for 5 unsigned bytes
-        val struct by dropping { Struct(FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE) }
+        val struct by dropping { Struct.allocate(FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE, FFIType.BYTE) }
 
         val testArray = ubyteArrayOf(10u, 20u, 30u, 40u, 50u)
         struct.setUBytes(0, testArray)
@@ -343,7 +343,7 @@ class StructTest {
     @Test
     fun `setUShorts and getUShorts work correctly`() = deferring {
         // Allocate enough space for 3 unsigned shorts
-        val struct by dropping { Struct(FFIType.SHORT, FFIType.SHORT, FFIType.SHORT) }
+        val struct by dropping { Struct.allocate(FFIType.SHORT, FFIType.SHORT, FFIType.SHORT) }
 
         val testArray = ushortArrayOf(1000u, 2000u, 3000u)
         struct.setUShorts(0, testArray)
@@ -358,7 +358,7 @@ class StructTest {
     @Test
     fun `setUInts and getUInts work correctly`() = deferring {
         // Allocate enough space for 3 unsigned ints
-        val struct by dropping { Struct(FFIType.INT, FFIType.INT, FFIType.INT) }
+        val struct by dropping { Struct.allocate(FFIType.INT, FFIType.INT, FFIType.INT) }
 
         val testArray = uintArrayOf(1000000u, 2000000u, 3000000u)
         struct.setUInts(0, testArray)
@@ -373,7 +373,7 @@ class StructTest {
     @Test
     fun `setULongs and getULongs work correctly`() = deferring {
         // Allocate enough space for 3 unsigned longs
-        val struct by dropping { Struct(FFIType.LONG, FFIType.LONG, FFIType.LONG) }
+        val struct by dropping { Struct.allocate(FFIType.LONG, FFIType.LONG, FFIType.LONG) }
 
         val testArray = ulongArrayOf(1000000000uL, 2000000000uL, 3000000000uL)
         struct.setULongs(0, testArray)
@@ -388,7 +388,7 @@ class StructTest {
     @Test
     fun `setNUInts and getNUInts work correctly`() = deferring {
         // Allocate enough space for 3 native unsigned integers
-        val struct by dropping { Struct(FFIType.NUINT, FFIType.NUINT, FFIType.NUINT) }
+        val struct by dropping { Struct.allocate(FFIType.NUINT, FFIType.NUINT, FFIType.NUINT) }
 
         val testArray = nUIntArray(3) {
             when (it) {
@@ -409,7 +409,7 @@ class StructTest {
     @Test
     fun `setDoubles and getDoubles work correctly`() = deferring {
         // Allocate enough space for 3 doubles
-        val struct by dropping { Struct(FFIType.DOUBLE, FFIType.DOUBLE, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.DOUBLE, FFIType.DOUBLE, FFIType.DOUBLE) }
 
         val testArray = doubleArrayOf(1.1, 2.2, 3.3)
         struct.setDoubles(0, testArray)
@@ -424,7 +424,7 @@ class StructTest {
     @Test
     fun `setPointers and getPointers work correctly`() = deferring {
         // Allocate enough space for 3 pointers
-        val struct by dropping { Struct(FFIType.PTR, FFIType.PTR, FFIType.PTR) }
+        val struct by dropping { Struct.allocate(FFIType.PTR, FFIType.PTR, FFIType.PTR) }
 
         val ptr1 by dropping { Memory.allocate(4.toNUInt()) }
         val ptr2 by dropping { Memory.allocate(4.toNUInt()) }
@@ -451,7 +451,7 @@ class StructTest {
 
     @Test
     fun `struct with multiple fields stores and retrieves values correctly`() = deferring {
-        val struct by dropping { Struct(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE) }
+        val struct by dropping { Struct.allocate(FFIType.INT, FFIType.FLOAT, FFIType.DOUBLE) }
 
         val intValue = 42
         val floatValue = 3.14f
@@ -472,7 +472,7 @@ class StructTest {
     fun `struct allocates memory of correct size`() = deferring {
         val fieldTypes = listOf(FFIType.BYTE, FFIType.INT, FFIType.DOUBLE)
         val expectedSize = fieldTypes.sumOf { it.size }.toNUInt()
-        val struct by dropping { Struct(fieldTypes) }
+        val struct by dropping { Struct.allocate(fieldTypes) }
 
         // We can't directly check the allocated size, but we can verify that the address is not null
         assertNotEquals(nullptr, struct.address, "Struct should allocate a valid memory address")

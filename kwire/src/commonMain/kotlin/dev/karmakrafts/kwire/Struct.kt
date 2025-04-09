@@ -51,27 +51,30 @@ class Struct private constructor( // @formatter:off
     val address: Pointer,
     val fields: List<StructField>
 ) : AutoCloseable { // @formatter:on
-    /**
-     * Constructs a struct with the specified field types.
-     *
-     * This constructor allocates memory for the struct based on the total size of all fields
-     * and creates a StructField for each type in the list.
-     *
-     * @param fieldTypes A list of FFI types representing the fields of the struct
-     */
-    constructor(fieldTypes: List<FFIType>) : this(
-        Memory.allocate(fieldTypes.sumOf { it.size }.toNUInt()),
-        fieldTypes.map { StructField(it) })
+    companion object {
+        /**
+         * Allocates a new struct with the specified field types.
+         *
+         * This function allocates memory for the struct based on the total size of all fields
+         * and creates a StructField for each type in the list.
+         *
+         * @param fieldTypes A list of FFI types representing the fields of the struct
+         * @return A new Struct instance
+         */
+        fun allocate(fieldTypes: List<FFIType>): Struct =
+            Struct(Memory.allocate(fieldTypes.sumOf { it.size }.toNUInt()), fieldTypes.map { StructField(it) })
 
-    /**
-     * Constructs a struct with the specified field types.
-     *
-     * This is a convenience constructor that converts the vararg parameter to a list
-     * and calls the list-based constructor.
-     *
-     * @param fieldTypes Variable number of FFI types representing the fields of the struct
-     */
-    constructor(vararg fieldTypes: FFIType) : this(fieldTypes.toList())
+        /**
+         * Allocates a new struct with the specified field types.
+         *
+         * This is a convenience function that converts the vararg parameter to a list
+         * and calls the list-based allocate function.
+         *
+         * @param fieldTypes Variable number of FFI types representing the fields of the struct
+         * @return A new Struct instance
+         */
+        fun allocate(vararg fieldTypes: FFIType): Struct = allocate(fieldTypes.toList())
+    }
 
     init {
         // Pre-compute all field offsets
