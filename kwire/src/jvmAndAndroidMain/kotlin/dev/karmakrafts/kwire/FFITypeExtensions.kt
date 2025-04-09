@@ -31,7 +31,7 @@ import java.lang.foreign.ValueLayout
  * @return The appropriate [ValueLayout] for representing pointers in memory.
  */
 private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
-    if(useSegments) return ValueLayout.ADDRESS
+    if (useSegments) return ValueLayout.ADDRESS
     return if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) ValueLayout.JAVA_INT
     else ValueLayout.JAVA_LONG
 }
@@ -50,7 +50,7 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
  * - FLOAT -> JAVA_FLOAT
  * - DOUBLE -> JAVA_DOUBLE
  *
- * @param useSegments When true, pointer types (PTR) will use ValueLayout.ADDRESS. When false, 
+ * @param useSegments When true, pointer types (PTR) will use ValueLayout.ADDRESS. When false,
  *                    they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
  *                    Note that NINT and NUINT always use the platform's pointer size representation
  *                    regardless of this parameter.

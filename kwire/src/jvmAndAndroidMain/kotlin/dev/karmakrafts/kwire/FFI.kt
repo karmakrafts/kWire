@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire
 
-import java.lang.foreign.MemorySegment
 import java.lang.invoke.MethodHandle
 import java.lang.foreign.Linker as JvmLinker
 
@@ -41,7 +40,7 @@ internal object PanamaFFI : FFI {
         }
     }
 
-    internal fun  getHandle(address: Pointer, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
+    internal fun getHandle(address: Pointer, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
         return JvmLinker.nativeLinker()
             .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
     }

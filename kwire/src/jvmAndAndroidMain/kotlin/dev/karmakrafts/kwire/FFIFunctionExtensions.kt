@@ -30,4 +30,5 @@ import java.lang.invoke.MethodHandle
  * @return A [MethodHandle] that can be used to invoke the native function.
  * @throws IllegalArgumentException if the method handle could not be obtained.
  */
-fun FFIFunction.toMethodHandle(useSegments: Boolean = false): MethodHandle = PanamaFFI.getHandle(address, descriptor, useSegments)
+fun FFIFunction.toMethodHandle(useSegments: Boolean = false): MethodHandle =
+    PanamaFFI.getHandle(address, descriptor, useSegments)

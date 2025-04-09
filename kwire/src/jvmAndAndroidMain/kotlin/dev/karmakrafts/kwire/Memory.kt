@@ -78,9 +78,10 @@ private object PanamaMemory : Memory {
     }
 
     override fun strlen(address: Pointer): NUInt {
-        return if(Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+        return if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
             (strlen.invokeExact(address.toMemorySegment()) as Int).toNUInt()
-        } else {
+        }
+        else {
             (strlen.invokeExact(address.toMemorySegment()) as Long).toNUInt()
         }
     }
@@ -135,12 +136,7 @@ private object PanamaMemory : Memory {
     override fun readBytes(address: Pointer, data: ByteArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            address.toMemorySegment(size * Byte.SIZE_BYTES),
-            ValueLayout.JAVA_BYTE,
-            0L,
-            data,
-            dataStart,
-            size
+            address.toMemorySegment(size * Byte.SIZE_BYTES), ValueLayout.JAVA_BYTE, 0L, data, dataStart, size
         )
     }
 
@@ -159,24 +155,14 @@ private object PanamaMemory : Memory {
     override fun readInts(address: Pointer, data: IntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            address.toMemorySegment(size * Int.SIZE_BYTES),
-            ValueLayout.JAVA_INT_UNALIGNED,
-            0L,
-            data,
-            dataStart,
-            size
+            address.toMemorySegment(size * Int.SIZE_BYTES), ValueLayout.JAVA_INT_UNALIGNED, 0L, data, dataStart, size
         )
     }
 
     override fun readLongs(address: Pointer, data: LongArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            address.toMemorySegment(size * Long.SIZE_BYTES),
-            ValueLayout.JAVA_LONG_UNALIGNED,
-            0L,
-            data,
-            dataStart,
-            size
+            address.toMemorySegment(size * Long.SIZE_BYTES), ValueLayout.JAVA_LONG_UNALIGNED, 0L, data, dataStart, size
         )
     }
 
@@ -293,12 +279,7 @@ private object PanamaMemory : Memory {
     override fun writeBytes(address: Pointer, data: ByteArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            data,
-            dataStart,
-            address.toMemorySegment(size * Byte.SIZE_BYTES),
-            ValueLayout.JAVA_BYTE,
-            0L,
-            size
+            data, dataStart, address.toMemorySegment(size * Byte.SIZE_BYTES), ValueLayout.JAVA_BYTE, 0L, size
         )
     }
 
@@ -317,24 +298,14 @@ private object PanamaMemory : Memory {
     override fun writeInts(address: Pointer, data: IntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            data,
-            dataStart,
-            address.toMemorySegment(size * Int.SIZE_BYTES),
-            ValueLayout.JAVA_INT_UNALIGNED,
-            0L,
-            size
+            data, dataStart, address.toMemorySegment(size * Int.SIZE_BYTES), ValueLayout.JAVA_INT_UNALIGNED, 0L, size
         )
     }
 
     override fun writeLongs(address: Pointer, data: LongArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            data,
-            dataStart,
-            address.toMemorySegment(size * Long.SIZE_BYTES),
-            ValueLayout.JAVA_LONG_UNALIGNED,
-            0L,
-            size
+            data, dataStart, address.toMemorySegment(size * Long.SIZE_BYTES), ValueLayout.JAVA_LONG_UNALIGNED, 0L, size
         )
     }
 
