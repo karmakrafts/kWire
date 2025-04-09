@@ -70,15 +70,16 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.rakii.runtime)
             }
         }
 
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
-                api(libs.rakii.runtime)
             }
         }
+
         val nativeMain by getting
 
         val x32Main by creating { dependsOn(nativeMain) }
