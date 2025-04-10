@@ -181,6 +181,26 @@ value class Pointer(val value: NUInt) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): Pointer = Pointer(value - other.toNUInt())
 
     /**
+     * Increments this pointer by one unit.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one unit. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): Pointer = Pointer(value.inc())
+
+    /**
+     * Decrements this pointer by one unit.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one unit. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): Pointer = Pointer(value.dec())
+
+    /**
      * Aligns this pointer to the specified memory alignment boundary.
      *
      * This method ensures that the pointer address is aligned to the specified
@@ -217,6 +237,7 @@ value class Pointer(val value: NUInt) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> asNUIntPtr()
         FloatPtr::class -> asFloatPtr()
         DoublePtr::class -> asDoublePtr()
+        NFloatPtr::class -> asNFloatPtr()
         PointerPtr::class -> asPointerPtr()
         CString::class -> CString(this)
         else -> error("Unknown pointer type ${T::class}")

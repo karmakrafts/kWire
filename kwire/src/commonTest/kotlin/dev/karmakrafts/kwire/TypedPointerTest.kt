@@ -232,6 +232,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `BytePtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val bytePtr = BytePtr(ptr)
+        val result = bytePtr.inc()
+
+        assertEquals(
+            ptr.value + Byte.SIZE_BYTES.toNUInt(), result.value.value, "BytePtr increment should add Byte.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `BytePtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val bytePtr = BytePtr(ptr)
+        val result = bytePtr.dec()
+
+        assertEquals(
+            ptr.value - Byte.SIZE_BYTES.toNUInt(), result.value.value, "BytePtr decrement should subtract Byte.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asBytePtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val bytePtr = ptr.asBytePtr()
@@ -450,6 +472,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `ShortPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val shortPtr = ShortPtr(ptr)
+        val result = shortPtr.inc()
+
+        assertEquals(
+            ptr.value + Short.SIZE_BYTES.toNUInt(), result.value.value, "ShortPtr increment should add Short.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `ShortPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val shortPtr = ShortPtr(ptr)
+        val result = shortPtr.dec()
+
+        assertEquals(
+            ptr.value - Short.SIZE_BYTES.toNUInt(), result.value.value, "ShortPtr decrement should subtract Short.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asShortPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val shortPtr = ptr.asShortPtr()
@@ -663,6 +707,28 @@ class TypedPointerTest {
 
         val bytePtr = intPtr.reinterpret<BytePtr>()
         assertEquals(ptr.value, bytePtr.value.value, "IntPtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `IntPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val intPtr = IntPtr(ptr)
+        val result = intPtr.inc()
+
+        assertEquals(
+            ptr.value + Int.SIZE_BYTES.toNUInt(), result.value.value, "IntPtr increment should add Int.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `IntPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val intPtr = IntPtr(ptr)
+        val result = intPtr.dec()
+
+        assertEquals(
+            ptr.value - Int.SIZE_BYTES.toNUInt(), result.value.value, "IntPtr decrement should subtract Int.SIZE_BYTES from the address"
+        )
     }
 
     @Test
@@ -884,6 +950,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `LongPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val longPtr = LongPtr(ptr)
+        val result = longPtr.inc()
+
+        assertEquals(
+            ptr.value + Long.SIZE_BYTES.toNUInt(), result.value.value, "LongPtr increment should add Long.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `LongPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val longPtr = LongPtr(ptr)
+        val result = longPtr.dec()
+
+        assertEquals(
+            ptr.value - Long.SIZE_BYTES.toNUInt(), result.value.value, "LongPtr decrement should subtract Long.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asLongPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val longPtr = ptr.asLongPtr()
@@ -1102,6 +1190,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `NIntPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nIntPtr = NIntPtr(ptr)
+        val result = nIntPtr.inc()
+
+        assertEquals(
+            ptr.value + Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NIntPtr increment should add Pointer.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `NIntPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nIntPtr = NIntPtr(ptr)
+        val result = nIntPtr.dec()
+
+        assertEquals(
+            ptr.value - Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NIntPtr decrement should subtract Pointer.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asNIntPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val nIntPtr = ptr.asNIntPtr()
@@ -1315,6 +1425,28 @@ class TypedPointerTest {
 
         val bytePtr = uBytePtr.reinterpret<BytePtr>()
         assertEquals(ptr.value, bytePtr.value.value, "UBytePtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `UBytePtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uBytePtr = UBytePtr(ptr)
+        val result = uBytePtr.inc()
+
+        assertEquals(
+            ptr.value + UByte.SIZE_BYTES.toNUInt(), result.value.value, "UBytePtr increment should add UByte.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `UBytePtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uBytePtr = UBytePtr(ptr)
+        val result = uBytePtr.dec()
+
+        assertEquals(
+            ptr.value - UByte.SIZE_BYTES.toNUInt(), result.value.value, "UBytePtr decrement should subtract UByte.SIZE_BYTES from the address"
+        )
     }
 
     @Test
@@ -1536,6 +1668,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `UShortPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uShortPtr = UShortPtr(ptr)
+        val result = uShortPtr.inc()
+
+        assertEquals(
+            ptr.value + UShort.SIZE_BYTES.toNUInt(), result.value.value, "UShortPtr increment should add UShort.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `UShortPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uShortPtr = UShortPtr(ptr)
+        val result = uShortPtr.dec()
+
+        assertEquals(
+            ptr.value - UShort.SIZE_BYTES.toNUInt(), result.value.value, "UShortPtr decrement should subtract UShort.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asUShortPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val uShortPtr = ptr.asUShortPtr()
@@ -1751,6 +1905,28 @@ class TypedPointerTest {
 
         val bytePtr = uIntPtr.reinterpret<BytePtr>()
         assertEquals(ptr.value, bytePtr.value.value, "UIntPtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `UIntPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uIntPtr = UIntPtr(ptr)
+        val result = uIntPtr.inc()
+
+        assertEquals(
+            ptr.value + UInt.SIZE_BYTES.toNUInt(), result.value.value, "UIntPtr increment should add UInt.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `UIntPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uIntPtr = UIntPtr(ptr)
+        val result = uIntPtr.dec()
+
+        assertEquals(
+            ptr.value - UInt.SIZE_BYTES.toNUInt(), result.value.value, "UIntPtr decrement should subtract UInt.SIZE_BYTES from the address"
+        )
     }
 
     @Test
@@ -1972,6 +2148,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `ULongPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uLongPtr = ULongPtr(ptr)
+        val result = uLongPtr.inc()
+
+        assertEquals(
+            ptr.value + ULong.SIZE_BYTES.toNUInt(), result.value.value, "ULongPtr increment should add ULong.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `ULongPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val uLongPtr = ULongPtr(ptr)
+        val result = uLongPtr.dec()
+
+        assertEquals(
+            ptr.value - ULong.SIZE_BYTES.toNUInt(), result.value.value, "ULongPtr decrement should subtract ULong.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asULongPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val uLongPtr = ptr.asULongPtr()
@@ -2187,6 +2385,28 @@ class TypedPointerTest {
 
         val bytePtr = nUIntPtr.reinterpret<BytePtr>()
         assertEquals(ptr.value, bytePtr.value.value, "NUIntPtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `NUIntPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nUIntPtr = NUIntPtr(ptr)
+        val result = nUIntPtr.inc()
+
+        assertEquals(
+            ptr.value + Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NUIntPtr increment should add Pointer.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `NUIntPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nUIntPtr = NUIntPtr(ptr)
+        val result = nUIntPtr.dec()
+
+        assertEquals(
+            ptr.value - Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NUIntPtr decrement should subtract Pointer.SIZE_BYTES from the address"
+        )
     }
 
     @Test
@@ -2408,6 +2628,28 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `FloatPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val floatPtr = FloatPtr(ptr)
+        val result = floatPtr.inc()
+
+        assertEquals(
+            ptr.value + Float.SIZE_BYTES.toNUInt(), result.value.value, "FloatPtr increment should add Float.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `FloatPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val floatPtr = FloatPtr(ptr)
+        val result = floatPtr.dec()
+
+        assertEquals(
+            ptr.value - Float.SIZE_BYTES.toNUInt(), result.value.value, "FloatPtr decrement should subtract Float.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asFloatPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val floatPtr = ptr.asFloatPtr()
@@ -2623,6 +2865,28 @@ class TypedPointerTest {
 
         val bytePtr = doublePtr.reinterpret<BytePtr>()
         assertEquals(ptr.value, bytePtr.value.value, "DoublePtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `DoublePtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val doublePtr = DoublePtr(ptr)
+        val result = doublePtr.inc()
+
+        assertEquals(
+            ptr.value + Double.SIZE_BYTES.toNUInt(), result.value.value, "DoublePtr increment should add Double.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `DoublePtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val doublePtr = DoublePtr(ptr)
+        val result = doublePtr.dec()
+
+        assertEquals(
+            ptr.value - Double.SIZE_BYTES.toNUInt(), result.value.value, "DoublePtr decrement should subtract Double.SIZE_BYTES from the address"
+        )
     }
 
     @Test
@@ -2846,10 +3110,122 @@ class TypedPointerTest {
     }
 
     @Test
+    fun `PointerPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val pointerPtr = PointerPtr(ptr)
+        val result = pointerPtr.inc()
+
+        assertEquals(
+            ptr.value + Pointer.SIZE_BYTES.toNUInt(), result.value.value, "PointerPtr increment should add Pointer.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `PointerPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val pointerPtr = PointerPtr(ptr)
+        val result = pointerPtr.dec()
+
+        assertEquals(
+            ptr.value - Pointer.SIZE_BYTES.toNUInt(), result.value.value, "PointerPtr decrement should subtract Pointer.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
     fun `asPointerPtr extension function works correctly`() = deferring {
         val ptr by dropping { Memory.allocate(16.toNUInt()) }
         val pointerPtr = ptr.asPointerPtr()
 
         assertEquals(ptr.value, pointerPtr.value.value, "asPointerPtr should create a PointerPtr with the same address")
+    }
+
+    // NFloatPtr Tests
+
+    @Test
+    fun `NFloatPtr constructor creates valid pointer`() {
+        val ptr = Pointer(42u.toNUInt())
+        val nFloatPtr = NFloatPtr(ptr)
+
+        assertEquals(ptr.value, nFloatPtr.value.value, "NFloatPtr should have the same address as the original pointer")
+    }
+
+    @Test
+    fun `NFloatPtr close works correctly`() {
+        val ptr = Memory.allocate(16.toNUInt())
+        val nFloatPtr = NFloatPtr(ptr)
+        assertNotEquals(nullptr(), nFloatPtr, "NFloatPtr should have a valid pointer")
+
+        nFloatPtr.close()
+        // If we reach here without crashing, the test passes
+    }
+
+    @Test
+    fun `NFloatPtr plus nuint works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = NFloatPtr(ptr)
+        val offset = 4.toNUInt()
+        val result = nFloatPtr + offset
+
+        assertEquals(
+            ptr.value + offset * Pointer.SIZE_BYTES.toNUInt(),
+            result.value.value,
+            "NFloatPtr addition with NUInt should add the offset to the address"
+        )
+    }
+
+    @Test
+    fun `NFloatPtr minus nuint works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = NFloatPtr(ptr)
+        val offset = 4.toNUInt()
+        val result = nFloatPtr - offset
+
+        assertEquals(
+            ptr.value - offset * Pointer.SIZE_BYTES.toNUInt(),
+            result.value.value,
+            "NFloatPtr subtraction with NUInt should subtract the offset from the address"
+        )
+    }
+
+    @Test
+    fun `NFloatPtr inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = NFloatPtr(ptr)
+        val result = nFloatPtr.inc()
+
+        assertEquals(
+            ptr.value + Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NFloatPtr increment should add Pointer.SIZE_BYTES to the address"
+        )
+    }
+
+    @Test
+    fun `NFloatPtr dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = NFloatPtr(ptr)
+        val result = nFloatPtr.dec()
+
+        assertEquals(
+            ptr.value - Pointer.SIZE_BYTES.toNUInt(), result.value.value, "NFloatPtr decrement should subtract Pointer.SIZE_BYTES from the address"
+        )
+    }
+
+    @Test
+    fun `NFloatPtr reinterpret works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = NFloatPtr(ptr)
+
+        val intPtr = nFloatPtr.reinterpret<IntPtr>()
+        assertEquals(ptr.value, intPtr.value.value, "NFloatPtr reinterpreted to IntPtr should have the same address")
+
+        val bytePtr = nFloatPtr.reinterpret<BytePtr>()
+        assertEquals(ptr.value, bytePtr.value.value, "NFloatPtr reinterpreted to BytePtr should have the same address")
+    }
+
+    @Test
+    fun `asNFloatPtr extension function works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val nFloatPtr = ptr.asNFloatPtr()
+
+        assertEquals(ptr.value, nFloatPtr.value.value, "asNFloatPtr should create a NFloatPtr with the same address")
     }
 }

@@ -1,5 +1,5 @@
 package = platform.posix
-headers = stddef.h stdlib.h malloc.h string.h
+headers = stddef.h stdint.h stdlib.h malloc.h string.h
 
 ---
 
@@ -11,6 +11,13 @@ headers = stddef.h stdlib.h malloc.h string.h
 
 #define PW_EXPORT __attribute__((visibility("default")))
 #define PW_API PW_EXPORT PW_CALL
+
+// Determine if we are on 64 or 32 bits and define native nfloat_t type
+#if INTPTR_MAX == INT64_MAX
+typedef double nfloat_t;
+#else
+typedef float nfloat_t;
+#endif
 
 PW_API static inline size_t strlen_with_address(const void* address) {
     return strlen((const char*)address);

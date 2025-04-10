@@ -316,4 +316,24 @@ class PointerTest {
             "Pointer toString should contain valid hexadecimal digits after 0x"
         )
     }
+
+    @Test
+    fun `pointer inc works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val result = ptr.inc()
+
+        assertEquals(
+            ptr.value + 1.toNUInt(), result.value, "Pointer increment should add 1 to the address"
+        )
+    }
+
+    @Test
+    fun `pointer dec works correctly`() = deferring {
+        val ptr by dropping { Memory.allocate(16.toNUInt()) }
+        val result = ptr.dec()
+
+        assertEquals(
+            ptr.value - 1.toNUInt(), result.value, "Pointer decrement should subtract 1 from the address"
+        )
+    }
 }

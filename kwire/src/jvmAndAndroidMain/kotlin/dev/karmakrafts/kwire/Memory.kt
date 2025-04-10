@@ -135,6 +135,16 @@ private object PanamaMemory : Memory {
         return address.toMemorySegment(Double.SIZE_BYTES).get(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L)
     }
 
+    override fun readNFloat(address: Pointer): NFloat {
+        val segment = address.toMemorySegment(Pointer.SIZE_BYTES)
+        return if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+            segment.get(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L).toNFloat()
+        }
+        else {
+            segment.get(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L).toNFloat()
+        }
+    }
+
     override fun readBytes(address: Pointer, data: ByteArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
@@ -216,6 +226,30 @@ private object PanamaMemory : Memory {
         )
     }
 
+    override fun readNFloats(address: Pointer, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+        val size = dataEnd - dataStart
+        if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+            MemorySegment.copy(
+                address.toMemorySegment(size * Float.SIZE_BYTES),
+                ValueLayout.JAVA_FLOAT_UNALIGNED,
+                0L,
+                data.floatArrayValue,
+                dataStart,
+                size
+            )
+        }
+        else {
+            MemorySegment.copy(
+                address.toMemorySegment(size * Double.SIZE_BYTES),
+                ValueLayout.JAVA_DOUBLE_UNALIGNED,
+                0L,
+                data.doubleArrayValue,
+                dataStart,
+                size
+            )
+        }
+    }
+
     override fun readPointers(address: Pointer, data: PointerArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
@@ -276,6 +310,16 @@ private object PanamaMemory : Memory {
 
     override fun writeDouble(address: Pointer, value: Double) {
         address.toMemorySegment(Double.SIZE_BYTES).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L, value)
+    }
+
+    override fun writeNFloat(address: Pointer, value: NFloat) {
+        val segment = address.toMemorySegment(Pointer.SIZE_BYTES)
+        return if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+            segment.set(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L, value.floatValue)
+        }
+        else {
+            segment.set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L, value.doubleValue)
+        }
     }
 
     override fun writeBytes(address: Pointer, data: ByteArray, dataStart: Int, dataEnd: Int) {
@@ -357,6 +401,30 @@ private object PanamaMemory : Memory {
             0L,
             size
         )
+    }
+
+    override fun writeNFloats(address: Pointer, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+        val size = dataEnd - dataStart
+        if (Pointer.SIZE_BYTES == Int.SIZE_BYTES) {
+            MemorySegment.copy(
+                data.floatArrayValue,
+                dataStart,
+                address.toMemorySegment(size * Float.SIZE_BYTES),
+                ValueLayout.JAVA_FLOAT_UNALIGNED,
+                0L,
+                size
+            )
+        }
+        else {
+            MemorySegment.copy(
+                data.doubleArrayValue,
+                dataStart,
+                address.toMemorySegment(size * Double.SIZE_BYTES),
+                ValueLayout.JAVA_DOUBLE_UNALIGNED,
+                0L,
+                size
+            )
+        }
     }
 
     override fun writePointers(address: Pointer, data: PointerArray, dataStart: Int, dataEnd: Int) {

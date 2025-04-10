@@ -1,3 +1,5 @@
 # kWire
 
-Shared library access for Kotlin Multiplatform including common FFI.
+Shared library access and FFI for Kotlin Multiplatform.
+
+###

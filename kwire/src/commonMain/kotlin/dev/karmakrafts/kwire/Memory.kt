@@ -223,6 +223,14 @@ interface Memory {
     fun readDouble(address: Pointer): Double
 
     /**
+     * Reads a native floating-point value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The native floating-point value at the specified address
+     */
+    fun readNFloat(address: Pointer): NFloat
+
+    /**
      * Reads an array of bytes from the specified memory address.
      *
      * @param address The memory address to read from
@@ -291,6 +299,16 @@ interface Memory {
      * @param dataEnd The ending index in the array (exclusive)
      */
     fun readDoubles(address: Pointer, data: DoubleArray, dataStart: Int = 0, dataEnd: Int = data.size)
+
+    /**
+     * Reads an array of native floating-point values from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @param data The array to store the read native floating-point values
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
+     */
+    fun readNFloats(address: Pointer, data: NFloatArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Reads an array of pointers from the specified memory address.
@@ -367,6 +385,14 @@ interface Memory {
     fun writeDouble(address: Pointer, value: Double)
 
     /**
+     * Writes a native floating-point value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The native floating-point value to write
+     */
+    fun writeNFloat(address: Pointer, value: NFloat)
+
+    /**
      * Writes an array of bytes to the specified memory address.
      *
      * @param address The memory address to write to
@@ -435,6 +461,16 @@ interface Memory {
      * @param dataEnd The ending index in the array (exclusive)
      */
     fun writeDoubles(address: Pointer, data: DoubleArray, dataStart: Int = 0, dataEnd: Int = data.size)
+
+    /**
+     * Writes an array of native floating-point values to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param data The array of native floating-point values to write
+     * @param dataStart The starting index in the array (inclusive)
+     * @param dataEnd The ending index in the array (exclusive)
+     */
+    fun writeNFloats(address: Pointer, data: NFloatArray, dataStart: Int = 0, dataEnd: Int = data.size)
 
     /**
      * Writes an array of pointers to the specified memory address.
@@ -790,6 +826,17 @@ inline fun Memory.readFloats(address: Pointer, size: Int): FloatArray = FloatArr
  */
 inline fun Memory.readDoubles(address: Pointer, size: Int): DoubleArray = DoubleArray(size).apply {
     readDoubles(address, this)
+}
+
+/**
+ * Reads an array of native floating-point values from the specified memory address, allocating a new array of the specified size.
+ *
+ * @param address The memory address to read from
+ * @param size The number of native floating-point values to read
+ * @return A newly allocated array containing the native floating-point values read from the specified address
+ */
+inline fun Memory.readNFloats(address: Pointer, size: Int): NFloatArray = nFloatArray(size).apply {
+    readNFloats(address, this)
 }
 
 /**

@@ -30,6 +30,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.FloatVar
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.LongVar
+import kotlinx.cinterop.NativePointed
 import kotlinx.cinterop.ShortVar
 import kotlinx.cinterop.UByteVar
 import kotlinx.cinterop.UIntVar
@@ -37,8 +38,12 @@ import kotlinx.cinterop.ULongVar
 import kotlinx.cinterop.UShortVar
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.toCPointer
+import platform.posix.nfloat_tVar
 import platform.posix.ptrdiff_tVar
 import platform.posix.size_tVar
+
+@ExperimentalForeignApi
+inline fun NativePointed.toPointer(): Pointer = Pointer(rawPtr.toLong().toNUInt())
 
 /**
  * Converts a C pointer to a platform-independent [Pointer].
@@ -390,6 +395,10 @@ inline fun CPointer<FloatVar>.toFloatPtr(): FloatPtr = toPointer().reinterpret()
 @ExperimentalForeignApi
 inline fun CPointer<DoubleVar>.toDoublePtr(): DoublePtr = toPointer().reinterpret()
 
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun CPointer<nfloat_tVar>.toNFloatPtr(): NFloatPtr = toPointer().reinterpret()
+
 /**
  * Converts a typed [FloatPtr] to a C pointer to a float variable.
  *
@@ -413,3 +422,7 @@ inline fun FloatPtr.toCPointer(): CPointer<FloatVar>? = reinterpret<Pointer>().t
  */
 @ExperimentalForeignApi
 inline fun DoublePtr.toCPointer(): CPointer<DoubleVar>? = reinterpret<Pointer>().toCPointer()
+
+@OptIn(UnsafeNumber::class)
+@ExperimentalForeignApi
+inline fun NFloatPtr.toCPointer(): CPointer<nfloat_tVar>? = reinterpret<Pointer>().toCPointer()

@@ -172,6 +172,26 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): BytePtr = BytePtr(value - (other * Byte.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one byte.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one byte. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): BytePtr = BytePtr(value + Byte.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one byte.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one byte. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): BytePtr = BytePtr(value - Byte.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the byte value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -265,6 +285,7 @@ value class BytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -411,6 +432,26 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): ShortPtr = ShortPtr(value - (other * Short.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one short.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one short. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): ShortPtr = ShortPtr(value + Short.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one short.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one short. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): ShortPtr = ShortPtr(value - Short.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the short value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -504,6 +545,7 @@ value class ShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -650,6 +692,26 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): IntPtr = IntPtr(value - (other * Int.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one int.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one int. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): IntPtr = IntPtr(value + Int.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one int.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one int. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): IntPtr = IntPtr(value - Int.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the int value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -743,6 +805,7 @@ value class IntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -889,6 +952,26 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): LongPtr = LongPtr(value - (other * Long.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one long.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one long. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): LongPtr = LongPtr(value + Long.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one long.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one long. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): LongPtr = LongPtr(value - Long.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the long value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -982,6 +1065,7 @@ value class LongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -1129,6 +1213,26 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): NIntPtr = NIntPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one native integer.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one native integer. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): NIntPtr = NIntPtr(value + Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one native integer.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one native integer. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): NIntPtr = NIntPtr(value - Pointer.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the native integer value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -1222,6 +1326,7 @@ value class NIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -1370,6 +1475,26 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): UBytePtr = UBytePtr(value - (other * UByte.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one unsigned byte.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one unsigned byte. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): UBytePtr = UBytePtr(value + UByte.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one unsigned byte.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one unsigned byte. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): UBytePtr = UBytePtr(value - UByte.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the unsigned byte value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -1463,6 +1588,7 @@ value class UBytePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -1613,6 +1739,26 @@ value class UShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): UShortPtr = UShortPtr(value - (other * UShort.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one unsigned short.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one unsigned short. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): UShortPtr = UShortPtr(value + UShort.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one unsigned short.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one unsigned short. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): UShortPtr = UShortPtr(value - UShort.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the unsigned short value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -1708,6 +1854,7 @@ value class UShortPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -1854,6 +2001,26 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): UIntPtr = UIntPtr(value - (other * UInt.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one unsigned int.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one unsigned int. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): UIntPtr = UIntPtr(value + UInt.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one unsigned int.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one unsigned int. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): UIntPtr = UIntPtr(value - UInt.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the unsigned int value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -1947,6 +2114,7 @@ value class UIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -2093,6 +2261,26 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): ULongPtr = ULongPtr(value - (other * ULong.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one unsigned long.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one unsigned long. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): ULongPtr = ULongPtr(value + ULong.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one unsigned long.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one unsigned long. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): ULongPtr = ULongPtr(value - ULong.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the unsigned long value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -2186,6 +2374,7 @@ value class ULongPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -2335,6 +2524,26 @@ value class NUIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): NUIntPtr = NUIntPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one native unsigned integer.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one native unsigned integer. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): NUIntPtr = NUIntPtr(value + Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one native unsigned integer.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one native unsigned integer. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): NUIntPtr = NUIntPtr(value - Pointer.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the native unsigned integer value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -2430,6 +2639,7 @@ value class NUIntPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> this
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -2578,6 +2788,26 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): FloatPtr = FloatPtr(value - (other * Float.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one float.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one float. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): FloatPtr = FloatPtr(value + Float.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one float.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one float. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): FloatPtr = FloatPtr(value - Float.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the float value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -2671,6 +2901,7 @@ value class FloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> this
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -2821,6 +3052,26 @@ value class DoublePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): DoublePtr = DoublePtr(value - (other * Double.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one double.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one double. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): DoublePtr = DoublePtr(value + Double.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one double.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one double. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): DoublePtr = DoublePtr(value - Double.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the double value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -2916,6 +3167,7 @@ value class DoublePtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> this
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> value.asPointerPtr()
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -3066,6 +3318,26 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
     inline operator fun minus(other: Int): PointerPtr = PointerPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
 
     /**
+     * Increments this pointer by one pointer.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one pointer. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): PointerPtr = PointerPtr(value + Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one pointer.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one pointer. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): PointerPtr = PointerPtr(value - Pointer.SIZE_BYTES.toNUInt())
+
+    /**
      * Accesses the pointer value at the specified index.
      *
      * This operator allows for array-like access to memory by treating this pointer
@@ -3162,6 +3434,7 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
         NUIntPtr::class -> value.asNUIntPtr()
         FloatPtr::class -> value.asFloatPtr()
         DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> value.asNFloatPtr()
         PointerPtr::class -> this
         CString::class -> CString(value)
         else -> error("Unknown pointer type ${T::class}")
@@ -3177,3 +3450,270 @@ value class PointerPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
  * @return A [PointerPtr] pointing to the same memory address as this pointer
  */
 inline fun Pointer.asPointerPtr(): PointerPtr = PointerPtr(this)
+
+/**
+ * A strongly-typed pointer for native floating-point values.
+ *
+ * This value class wraps a [Pointer] and provides type-specific operations for native float values,
+ * including pointer arithmetic, array indexing, and type reinterpretation. It implements
+ * [AutoCloseable] to allow automatic resource cleanup when used with try-with-resources.
+ *
+ * @property value The underlying memory address as a [Pointer]
+ */
+@JvmInline
+value class NFloatPtr(val value: Pointer) : Reinterpretable, AutoCloseable {
+    /**
+     * Releases the memory associated with this pointer.
+     *
+     * This method is called automatically when the pointer is used with try-with-resources.
+     * It frees the memory allocated at the address pointed to by this pointer.
+     */
+    override fun close() = Memory.free(value)
+
+    /**
+     * Adds a native unsigned integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding a native unsigned integer
+     * value to the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The native unsigned integer value to add
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun plus(other: NUInt): NFloatPtr = NFloatPtr(value + other * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Subtracts a native unsigned integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting a native unsigned integer
+     * value from the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The native unsigned integer value to subtract
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun minus(other: NUInt): NFloatPtr = NFloatPtr(value - other * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Adds an unsigned long offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an unsigned long
+     * value to the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The unsigned long value to add
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun plus(other: ULong): NFloatPtr =
+        NFloatPtr(value + (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    /**
+     * Subtracts an unsigned long offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an unsigned long
+     * value from the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The unsigned long value to subtract
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun minus(other: ULong): NFloatPtr =
+        NFloatPtr(value - (other * Pointer.SIZE_BYTES.toULong()).toNUInt())
+
+    /**
+     * Adds an unsigned integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an unsigned integer
+     * value to the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The unsigned integer value to add
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun plus(other: UInt): NFloatPtr =
+        NFloatPtr(value + (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    /**
+     * Subtracts an unsigned integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an unsigned integer
+     * value from the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The unsigned integer value to subtract
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun minus(other: UInt): NFloatPtr =
+        NFloatPtr(value - (other * Pointer.SIZE_BYTES.toUInt()).toNUInt())
+
+    /**
+     * Adds a long offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding a long
+     * value to the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The long value to add
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun plus(other: Long): NFloatPtr = NFloatPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Subtracts a long offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting a long
+     * value from the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The long value to subtract
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun minus(other: Long): NFloatPtr = NFloatPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Adds an integer offset to this pointer.
+     *
+     * This operator allows for pointer arithmetic by adding an integer
+     * value to the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The integer value to add
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun plus(other: Int): NFloatPtr = NFloatPtr(value + (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Subtracts an integer offset from this pointer.
+     *
+     * This operator allows for pointer arithmetic by subtracting an integer
+     * value from the pointer's address, scaled by the size of a native float.
+     *
+     * @param other The integer value to subtract
+     * @return A new native float pointer with the resulting address
+     */
+    inline operator fun minus(other: Int): NFloatPtr = NFloatPtr(value - (other * Pointer.SIZE_BYTES).toNUInt())
+
+    /**
+     * Increments this pointer by one native float.
+     *
+     * This operator allows for pointer arithmetic by incrementing the pointer's address
+     * by one native float. It is equivalent to adding 1 to the pointer's address.
+     *
+     * @return A new pointer with the incremented address
+     */
+    inline operator fun inc(): NFloatPtr = NFloatPtr(value + Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Decrements this pointer by one native float.
+     *
+     * This operator allows for pointer arithmetic by decrementing the pointer's address
+     * by one native float. It is equivalent to subtracting 1 from the pointer's address.
+     *
+     * @return A new pointer with the decremented address
+     */
+    inline operator fun dec(): NFloatPtr = NFloatPtr(value - Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Retrieves a native float value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a native float array and indexing into it with an integer index.
+     *
+     * @param index The integer index of the native float to retrieve
+     * @return The native float value at the specified index
+     */
+    inline operator fun get(index: Int): NFloat =
+        Memory.readNFloat(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Sets a native float value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a native float array and indexing into it with an integer index.
+     *
+     * @param index The integer index of the native float to modify
+     * @param value The new native float value to set
+     */
+    inline operator fun set(index: Int, value: NFloat) =
+        Memory.writeNFloat(this.value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt(), value)
+
+    /**
+     * Retrieves a native float value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a native float array and indexing into it with a long index.
+     *
+     * @param index The long index of the native float to retrieve
+     * @return The native float value at the specified index
+     */
+    inline operator fun get(index: Long): NFloat =
+        Memory.readNFloat(value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Sets a native float value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a native float array and indexing into it with a long index.
+     *
+     * @param index The long index of the native float to modify
+     * @param value The new native float value to set
+     */
+    inline operator fun set(index: Long, value: NFloat) =
+        Memory.writeNFloat(this.value + index.toNUInt() * Pointer.SIZE_BYTES.toNUInt(), value)
+
+    /**
+     * Retrieves a native float value at the specified index.
+     *
+     * This operator allows for array-like access to memory by treating this pointer
+     * as the start of a native float array and indexing into it with a native unsigned integer index.
+     *
+     * @param index The native unsigned integer index of the native float to retrieve
+     * @return The native float value at the specified index
+     */
+    inline operator fun get(index: NUInt): NFloat =
+        Memory.readNFloat(value + index * Pointer.SIZE_BYTES.toNUInt())
+
+    /**
+     * Sets a native float value at the specified index.
+     *
+     * This operator allows for array-like modification of memory by treating this pointer
+     * as the start of a native float array and indexing into it with a native unsigned integer index.
+     *
+     * @param index The native unsigned integer index of the native float to modify
+     * @param value The new native float value to set
+     */
+    inline operator fun set(index: NUInt, value: NFloat) =
+        Memory.writeNFloat(this.value + index * Pointer.SIZE_BYTES.toNUInt(), value)
+
+    /**
+     * Reinterprets this pointer as a different pointer type.
+     *
+     * This method allows for type-safe casting between different pointer types
+     * while maintaining the same underlying memory address. It's useful when
+     * you need to access memory with a different type than the original pointer.
+     *
+     * @param T The target pointer type, must be a subtype of [Reinterpretable]
+     * @return The pointer reinterpreted as the specified type
+     * @throws IllegalArgumentException if the requested type is not a supported pointer type
+     */
+    inline fun <reified T : Reinterpretable> reinterpret(): T = when (T::class) {
+        Pointer::class -> value
+        BytePtr::class -> value.asBytePtr()
+        ShortPtr::class -> value.asShortPtr()
+        IntPtr::class -> value.asIntPtr()
+        LongPtr::class -> value.asLongPtr()
+        NIntPtr::class -> value.asNIntPtr()
+        UBytePtr::class -> value.asUBytePtr()
+        UShortPtr::class -> value.asUShortPtr()
+        UIntPtr::class -> value.asUIntPtr()
+        ULongPtr::class -> value.asULongPtr()
+        NUIntPtr::class -> value.asNUIntPtr()
+        FloatPtr::class -> value.asFloatPtr()
+        DoublePtr::class -> value.asDoublePtr()
+        NFloatPtr::class -> this
+        PointerPtr::class -> value.asPointerPtr()
+        CString::class -> CString(value)
+        else -> error("Unknown pointer type ${T::class}")
+    } as T
+}
+
+/**
+ * Reinterprets this pointer as a native float pointer.
+ *
+ * This extension function provides a convenient way to convert a generic [Pointer]
+ * to a strongly-typed [NFloatPtr] for type-safe memory access to native float values.
+ *
+ * @return A [NFloatPtr] pointing to the same memory address as this pointer
+ */
+inline fun Pointer.asNFloatPtr(): NFloatPtr = NFloatPtr(this)
