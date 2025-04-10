@@ -30,6 +30,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll( // @formatter:off
             "-Xexpect-actual-classes",
+            "-Xcontext-parameters",
             "-XXLanguage:+CustomEqualsInValueClasses"
         ) // @formatter:on
     }

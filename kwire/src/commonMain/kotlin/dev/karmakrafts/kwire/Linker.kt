@@ -52,10 +52,21 @@ internal interface Linker {
     fun findLibrary(names: List<String>, linkMode: LinkMode): SharedLibraryHandle?
 
     /**
-     * Attempts to find a symbol in a shared library.
+     * Attempts to find a symbol (function or variable) in a shared library.
      *
-     * @param name The name of the symbol to find
-     * @return A pointer to the symbol, or null if the symbol could not be found
+     * This method searches for a symbol with the specified name within the context
+     * of the provided SharedLibraryHandle. The symbol lookup is platform-specific:
+     * - On POSIX systems, it uses dlsym
+     * - On Windows, it uses GetProcAddress
+     * - On JVM/Android, it uses Java's Foreign Function & Memory API (Panama)
+     *
+     * The method performs a type check on the handle to ensure it's the correct
+     * platform-specific implementation before attempting to look up the symbol.
+     *
+     * @param name The name of the symbol to find. This should be the exact symbol name
+     *             as it appears in the library (including any name mangling if applicable).
+     * @return A pointer to the symbol if found, or null if the symbol could not be found
+     *         in the library or if an error occurred during lookup.
      */
     fun SharedLibraryHandle.findSymbol(name: String): Pointer?
 }
