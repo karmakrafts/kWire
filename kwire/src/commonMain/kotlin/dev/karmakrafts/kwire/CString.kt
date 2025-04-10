@@ -117,14 +117,15 @@ value class CString @PublishedApi internal constructor(val address: Pointer) : R
     /**
      * Compares this C-style string with another for content equality.
      *
-     * This method uses the [Memory.strcmp] function to compare the content of two C-style strings.
-     * It returns true if the strings have the same content, false otherwise.
+     * This method first checks if both strings reference the same memory address for efficiency.
+     * If they don't share the same address, it uses the [Memory.strcmp] function to compare 
+     * the content of the two C-style strings.
      *
      * @param other The C-style string to compare with
-     * @return True if the strings have the same content, false otherwise
+     * @return True if the strings have the same memory address or the same content, false otherwise
      */
     inline fun contentEquals(other: CString): Boolean {
-        return Memory.strcmp(address, other.address) == 0
+        return address == other.address || Memory.strcmp(address, other.address) == 0
     }
 
     /**

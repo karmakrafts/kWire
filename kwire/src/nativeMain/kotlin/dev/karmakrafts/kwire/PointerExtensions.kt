@@ -42,6 +42,14 @@ import platform.posix.nfloat_tVar
 import platform.posix.ptrdiff_tVar
 import platform.posix.size_tVar
 
+/**
+ * Converts a native pointed object to a platform-independent [Pointer].
+ *
+ * This extension function allows converting any native pointed object to the library's
+ * platform-independent pointer representation.
+ *
+ * @return A [Pointer] that points to the same memory address as this native pointed object.
+ */
 @ExperimentalForeignApi
 inline fun NativePointed.toPointer(): Pointer = Pointer(rawPtr.toLong().toNUInt())
 
@@ -371,7 +379,7 @@ inline fun PointerPtr.toCOpaquePointer(): COpaquePointer? = reinterpret<Pointer>
 inline fun <reified T : CPointed> PointerPtr.toCPointer(): CPointer<CPointerVar<T>>? =
     reinterpret<Pointer>().toCPointer()
 
-// IEEE-754 pointeer conversions
+// IEEE-754 pointer conversions
 
 /**
  * Converts a C pointer to a float variable to a typed [FloatPtr].
@@ -395,6 +403,14 @@ inline fun CPointer<FloatVar>.toFloatPtr(): FloatPtr = toPointer().reinterpret()
 @ExperimentalForeignApi
 inline fun CPointer<DoubleVar>.toDoublePtr(): DoublePtr = toPointer().reinterpret()
 
+/**
+ * Converts a C pointer to a platform-specific floating-point variable to a typed [NFloatPtr].
+ *
+ * This extension function allows converting a C pointer to a platform-specific floating-point variable
+ * to the library's typed pointer representation for platform-specific floating-point numbers.
+ *
+ * @return An [NFloatPtr] that points to the same memory address as this C pointer.
+ */
 @OptIn(UnsafeNumber::class)
 @ExperimentalForeignApi
 inline fun CPointer<nfloat_tVar>.toNFloatPtr(): NFloatPtr = toPointer().reinterpret()
@@ -423,6 +439,15 @@ inline fun FloatPtr.toCPointer(): CPointer<FloatVar>? = reinterpret<Pointer>().t
 @ExperimentalForeignApi
 inline fun DoublePtr.toCPointer(): CPointer<DoubleVar>? = reinterpret<Pointer>().toCPointer()
 
+/**
+ * Converts a typed [NFloatPtr] to a C pointer to a platform-specific floating-point variable.
+ *
+ * This extension function allows converting the library's typed pointer representation for platform-specific floating-point numbers
+ * to a C pointer that can be used with Kotlin/Native C interop.
+ *
+ * @return A C pointer to a platform-specific floating-point variable that points to the same memory address as this pointer,
+ *         or null if the conversion fails.
+ */
 @OptIn(UnsafeNumber::class)
 @ExperimentalForeignApi
 inline fun NFloatPtr.toCPointer(): CPointer<nfloat_tVar>? = reinterpret<Pointer>().toCPointer()

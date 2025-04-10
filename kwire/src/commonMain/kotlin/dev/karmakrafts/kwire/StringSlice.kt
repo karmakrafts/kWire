@@ -112,7 +112,11 @@ class StringSlice( // @formatter:off
      * @return True if the string slices have the same content, false otherwise
      */
     inline fun contentEquals(other: StringSlice): Boolean {
-        return if (length == other.length) Memory.compare(address, other.address, nativeLength) == 0
+        return if (length == other.length) address == other.address || Memory.compare(
+            address,
+            other.address,
+            nativeLength
+        ) == 0
         else false
     }
 
@@ -126,7 +130,11 @@ class StringSlice( // @formatter:off
      * @return True if this string slice and the C-style string have the same content, false otherwise
      */
     inline fun contentEquals(other: CString): Boolean {
-        return if (length == other.length) Memory.compare(address, other.address, nativeLength) == 0
+        return if (length == other.length) address == other.address || Memory.compare(
+            address,
+            other.address,
+            nativeLength
+        ) == 0
         else false
     }
 
