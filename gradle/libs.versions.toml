@@ -1,7 +1,7 @@
 [versions]
 java = "21"
 
-androidGradle = "8.7.3" # https://developer.android.com/reference/tools/gradle-api
+androidGradle = "8.9.1" # https://developer.android.com/reference/tools/gradle-api
 androidCompileSDK = "35"
 androidMinimalSDK = "28"
 
@@ -10,8 +10,9 @@ rakii = "1.1.0.6-SNAPSHOT"
 kotlin = "2.1.20"
 kotlinxCoroutines = "1.10.1"
 dokka = "2.0.0" # https://github.com/Kotlin/dokka/releases"
-karmaConventions = "1.3.0.13-SNAPSHOT"
+karmaConventions = "1.3.7"
 gradleNexus = "2.0.0" # https://github.com/gradle-nexus/publish-plugin/releases
+libffi = "3.4.8-5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
