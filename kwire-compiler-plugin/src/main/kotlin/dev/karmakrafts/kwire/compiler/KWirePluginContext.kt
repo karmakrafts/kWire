@@ -23,25 +23,35 @@ import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
+import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.isStruct
+import dev.karmakrafts.kwire.compiler.util.serialize
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstantArrayImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal class KWirePluginContext(
     val pluginContext: IrPluginContext
@@ -53,10 +63,38 @@ internal class KWirePluginContext(
     val addressSizeBytes: IrPropertySymbol = referenceProperties(KWireNames.Address.Companion.SIZE_BYTES).first()
 
     val structType: IrClassSymbol = referenceClass(KWireNames.Struct.id)!!
+    val structLayoutType: IrClassSymbol = referenceClass(KWireNames.StructLayout.id)!!
+    val structLayoutConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.StructLayout.id).first()
 
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
 
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    fun attachMemoryLayout(type: IrClass, layout: MemoryLayout) {
+        val annotation = IrConstructorCallImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = structLayoutType.defaultType,
+            symbol = structLayoutConstructor,
+            typeArgumentsCount = 0,
+            constructorTypeArgumentsCount = 0
+        ).apply {
+            val function = symbol.owner
+            arguments[function.parameters.first { it.name.asString() == "data" }] = IrConstantArrayImpl(
+                startOffset = SYNTHETIC_OFFSET,
+                endOffset = SYNTHETIC_OFFSET,
+                type = irBuiltIns.byteArray.defaultType,
+                initElements = layout.serialize().map { value ->
+                    IrConstantPrimitiveImpl(
+                        startOffset = SYNTHETIC_OFFSET,
+                        endOffset = SYNTHETIC_OFFSET,
+                        value = value.toIrConst(irBuiltIns.byteType)
+                    )
+                })
+        }
+        metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(type, listOf(annotation))
+    }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun computeMemoryLayout(type: IrType): MemoryLayout = memoryLayoutCache.getOrPut(type) {
@@ -93,6 +131,9 @@ internal class KWirePluginContext(
         if (!type.isStruct(this)) return BuiltinMemoryLayout.ADDRESS
         // Handle user defined types
         val clazz = type.getClass() ?: return@getOrPut BuiltinMemoryLayout.VOID
+        if (clazz.hasStructLayoutData()) {
+            return@getOrPut MemoryLayout.deserialize(clazz.getStructLayoutData()!!)
+        }
         val fields = ArrayList<MemoryLayout>()
         for (property in clazz.properties) {
             val propertyType = property.backingField?.type
