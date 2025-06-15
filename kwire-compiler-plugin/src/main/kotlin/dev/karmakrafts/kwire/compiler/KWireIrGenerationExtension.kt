@@ -18,13 +18,17 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.transformer.KWireIntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicTransformer
+import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val kwireContext = KWirePluginContext(pluginContext)
+        // Pre-compute all struct layouts and export them using @StructLayout
+        moduleFragment.acceptVoid(MemoryLayoutTransformer(kwireContext))
         for (file in moduleFragment.files) {
             file.transform(MemoryIntrinsicTransformer(kwireContext), KWireIntrinsicContext())
         }

@@ -31,6 +31,8 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrConst
+import org.jetbrains.kotlin.ir.expressions.IrConstantArray
+import org.jetbrains.kotlin.ir.expressions.IrConstantPrimitive
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -142,6 +144,9 @@ internal fun IrElement?.unwrapRawConstValue(): Any? {
         is IrGetEnumValue -> symbol.owner.name.asString() // Enum values are unwrapped to their constant names
         is IrClassReference -> classType
         is IrConst -> value
+        is IrConstantPrimitive -> value.unwrapRawConstValue()
+        is IrConstantArray -> elements.map { it.unwrapRawConstValue() }.toList()
+        // TODO: support constant objects?
         is IrVararg -> elements.map { element ->
             check(element is IrExpression) { "Annotation vararg element must be an expression" }
             element.unwrapRawConstValue()
