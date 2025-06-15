@@ -102,9 +102,9 @@ internal data class StructMemoryLayout(
         fields.size == 1 -> fields.first().emitAlignment(context)
         else -> {
             val (first, second) = fields
-            var expr = first.emitAlignment(context).plus(context, second.emitAlignment(context))
+            var expr = first.emitAlignment(context).max(context, second.emitAlignment(context))
             for (index in 2..<fields.size) {
-                expr = expr.plus(context, fields[index].emitAlignment(context))
+                expr = expr.max(context, fields[index].emitAlignment(context))
             }
             expr
         }

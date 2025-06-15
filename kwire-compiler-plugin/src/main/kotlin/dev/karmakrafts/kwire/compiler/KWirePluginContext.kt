@@ -66,6 +66,16 @@ internal class KWirePluginContext(
     val structLayoutType: IrClassSymbol = referenceClass(KWireNames.StructLayout.id)!!
     val structLayoutConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.StructLayout.id).first()
 
+    val alignAsType: IrClassSymbol = referenceClass(KWireNames.AlignAs.id)!!
+    val alignAsConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.AlignAs.id).first()
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    val intMin: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Kotlin.min)
+        .first { it.owner.returnType == irBuiltIns.intType }
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    val intMax: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Kotlin.max)
+        .first { it.owner.returnType == irBuiltIns.intType }
+
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
 
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()

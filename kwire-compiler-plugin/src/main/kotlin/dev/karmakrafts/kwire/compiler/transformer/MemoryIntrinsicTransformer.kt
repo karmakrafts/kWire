@@ -19,6 +19,8 @@ package dev.karmakrafts.kwire.compiler.transformer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.constInt
+import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
+import dev.karmakrafts.kwire.compiler.util.hasCustomAlignment
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -38,6 +40,9 @@ internal class MemoryIntrinsicTransformer(
 
     private fun emitAlignOf(call: IrCall): IrExpression {
         val type = call.typeArguments.first() ?: return constInt(context, 0)
+        if(type.hasCustomAlignment()) {
+            return constInt(context, type.getCustomAlignment()!!)
+        }
         val layout = context.computeMemoryLayout(type)
         return layout.emitAlignment(context)
     }

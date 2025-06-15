@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.isSubclassOf
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -86,12 +87,43 @@ internal fun IrExpression.binaryOp(symbol: IrSimpleFunctionSymbol, other: IrExpr
     }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.topLevelBinaryOp(
+    lhsName: String = "a", rhsName: String = "b", symbol: IrSimpleFunctionSymbol, other: IrExpression
+): IrExpression = IrCallImplWithShape(
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = this@topLevelBinaryOp.type,
+    symbol = symbol,
+    typeArgumentsCount = 0,
+    valueArgumentsCount = 1,
+    contextParameterCount = 0,
+    hasDispatchReceiver = true,
+    hasExtensionReceiver = false
+).apply {
+    val function = symbol.owner
+    arguments[function.parameters.first { it.name.asString() == lhsName }] = this@topLevelBinaryOp
+    arguments[function.parameters.first { it.name.asString() == rhsName }] = other
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.plus(context: KWirePluginContext, other: IrExpression): IrExpression =
     binaryOp(type.getClass()!!.functions.first { it.name.asString() == "plus" }.symbol, other)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.times(context: KWirePluginContext, other: IrExpression): IrExpression =
     binaryOp(type.getClass()!!.functions.first { it.name.asString() == "times" }.symbol, other)
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = when (type) {
+    context.irBuiltIns.intType -> topLevelBinaryOp(symbol = context.intMin, other = other)
+    else -> error("Unsupported expression type ${type.render()} for min() operation")
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.max(context: KWirePluginContext, other: IrExpression): IrExpression = when (type) {
+    context.irBuiltIns.intType -> topLevelBinaryOp(symbol = context.intMax, other = other)
+    else -> error("Unsupported expression type ${type.render()} for max() operation")
+}
 
 internal fun constInt(context: KWirePluginContext, value: Int): IrConstImpl = IrConstImpl.int( // @formatter:off
     startOffset = SYNTHETIC_OFFSET,
@@ -119,6 +151,10 @@ internal fun IrAnnotationContainer.getStructLayoutData(): ByteArray? =
 internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)
 
 internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?.isStruct(context) == true
+
+internal fun IrType.hasCustomAlignment(): Boolean = getClass()?.hasAnnotation(KWireNames.AlignAs.fqName) == true
+
+internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<Int>(KWireNames.AlignAs.fqName, "value")
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.findConstructor(context: KWirePluginContext, paramTypes: List<IrType>): IrConstructor? {

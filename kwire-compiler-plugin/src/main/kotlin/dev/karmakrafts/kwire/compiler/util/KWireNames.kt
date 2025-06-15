@@ -28,10 +28,16 @@ internal object KWireNames {
         val alignOf: Name = Name.identifier("alignOf")
         val plus: Name = Name.identifier("plus")
         val times: Name = Name.identifier("times")
+        val min: Name = Name.identifier("min")
+        val max: Name = Name.identifier("max")
     }
 
     object Kotlin {
         val packageName: FqName = FqName("kotlin")
+        val mathPackageName: FqName = FqName("kotlin.math")
+
+        val min: CallableId = CallableId(mathPackageName, Functions.min)
+        val max: CallableId = CallableId(mathPackageName, Functions.max)
 
         object Byte {
             val name: Name = Name.identifier("Byte")
@@ -138,6 +144,12 @@ internal object KWireNames {
 
     object StructLayout {
         val name: FqName = FqName("StructLayout")
+        val id: ClassId = ClassId(ctypePackageName, name, false)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object AlignAs {
+        val name: FqName = FqName("AlignAs")
         val id: ClassId = ClassId(ctypePackageName, name, false)
         val fqName: FqName = id.asSingleFqName()
     }

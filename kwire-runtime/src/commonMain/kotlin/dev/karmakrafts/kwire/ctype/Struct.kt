@@ -20,4 +20,8 @@ interface Struct : Pointed
 
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.CLASS)
-annotation class StructLayout(val data: ByteArray)
+annotation class AlignAs(val alignment: Int)
+
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.CLASS)
+internal annotation class StructLayout(val data: ByteArray)
