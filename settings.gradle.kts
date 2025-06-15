@@ -15,6 +15,7 @@
  */
 
 rootProject.name = "kwire"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {

@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire
+package dev.karmakrafts.kwire.compiler.transformer
 
-@Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.FUNCTION)
-internal annotation class KWireIntrinsic(val type: Type) {
-    enum class Type {
-        SIZE_OF,
-        ALIGN_OF,
-        ADDRESS_OF,
-        PTR_NULL,
-        PTR_DEREF,
-        PTR_ARRAY_GET,
-        PTR_ARRAY_SET
-    }
-}
+internal class KWireIntrinsicContext

@@ -26,6 +26,7 @@ dependencies {
     kapt(libs.autoService)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.iridium)
+    testImplementation(projects.kwireRuntime)
 }
 
 tasks {

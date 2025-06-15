@@ -3,6 +3,9 @@ import dev.karmakrafts.conventions.dependsOn
 import dev.karmakrafts.conventions.getBinaryBaseName
 import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
+import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
+import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
 
@@ -36,13 +39,6 @@ val binaryPackage: GitLabPackage = gitlab().project(
 ).packageRegistry["generic/build", libs.versions.libffi]
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll( // @formatter:off
-            "-Xexpect-actual-classes",
-            "-Xcontext-parameters",
-            "-XXLanguage:+CustomEqualsInValueClasses"
-        ) // @formatter:on
-    }
     withSourcesJar(true)
     mingwX64()
     linuxX64()
@@ -77,6 +73,13 @@ kotlin {
                 }
             }
         }
+    }
+    compilerOptions {
+        freeCompilerArgs.addAll( // @formatter:off
+            "-Xexpect-actual-classes",
+            "-Xcontext-parameters",
+            "-XXLanguage:+CustomEqualsInValueClasses"
+        ) // @formatter:on
     }
     applyDefaultHierarchyTemplate()
     sourceSets {

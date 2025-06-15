@@ -22,13 +22,12 @@ import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import kotlin.jvm.JvmInline
 
-@Suppress("WRONG_MODIFIER_TARGET")
 @JvmInline
 value class PtrArray<P : Address> @PublishedApi internal constructor(
     val value: NUIntArray
 ) {
-    inline constructor(size: Int, initializer: (Int) -> P) : this(nUIntArray(size) { initializer(it).rawAddress })
-    inline constructor(size: Int) : this(nUIntArray(size))
+    constructor(size: Int, initializer: (Int) -> P) : this(nUIntArray(size) { initializer(it).rawAddress })
+    constructor(size: Int) : this(nUIntArray(size))
 
     inline val size: Int
         get() = value.size

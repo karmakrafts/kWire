@@ -16,4 +16,27 @@
 
 package dev.karmakrafts.kwire.ctype
 
-interface Struct : Pointed
+interface Struct : Pointed {
+    /**
+     * Usually emitted by the kWire compiler plugin after a structure has been scanned
+     * to allow grabbing its flattened memory layout.
+     *
+     * The memory layout is encoded using a simple tag system which is defined as follows:
+     * 0x00 - Byte
+     * 0x01 - Short
+     * 0x02 - Int
+     * 0x03 - Long
+     * 0x04 - Float
+     * 0x05 - Double
+     * 0x06 - Address
+     * 0xFE - Small Struct
+     *  this is followed by 1 byte of the struct size in bytes
+     *  and another byte of the struct alignment in bytes.
+     * 0xFF - Large Struct
+     *  this is followed by 4 bytes of the struct size in bytes
+     *  and another 4 bytes of the struct alignment in bytes.
+     */
+    @Retention(AnnotationRetention.BINARY)
+    @Target(AnnotationTarget.CLASS)
+    annotation class Layout(val data: ByteArray)
+}
