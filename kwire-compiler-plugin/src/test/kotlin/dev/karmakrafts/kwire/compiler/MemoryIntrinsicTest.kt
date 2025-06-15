@@ -141,7 +141,7 @@ class MemoryIntrinsicTest {
                             }
                         })
                         constants.size shouldBe 3
-                        for(constant in constants) {
+                        for (constant in constants) {
                             constant.unwrapConstValue<Number>()!!.toInt() shouldBe typeSize
                         }
                     }
