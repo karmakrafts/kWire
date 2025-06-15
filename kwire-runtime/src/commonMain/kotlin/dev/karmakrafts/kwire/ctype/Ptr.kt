@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
-@file:OptIn(ExperimentalStdlibApi::class)
+@file:Suppress("NOTHING_TO_INLINE") @file:OptIn(ExperimentalStdlibApi::class)
 
 package dev.karmakrafts.kwire.ctype
 

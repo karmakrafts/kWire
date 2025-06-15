@@ -65,9 +65,7 @@ actual inline operator fun NIntArray.plus(other: NIntArray): NIntArray = NIntArr
         }
         other.usePinned { sourceArray ->
             memcpy(
-                destArray.addressOf(this@plus.size),
-                sourceArray.addressOf(0),
-                (other.size * sizeOf<IntVar>()).convert()
+                destArray.addressOf(this@plus.size), sourceArray.addressOf(0), (other.size * sizeOf<IntVar>()).convert()
             )
         }
     }

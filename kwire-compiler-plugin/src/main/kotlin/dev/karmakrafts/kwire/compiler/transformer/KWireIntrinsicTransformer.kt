@@ -27,9 +27,7 @@ internal abstract class KWireIntrinsicTransformer(
     private val types: Set<KWireIntrinsicType>
 ) : IrTransformer<KWireIntrinsicContext>() {
     abstract fun visitIntrinsic(
-        expression: IrCall,
-        data: KWireIntrinsicContext,
-        type: KWireIntrinsicType
+        expression: IrCall, data: KWireIntrinsicContext, type: KWireIntrinsicType
     ): IrElement
 
     override fun visitCall(expression: IrCall, data: KWireIntrinsicContext): IrElement {

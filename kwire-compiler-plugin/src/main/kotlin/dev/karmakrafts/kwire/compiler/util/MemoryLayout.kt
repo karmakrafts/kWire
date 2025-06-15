@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.it.unimi.dsi.fastutil.bytes.ByteArrayList
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -43,21 +44,23 @@ internal sealed interface MemoryLayout {
 
                 check(tag == StructMemoryLayout.TAG_BEGIN) { "Invalid struct beginning: 0x${tag.toHexString()}" }
                 val nestingLevel = buffer.get().toUByte()
-                val subData = ByteBuffer.allocate(MAX_BUFFER_SIZE)
+                val subData = ByteArrayList()
 
                 fun peekTag(): UByte = buffer.get(minOf(buffer.capacity(), buffer.position() + 1)).toUByte()
                 var nextTag = peekTag()
                 while (tag != StructMemoryLayout.TAG_END && nextTag != nestingLevel) {
-                    subData.put(tag.toByte())
                     tag = buffer.get().toUByte()
+                    subData += tag.toByte()
                     nextTag = peekTag()
                 }
 
                 tag = buffer.get().toUByte() // Skip over TAG_END_STRUCT
                 check(tag == StructMemoryLayout.TAG_END) { "Invalid struct end: 0x${tag.toHexString()}" }
+                tag = buffer.get().toUByte()
+                check(tag == nestingLevel) { "Missing closing struct tag for nesting level $nestingLevel" }
 
                 val structFields = ArrayList<MemoryLayout>()
-                deserialize(subData, structFields)
+                deserialize(ByteBuffer.wrap(subData.toByteArray()), structFields)
                 fields += StructMemoryLayout(structFields)
             }
         }
