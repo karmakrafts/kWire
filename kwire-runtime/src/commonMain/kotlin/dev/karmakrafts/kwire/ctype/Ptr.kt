@@ -147,7 +147,7 @@ inline fun <T : Pointed> Long.asPtr(): Ptr<T> = Ptr(toNUInt())
 inline fun <T : Pointed> UInt.asPtr(): Ptr<T> = Ptr(toNUInt())
 inline fun <T : Pointed> Int.asPtr(): Ptr<T> = Ptr(toNUInt())
 
-@KWireIntrinsic(KWireIntrinsic.Type.ADDRESS_OF)
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
 fun <T : Pointed> T.ref(): Ptr<T> = throw KWirePluginNotAppliedException()
 
 @JvmInline
@@ -196,7 +196,7 @@ inline fun <N : Number> Long.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
 inline fun <N : Number> UInt.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
 inline fun <N : Number> Int.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
 
-@KWireIntrinsic(KWireIntrinsic.Type.ADDRESS_OF)
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
 fun <N : Number> N.ref(): NumPtr<N> = throw KWirePluginNotAppliedException()
 
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_NULL)

@@ -20,6 +20,14 @@ package dev.karmakrafts.kwire
 @Target(AnnotationTarget.FUNCTION)
 internal annotation class KWireIntrinsic(val type: Type) {
     enum class Type {
-        SIZE_OF, ALIGN_OF, ADDRESS_OF, PTR_NULL, PTR_DEREF, PTR_ARRAY_GET, PTR_ARRAY_SET
+        // @formatter:off
+        SIZE_OF,
+        ALIGN_OF,
+        PTR_NULL,
+        PTR_REF,
+        PTR_DEREF,
+        PTR_ARRAY_GET,
+        PTR_ARRAY_SET;
+        // @formatter:on
     }
 }

@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
-internal class MemoryIntrinsicTransformer(
+internal class MemoryIntrinsicsTransformer(
     private val context: KWirePluginContext
 ) : KWireIntrinsicTransformer(setOf( // @formatter:off
     KWireIntrinsicType.SIZE_OF,

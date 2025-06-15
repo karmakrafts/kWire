@@ -30,6 +30,9 @@ internal object KWireNames {
         val times: Name = Name.identifier("times")
         val min: Name = Name.identifier("min")
         val max: Name = Name.identifier("max")
+        val toNInt: Name = Name.identifier("toNInt")
+        val toNUInt: Name = Name.identifier("toNUInt")
+        val toNFloat: Name = Name.identifier("toNFloat")
     }
 
     object Kotlin {
@@ -83,6 +86,10 @@ internal object KWireNames {
     val sizeOf: CallableId = CallableId(memoryPackageName, Functions.sizeOf)
     val alignOf: CallableId = CallableId(memoryPackageName, Functions.alignOf)
 
+    val toNInt: CallableId = CallableId(ctypePackageName, Functions.toNInt)
+    val toNUInt: CallableId = CallableId(ctypePackageName, Functions.toNUInt)
+    val toNFloat: CallableId = CallableId(ctypePackageName, Functions.toNFloat)
+
     object KWireIntrinsic {
         val name: Name = Name.identifier("KWireIntrinsic")
         val id: ClassId = ClassId(packageName, name)
@@ -133,6 +140,12 @@ internal object KWireNames {
 
     object Ptr {
         val name: Name = Name.identifier("Ptr")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object VoidPtr {
+        val name: Name = Name.identifier("VoidPtr")
         val id: ClassId = ClassId(ctypePackageName, name)
         val fqName: FqName = id.asSingleFqName()
     }

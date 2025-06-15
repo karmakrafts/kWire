@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import kotlin.test.Test
 
-class MemoryIntrinsicTest {
+class MemoryIntrinsicsTest {
     val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double")
     val primitiveSizes: Array<Int> =
         arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES)

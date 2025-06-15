@@ -18,11 +18,17 @@ package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
@@ -39,3 +45,24 @@ internal fun IrType.toClassReference(context: IrPluginContext): IrClassReference
         classType = this@toClassReference
     )
 }
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)
+
+internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?.isStruct(context) == true
+internal fun IrType.hasCustomAlignment(): Boolean = getClass()?.hasAnnotation(KWireNames.AlignAs.fqName) == true
+internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<Int>(KWireNames.AlignAs.fqName, "value")
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrClass.isAddress(context: KWirePluginContext): Boolean = isSubclassOf(context.addressType.owner)
+
+internal fun IrType.isAddress(context: KWirePluginContext): Boolean = getClass()?.isAddress(context) == true
+
+internal fun IrClass.isNumPtr(): Boolean = isClassWithFqName(KWireNames.NumPtr.fqName)
+internal fun IrType.isNumPtr(): Boolean = getClass()?.isNumPtr() == true
+
+internal fun IrClass.isPtr(): Boolean = isClassWithFqName(KWireNames.Ptr.fqName)
+internal fun IrType.isPtr(): Boolean = getClass()?.isPtr() == true
+
+internal fun IrClass.isVoidPtr(): Boolean = isClassWithFqName(KWireNames.VoidPtr.fqName)
+internal fun IrType.isVoidPtr(): Boolean = getClass()?.isVoidPtr() == true

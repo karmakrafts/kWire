@@ -60,8 +60,6 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isOverridable
-import org.jetbrains.kotlin.ir.util.isSubclassOf
-import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -114,16 +112,14 @@ internal fun IrExpression.times(context: KWirePluginContext, other: IrExpression
     binaryOp(type.getClass()!!.functions.first { it.name.asString() == "times" }.symbol, other)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = when (type) {
-    context.irBuiltIns.intType -> topLevelBinaryOp(symbol = context.intMin, other = other)
-    else -> error("Unsupported expression type ${type.render()} for min() operation")
-}
+internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
+    symbol = context.referenceFunctions(KWireNames.Kotlin.min).first { it.owner.returnType == type }, other = other
+)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrExpression.max(context: KWirePluginContext, other: IrExpression): IrExpression = when (type) {
-    context.irBuiltIns.intType -> topLevelBinaryOp(symbol = context.intMax, other = other)
-    else -> error("Unsupported expression type ${type.render()} for max() operation")
-}
+internal fun IrExpression.max(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
+    symbol = context.referenceFunctions(KWireNames.Kotlin.max).first { it.owner.returnType == type }, other = other
+)
 
 internal fun constInt(context: KWirePluginContext, value: Int): IrConstImpl = IrConstImpl.int( // @formatter:off
     startOffset = SYNTHETIC_OFFSET,
@@ -139,6 +135,32 @@ internal fun constLong(context: KWirePluginContext, value: Long): IrConstImpl = 
     value = value
 ) // @formatter:on
 
+internal fun constNInt(context: KWirePluginContext, value: Long): IrExpression = context.toNInt(IrConstImpl.long( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = context.irBuiltIns.longType,
+    value = value
+)
+) // @formatter:on
+
+internal fun constNUInt(context: KWirePluginContext, value: ULong): IrExpression = context.toNUInt(IrConstImpl.long( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = context.irBuiltIns.longType,
+    value = value.toLong()
+)
+) // @formatter:on
+
+internal fun constNFloat(context: KWirePluginContext, value: Double): IrExpression = context.toNFloat(IrConstImpl.double( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = context.irBuiltIns.longType,
+    value = value
+)
+) // @formatter:on
+
+// Intrinsics
+
 internal fun IrAnnotationContainer.getIntrinsicType(): KWireIntrinsicType? =
     getAnnotationValue<KWireIntrinsicType>(KWireNames.KWireIntrinsic.fqName, "type")
 
@@ -146,15 +168,6 @@ internal fun IrAnnotationContainer.hasStructLayoutData(): Boolean = hasAnnotatio
 
 internal fun IrAnnotationContainer.getStructLayoutData(): ByteArray? =
     getAnnotationValue<List<Byte>>(KWireNames.StructLayout.fqName, "data")?.toByteArray()
-
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)
-
-internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?.isStruct(context) == true
-
-internal fun IrType.hasCustomAlignment(): Boolean = getClass()?.hasAnnotation(KWireNames.AlignAs.fqName) == true
-
-internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<Int>(KWireNames.AlignAs.fqName, "value")
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.findConstructor(context: KWirePluginContext, paramTypes: List<IrType>): IrConstructor? {
