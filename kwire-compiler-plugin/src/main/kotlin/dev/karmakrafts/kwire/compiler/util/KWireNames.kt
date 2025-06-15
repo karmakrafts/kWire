@@ -72,6 +72,7 @@ internal object KWireNames {
 
     val packageName: FqName = FqName("dev.karmakrafts.kwire")
     val memoryPackageName: FqName = FqName("dev.karmakrafts.kwire.memory")
+    val ctypePackageName: FqName = FqName("dev.karmakrafts.kwire.ctype")
 
     val sizeOf: CallableId = CallableId(memoryPackageName, Functions.sizeOf)
     val alignOf: CallableId = CallableId(memoryPackageName, Functions.alignOf)
@@ -89,24 +90,24 @@ internal object KWireNames {
 
     object Address {
         val name: Name = Name.identifier("Address")
-        val id: ClassId = ClassId(memoryPackageName, name)
+        val id: ClassId = ClassId(ctypePackageName, name)
         val fqName: FqName = id.asSingleFqName()
 
         object Companion {
             val name: FqName = FqName("Address.Companion")
-            val id: ClassId = ClassId(memoryPackageName, name, false)
+            val id: ClassId = ClassId(ctypePackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
-            val SIZE_BYTES: CallableId = CallableId(memoryPackageName, fqName, Functions.SIZE_BYTES)
+            val SIZE_BYTES: CallableId = CallableId(ctypePackageName, name, Functions.SIZE_BYTES)
         }
     }
 
     object Struct {
         val name: Name = Name.identifier("Struct")
-        val id: ClassId = ClassId(memoryPackageName, name)
+        val id: ClassId = ClassId(ctypePackageName, name)
 
         object Layout {
             val name: FqName = FqName("Struct.Layout")
-            val id: ClassId = ClassId(memoryPackageName, name, false)
+            val id: ClassId = ClassId(ctypePackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
         }
     }

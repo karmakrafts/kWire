@@ -24,9 +24,13 @@ import dev.karmakrafts.kwire.compiler.util.VoidMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
+import dev.karmakrafts.kwire.compiler.util.isStruct
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
@@ -47,6 +51,7 @@ import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
@@ -55,8 +60,11 @@ internal class KWirePluginContext(
 ) : IrPluginContext by pluginContext {
     val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.alignOf).first()
+
     val addressCompanionType: IrClassSymbol = referenceClass(KWireNames.Address.Companion.id)!!
     val addressSizeBytes: IrPropertySymbol = referenceProperties(KWireNames.Address.Companion.SIZE_BYTES).first()
+
+    val structType: IrClassSymbol = referenceClass(KWireNames.Struct.id)!!
     val structLayoutType: IrClassSymbol = referenceClass(KWireNames.Struct.Layout.id)!!
     val structLayoutConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.Struct.Layout.id).first()
 
@@ -88,6 +96,7 @@ internal class KWirePluginContext(
                 })
         }
         metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(clazz, listOf(annotation))
+        memoryLayouts[clazz.defaultType] = layout // Add attached layouts to the cache
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -113,6 +122,7 @@ internal class KWirePluginContext(
             UnsignedType.UINT -> BuiltinMemoryLayout.UINT
             UnsignedType.ULONG -> BuiltinMemoryLayout.ULONG
         }
+        if (!type.isStruct(this)) return BuiltinMemoryLayout.ADDRESS // Reference objects use address layout
         // Handle user defined types
         val clazz = type.getClass() ?: return@getOrPut VoidMemoryLayout
         // If the layout of this struct has been computed by an external compilation unit, parse it
@@ -125,7 +135,7 @@ internal class KWirePluginContext(
             check(propertyType != null) { "Struct field must have a backing field" }
             fields += computeMemoryLayout(propertyType)
         }
-        StructMemoryLayout(fields)
+        if (fields.isEmpty()) VoidMemoryLayout else StructMemoryLayout(fields)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)

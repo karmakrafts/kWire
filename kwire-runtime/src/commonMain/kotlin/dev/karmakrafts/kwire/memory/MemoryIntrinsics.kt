@@ -18,7 +18,6 @@ package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
-import dev.karmakrafts.kwire.ctype.NUInt
 
 /**
  * This will calculate the size of the given type in bytes.
@@ -29,7 +28,7 @@ import dev.karmakrafts.kwire.ctype.NUInt
  * @return The size in memory of the given type in bytes.
  */
 @KWireIntrinsic(KWireIntrinsic.Type.SIZE_OF)
-fun <T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
+fun <T> sizeOf(): Int = throw KWirePluginNotAppliedException()
 
 /**
  * This will calculate the alignment of the given type in bytes.
@@ -40,4 +39,4 @@ fun <T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
  * @return The alignment in memory of the given type in bytes.
  */
 @KWireIntrinsic(KWireIntrinsic.Type.ALIGN_OF)
-fun <T> alignOf(): NUInt = throw KWirePluginNotAppliedException()
+fun <T> alignOf(): Int = throw KWirePluginNotAppliedException()

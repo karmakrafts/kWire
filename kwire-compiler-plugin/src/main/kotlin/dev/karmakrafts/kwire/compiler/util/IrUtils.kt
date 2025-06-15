@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isOverridable
+import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -107,11 +108,15 @@ internal fun constLong(context: KWirePluginContext, value: Long): IrConstImpl = 
 internal fun IrAnnotationContainer.getIntrinsicType(): KWireIntrinsicType? =
     getAnnotationValue<KWireIntrinsicType>(KWireNames.KWireIntrinsic.fqName, "type")
 
-internal fun IrAnnotationContainer.hasStructLayoutData(): Boolean =
-    hasAnnotation(KWireNames.Struct.Layout.fqName)
+internal fun IrAnnotationContainer.hasStructLayoutData(): Boolean = hasAnnotation(KWireNames.Struct.Layout.fqName)
 
 internal fun IrAnnotationContainer.getStructLayoutData(): ByteArray? =
     getAnnotationValue<List<Byte>>(KWireNames.Struct.Layout.fqName, "data")?.toByteArray()
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)
+
+internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?.isStruct(context) == true
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.findConstructor(context: KWirePluginContext, paramTypes: List<IrType>): IrConstructor? {

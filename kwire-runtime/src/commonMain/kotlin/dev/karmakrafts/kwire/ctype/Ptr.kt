@@ -118,13 +118,13 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
     inline fun asULong(): ULong = rawAddress.ulongValue
     inline fun asLong(): Long = rawAddress.value.longValue
 
-    inline operator fun plus(other: NUInt): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other))
-    inline operator fun plus(other: Int): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other.toNUInt()))
-    inline operator fun plus(other: Long): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other.toNUInt()))
+    inline operator fun plus(other: NUInt): Ptr<T> = Ptr(rawAddress + (sizeOf<T>().toNUInt() * other))
+    inline operator fun plus(other: Int): Ptr<T> = Ptr(rawAddress + (sizeOf<T>().toNUInt() * other.toNUInt()))
+    inline operator fun plus(other: Long): Ptr<T> = Ptr(rawAddress + (sizeOf<T>().toNUInt() * other.toNUInt()))
 
-    inline operator fun minus(other: NUInt): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other))
-    inline operator fun minus(other: Int): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other.toNUInt()))
-    inline operator fun minus(other: Long): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other.toNUInt()))
+    inline operator fun minus(other: NUInt): Ptr<T> = Ptr(rawAddress - (sizeOf<T>().toNUInt() * other))
+    inline operator fun minus(other: Int): Ptr<T> = Ptr(rawAddress - (sizeOf<T>().toNUInt() * other.toNUInt()))
+    inline operator fun minus(other: Long): Ptr<T> = Ptr(rawAddress - (sizeOf<T>().toNUInt() * other.toNUInt()))
 
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): T = throw KWirePluginNotAppliedException()
@@ -167,13 +167,13 @@ value class NumPtr<N : Number> @PublishedApi internal constructor(
     inline fun asULong(): ULong = rawAddress.ulongValue
     inline fun asLong(): Long = rawAddress.value.longValue
 
-    inline operator fun plus(other: NUInt): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other))
-    inline operator fun plus(other: Int): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other.toNUInt()))
-    inline operator fun plus(other: Long): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other.toNUInt()))
+    inline operator fun plus(other: NUInt): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>().toNUInt() * other))
+    inline operator fun plus(other: Int): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>().toNUInt() * other.toNUInt()))
+    inline operator fun plus(other: Long): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>().toNUInt() * other.toNUInt()))
 
-    inline operator fun minus(other: NUInt): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other))
-    inline operator fun minus(other: Int): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other.toNUInt()))
-    inline operator fun minus(other: Long): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other.toNUInt()))
+    inline operator fun minus(other: NUInt): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>().toNUInt() * other))
+    inline operator fun minus(other: Int): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>().toNUInt() * other.toNUInt()))
+    inline operator fun minus(other: Long): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>().toNUInt() * other.toNUInt()))
 
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): N = throw KWirePluginNotAppliedException()
