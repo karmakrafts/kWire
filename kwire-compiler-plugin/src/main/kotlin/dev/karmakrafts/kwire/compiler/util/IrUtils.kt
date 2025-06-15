@@ -108,10 +108,10 @@ internal fun constLong(context: KWirePluginContext, value: Long): IrConstImpl = 
 internal fun IrAnnotationContainer.getIntrinsicType(): KWireIntrinsicType? =
     getAnnotationValue<KWireIntrinsicType>(KWireNames.KWireIntrinsic.fqName, "type")
 
-internal fun IrAnnotationContainer.hasStructLayoutData(): Boolean = hasAnnotation(KWireNames.Struct.Layout.fqName)
+internal fun IrAnnotationContainer.hasStructLayoutData(): Boolean = hasAnnotation(KWireNames.StructLayout.fqName)
 
 internal fun IrAnnotationContainer.getStructLayoutData(): ByteArray? =
-    getAnnotationValue<List<Byte>>(KWireNames.Struct.Layout.fqName, "data")?.toByteArray()
+    getAnnotationValue<List<Byte>>(KWireNames.StructLayout.fqName, "data")?.toByteArray()
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)

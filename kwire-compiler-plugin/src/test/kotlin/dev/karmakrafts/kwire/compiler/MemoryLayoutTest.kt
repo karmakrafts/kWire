@@ -21,6 +21,7 @@ import dev.karmakrafts.iridium.setupCompilerTest
 import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.serialize
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -52,10 +53,9 @@ class MemoryLayoutTest {
                 val context = KWirePluginContext(pluginContext)
                 val layout = context.computeMemoryLayout(type.typeGetter(context))
                 val data = layout.serialize()
-                data.first() shouldBe type.layout.tag.toByte()
                 val deserializedLayout = MemoryLayout.deserialize(data)
-                deserializedLayout::class shouldBe StructMemoryLayout::class
-                (deserializedLayout as StructMemoryLayout).fields.first() shouldBe type.layout
+                deserializedLayout::class shouldBe BuiltinMemoryLayout::class
+                deserializedLayout shouldBe type.layout
             }
             evaluate()
         }
@@ -79,8 +79,9 @@ class MemoryLayoutTest {
             val context = KWirePluginContext(pluginContext)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = context.computeMemoryLayout(struct.defaultType)
+
             val data = layout.serialize()
-            data.size shouldBe 3
+
             val deserializedLayout = MemoryLayout.deserialize(data)
             deserializedLayout::class shouldBe StructMemoryLayout::class
             val fields = (deserializedLayout as StructMemoryLayout).fields
@@ -96,7 +97,8 @@ class MemoryLayoutTest {
         // @formatter:off
         source("""
             import dev.karmakrafts.kwire.ctype.Struct
-            class Bar(val x: Int) : Struct
+            class Baz(val x: Int) : Struct
+            class Bar(val x: Baz) : Struct
             class Foo(
                 val x: Byte,
                 val y: Short,
@@ -109,17 +111,21 @@ class MemoryLayoutTest {
             val context = KWirePluginContext(pluginContext)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = context.computeMemoryLayout(struct.defaultType)
+
             val data = layout.serialize()
-            data.size shouldBe 7
+
             val deserializedLayout = MemoryLayout.deserialize(data)
             deserializedLayout::class shouldBe StructMemoryLayout::class
             val fields = (deserializedLayout as StructMemoryLayout).fields
             fields[0] shouldBe BuiltinMemoryLayout.BYTE
             fields[1] shouldBe BuiltinMemoryLayout.SHORT
+
             val nestedField = fields[2]
             nestedField::class shouldBe StructMemoryLayout::class
             val nestedFields = (nestedField as StructMemoryLayout).fields
-            nestedFields[0] shouldBe BuiltinMemoryLayout.INT
+
+            val innerField = nestedFields[0]
+            innerField::class shouldBe StructMemoryLayout::class
         }
     }
 }

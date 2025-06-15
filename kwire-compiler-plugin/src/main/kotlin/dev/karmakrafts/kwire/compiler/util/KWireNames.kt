@@ -101,15 +101,45 @@ internal object KWireNames {
         }
     }
 
+    object NInt {
+        val name: Name = Name.identifier("NInt")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object NUInt {
+        val name: Name = Name.identifier("NUInt")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object NFloat {
+        val name: Name = Name.identifier("NFloat")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object NumPtr {
+        val name: Name = Name.identifier("NumPtr")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object Ptr {
+        val name: Name = Name.identifier("Ptr")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
     object Struct {
         val name: Name = Name.identifier("Struct")
         val id: ClassId = ClassId(ctypePackageName, name)
+    }
 
-        object Layout {
-            val name: FqName = FqName("Struct.Layout")
-            val id: ClassId = ClassId(ctypePackageName, name, false)
-            val fqName: FqName = id.asSingleFqName()
-        }
+    object StructLayout {
+        val name: FqName = FqName("StructLayout")
+        val id: ClassId = ClassId(ctypePackageName, name, false)
+        val fqName: FqName = id.asSingleFqName()
     }
 
     object Marshal {

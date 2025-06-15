@@ -16,131 +16,74 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
+import com.ensarsarajcic.kotlinx.serialization.msgpack.MsgPack
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.it.unimi.dsi.fastutil.bytes.ByteArrayList
-import java.nio.ByteBuffer
-import java.util.*
 
+private val msgPack: MsgPack = MsgPack(serializersModule = SerializersModule {
+    polymorphic(MemoryLayout::class) {
+        subclass(BuiltinMemoryLayout::class)
+        subclass(StructMemoryLayout::class)
+    }
+})
+
+@Serializable
+@Polymorphic
 internal sealed interface MemoryLayout {
     companion object {
-        const val MAX_BUFFER_SIZE: Int = 8192
-
-        @OptIn(ExperimentalStdlibApi::class)
-        private fun deserialize(buffer: ByteBuffer, fields: ArrayList<MemoryLayout>) {
-            while (buffer.hasRemaining()) {
-                var tag = buffer.get().toUByte()
-
-                if (tag == VoidMemoryLayout.TAG) {
-                    fields += VoidMemoryLayout
-                    continue
-                }
-
-                val builtinLayout = BuiltinMemoryLayout.entries.find { it.tag == tag }
-                if (builtinLayout != null) {
-                    fields += builtinLayout
-                    continue
-                }
-
-                check(tag == StructMemoryLayout.TAG_BEGIN) { "Invalid struct beginning: 0x${tag.toHexString()}" }
-                val nestingLevel = buffer.get().toUByte()
-                val subData = ByteArrayList()
-
-                fun peekTag(): UByte = buffer.get(minOf(buffer.capacity(), buffer.position() + 1)).toUByte()
-                var nextTag = peekTag()
-                while (tag != StructMemoryLayout.TAG_END && nextTag != nestingLevel) {
-                    tag = buffer.get().toUByte()
-                    subData += tag.toByte()
-                    nextTag = peekTag()
-                }
-
-                tag = buffer.get().toUByte() // Skip over TAG_END_STRUCT
-                check(tag == StructMemoryLayout.TAG_END) { "Invalid struct end: 0x${tag.toHexString()}" }
-                tag = buffer.get().toUByte()
-                check(tag == nestingLevel) { "Missing closing struct tag for nesting level $nestingLevel" }
-
-                val structFields = ArrayList<MemoryLayout>()
-                deserialize(ByteBuffer.wrap(subData.toByteArray()), structFields)
-                fields += StructMemoryLayout(structFields)
-            }
-        }
-
-        fun deserialize(data: ByteArray): MemoryLayout {
-            val fields = ArrayList<MemoryLayout>()
-            deserialize(ByteBuffer.wrap(data), fields)
-            return StructMemoryLayout(fields)
-        }
+        fun deserialize(data: ByteArray): MemoryLayout = msgPack.decodeFromByteArray(data)
     }
 
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
-
-    fun serialize(buffer: ByteBuffer, stack: Stack<Unit>)
-
-    fun serialize(): ByteArray {
-        val buffer = ByteBuffer.allocate(MAX_BUFFER_SIZE)
-        serialize(buffer, Stack())
-        return ByteArray(buffer.position()).apply {
-            buffer.flip()
-            buffer.get(this)
-        }
-    }
 }
 
-internal object VoidMemoryLayout : MemoryLayout {
-    const val TAG: UByte = 0x00U
+internal fun MemoryLayout.serialize(): ByteArray = msgPack.encodeToByteArray(this)
 
-    override fun emitSize(context: KWirePluginContext): IrExpression {
-        return constInt(context, 0)
-    }
-
-    override fun emitAlignment(context: KWirePluginContext): IrExpression {
-        return constInt(context, 0)
-    }
-
-    override fun serialize(buffer: ByteBuffer, stack: Stack<Unit>) {
-        buffer.put(TAG.toByte())
-    }
-}
-
+@SerialName("builtin")
+@Serializable
 internal enum class BuiltinMemoryLayout(
-    val tag: UByte,
-    private val sizeEmitter: (KWirePluginContext) -> IrExpression,
-    private val alignmentEmitter: (KWirePluginContext) -> IrExpression
+    @Transient private val sizeEmitter: (KWirePluginContext) -> IrExpression,
+    @Transient private val alignmentEmitter: (KWirePluginContext) -> IrExpression
 ) : MemoryLayout {
     // @formatter:off
-    BYTE    (0x01U, { constInt(it, Byte.SIZE_BYTES) }),
-    SHORT   (0x02U, { constInt(it, Short.SIZE_BYTES) }),
-    INT     (0x03U, { constInt(it, Int.SIZE_BYTES) }),
-    LONG    (0x04U, { constInt(it, Long.SIZE_BYTES) }),
-    UBYTE   (0x05U, { constInt(it, UByte.SIZE_BYTES) }),
-    USHORT  (0x06U, { constInt(it, UShort.SIZE_BYTES) }),
-    UINT    (0x07U, { constInt(it, UInt.SIZE_BYTES) }),
-    ULONG   (0x08U, { constInt(it, ULong.SIZE_BYTES) }),
-    FLOAT   (0x09U, { constInt(it, Float.SIZE_BYTES) }),
-    DOUBLE  (0x0AU, { constInt(it, Double.SIZE_BYTES) }),
-    ADDRESS (0x0BU, { it.emitPointerSize() });
+    VOID    ({ constInt(it, 0) }),
+    BYTE    ({ constInt(it, Byte.SIZE_BYTES) }),
+    SHORT   ({ constInt(it, Short.SIZE_BYTES) }),
+    INT     ({ constInt(it, Int.SIZE_BYTES) }),
+    LONG    ({ constInt(it, Long.SIZE_BYTES) }),
+    NINT    ({ it.emitPointerSize() }),
+    UBYTE   ({ constInt(it, UByte.SIZE_BYTES) }),
+    USHORT  ({ constInt(it, UShort.SIZE_BYTES) }),
+    UINT    ({ constInt(it, UInt.SIZE_BYTES) }),
+    ULONG   ({ constInt(it, ULong.SIZE_BYTES) }),
+    NUINT   ({ it.emitPointerSize() }),
+    FLOAT   ({ constInt(it, Float.SIZE_BYTES) }),
+    DOUBLE  ({ constInt(it, Double.SIZE_BYTES) }),
+    NFLOAT  ({ it.emitPointerSize() }),
+    ADDRESS ({ it.emitPointerSize() });
     // @formatter:on
 
-    constructor(tag: UByte, sizeEmitter: (KWirePluginContext) -> IrExpression) : this(tag, sizeEmitter, sizeEmitter)
+    constructor(sizeEmitter: (KWirePluginContext) -> IrExpression) : this(sizeEmitter, sizeEmitter)
 
     override fun emitSize(context: KWirePluginContext): IrExpression = sizeEmitter(context)
     override fun emitAlignment(context: KWirePluginContext): IrExpression = alignmentEmitter(context)
-
-    override fun serialize(buffer: ByteBuffer, stack: Stack<Unit>) {
-        buffer.put(tag.toByte())
-    }
 }
 
-@JvmInline
-internal value class StructMemoryLayout(
+@SerialName("struct")
+@Serializable
+internal data class StructMemoryLayout(
     val fields: List<MemoryLayout>
 ) : MemoryLayout {
-    companion object {
-        const val TAG_BEGIN: UByte = 0xFEU
-        const val TAG_END: UByte = 0xFFU
-    }
-
     override fun emitSize(context: KWirePluginContext): IrExpression = when {
         fields.isEmpty() -> constInt(context, 0)
         fields.size == 1 -> fields.first().emitSize(context)
@@ -164,24 +107,6 @@ internal value class StructMemoryLayout(
                 expr = expr.plus(context, fields[index].emitAlignment(context))
             }
             expr
-        }
-    }
-
-    override fun serialize(buffer: ByteBuffer, stack: Stack<Unit>) {
-        for (field in fields) {
-            when (field) {
-                is BuiltinMemoryLayout, is VoidMemoryLayout -> field.serialize(buffer, stack)
-                is StructMemoryLayout -> {
-                    check(stack.size < Byte.MAX_VALUE) { "Exceeded max struct nesting level of 255" }
-                    buffer.put(TAG_BEGIN.toByte())
-                    buffer.put(stack.size.toByte())
-                    stack.push(Unit)
-                    field.serialize(buffer, stack)
-                    stack.pop()
-                    buffer.put(TAG_END.toByte())
-                    buffer.put(stack.size.toByte())
-                }
-            }
         }
     }
 }

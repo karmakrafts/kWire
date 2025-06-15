@@ -17,15 +17,21 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
     `maven-publish`
 }
 
 dependencies {
     compileOnly(libs.kotlin.compiler.embeddable)
+    compileOnly(libs.kotlinx.serialization.core)
+    compileOnly(libs.kotlinx.serialization.msgpack)
     compileOnly(libs.autoService)
     kapt(libs.autoService)
+
     testImplementation(libs.kotlin.test)
     testImplementation(libs.iridium)
+    testImplementation(libs.kotlinx.serialization.core)
+    testImplementation(libs.kotlinx.serialization.msgpack)
     testImplementation(projects.kwireRuntime)
 }
 
