@@ -18,10 +18,9 @@
 
 package dev.karmakrafts.kwire
 
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform {
+private val platform: Platform by lazy {
     val host = System.getProperty("os.name").lowercase()
-    return when {
+    when {
         "mac" in host || "os x" in host -> Platform.MACOS
         "windows" in host -> Platform.WINDOWS
         "linux" in host -> Platform.LINUX
@@ -29,3 +28,6 @@ internal actual fun getCurrentPlatform(): Platform {
         else -> throw IllegalStateException("Unsupported JVM host platform '$host'")
     }
 }
+
+@PublishedApi
+internal actual fun getCurrentPlatform(): Platform = platform

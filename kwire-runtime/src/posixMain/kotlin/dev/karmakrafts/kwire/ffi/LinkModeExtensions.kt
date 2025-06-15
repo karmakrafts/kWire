@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.kapt)
-    `maven-publish`
-}
+package dev.karmakrafts.kwire.ffi
 
-dependencies {
-    compileOnly(libs.kotlin.compiler.embeddable)
-    compileOnly(libs.autoService)
-    kapt(libs.autoService)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.iridium)
-}
+import platform.posix.RTLD_LAZY
+import platform.posix.RTLD_NOW
 
-tasks {
-    test {
-        useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors()
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("compilerPlugin") {
-            from(components["java"])
-        }
-    }
+fun LinkMode.getPosixLinkMode(): Int = when (this) {
+    LinkMode.NOW -> RTLD_NOW
+    LinkMode.LAZY -> RTLD_LAZY
 }

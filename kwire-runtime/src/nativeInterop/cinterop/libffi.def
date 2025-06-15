@@ -3,49 +3,49 @@ headers = fficonfig.h ffi.h
 staticLibraries = libffi.a
 
 # Windows
-compilerOpts.mingw_x64 = -Ibuild/libffi/windowsx64/include
-libraryPaths.mingw_x64 = build/libffi/windowsx64/lib
+compilerOpts.mingw_x64 = -Ibuild/libffi/windowsX64/include
+libraryPaths.mingw_x64 = build/libffi/windowsX64/lib
 
 # Linux
-compilerOpts.linux_x64 = -Ibuild/libffi/linuxx64/include -D_GNU_SOURCE
-libraryPaths.linux_x64 = build/libffi/linuxx64/lib
-compilerOpts.linux_arm64 = -Ibuild/libffi/linuxarm64/include
-libraryPaths.linux_arm64 = build/libffi/linuxarm64/lib
+compilerOpts.linux_x64 = -Ibuild/libffi/linuxX64/include
+libraryPaths.linux_x64 = build/libffi/linuxX64/lib
+compilerOpts.linux_arm64 = -Ibuild/libffi/linuxArm64/include
+libraryPaths.linux_arm64 = build/libffi/linuxArm64/lib
 
 # Android
-compilerOpts.android_x64 = -Ibuild/libffi/androidx64/include
-libraryPaths.android_x64 = build/libffi/androidx64/lib
-compilerOpts.android_arm64 = -Ibuild/libffi/androidarm64/include
-libraryPaths.android_arm64 = build/libffi/androidarm64/lib
-compilerOpts.android_arm32 = -Ibuild/libffi/androidarm32/include
-libraryPaths.android_arm32 = build/libffi/androidarm32/lib
+compilerOpts.android_x64 = -Ibuild/libffi/androidX64/include
+libraryPaths.android_x64 = build/libffi/androidX64/lib
+compilerOpts.android_arm64 = -Ibuild/libffi/androidArm64/include
+libraryPaths.android_arm64 = build/libffi/androidArm64/lib
+compilerOpts.android_arm32 = -Ibuild/libffi/androidArm32/include
+libraryPaths.android_arm32 = build/libffi/androidArm32/lib
 
 # macOS
-compilerOpts.osx_x64 = -Ibuild/libffi/macosx64/include
-libraryPaths.osx_x64 = build/libffi/macosx64/lib
-compilerOpts.osx_arm64 = -Ibuild/libffi/macosarm64/include
-libraryPaths.osx_arm64 = build/libffi/macosarm64/lib
+compilerOpts.osx_x64 = -Ibuild/libffi/macosX64/include
+libraryPaths.osx_x64 = build/libffi/macosX64/lib
+compilerOpts.osx_arm64 = -Ibuild/libffi/macosArm64/include
+libraryPaths.osx_arm64 = build/libffi/macosArm64/lib
 
 # iOS
-compilerOpts.ios_x64 = -Ibuild/libffi/iosx64simulator/include
-libraryPaths.ios_x64 = build/libffi/iosx64simulator/lib
-compilerOpts.ios_arm64 = -Ibuild/libffi/iosarm64device/include
-libraryPaths.ios_arm64 = build/libffi/iosarm64device/lib
-compilerOpts.ios_simulator_arm64 = -Ibuild/libffi/iosarm64simulator/include
-libraryPaths.ios_simulator_arm64 = build/libffi/iosarm64simulator/lib
+compilerOpts.ios_x64 = -Ibuild/libffi/iosX64Simulator/include
+libraryPaths.ios_x64 = build/libffi/iosX64Simulator/lib
+compilerOpts.ios_arm64 = -Ibuild/libffi/iosArm64Device/include
+libraryPaths.ios_arm64 = build/libffi/iosArm64Device/lib
+compilerOpts.ios_simulator_arm64 = -Ibuild/libffi/iosArm64Simulator/include
+libraryPaths.ios_simulator_arm64 = build/libffi/iosArm64Simulator/lib
 
 # tvOS
-compilerOpts.tvos_x64 = -Ibuild/libffi/tvosx64simulator/include
-libraryPaths.tvos_x64 = build/libffi/tvosx64simulator/lib
-compilerOpts.tvos_arm64 = -Ibuild/libffi/tvosarm64device/include
-libraryPaths.tvos_arm64 = build/libffi/tvosarm64device/lib
-compilerOpts.tvos_simulator_arm64 = -Ibuild/libffi/tvosarm64simulator/include
-libraryPaths.tvos_simulator_arm64 = build/libffi/tvosarm64simulator/lib
+compilerOpts.tvos_x64 = -Ibuild/libffi/tvosX64Simulator/include
+libraryPaths.tvos_x64 = build/libffi/tvosX64Simulator/lib
+compilerOpts.tvos_arm64 = -Ibuild/libffi/tvosArm64Device/include
+libraryPaths.tvos_arm64 = build/libffi/tvosArm64Device/lib
+compilerOpts.tvos_simulator_arm64 = -Ibuild/libffi/tvosArm64Simulator/include
+libraryPaths.tvos_simulator_arm64 = build/libffi/tvosArm64Simulator/lib
 
 # watchOS
-compilerOpts.watchos_x64 = -Ibuild/libffi/watchosx64simulator/include
-libraryPaths.watchos_x64 = build/libffi/watchosx64simulator/lib
-compilerOpts.watchos_arm64 = -Ibuild/libffi/watchosarm64device/include
-libraryPaths.watchos_arm64 = build/libffi/watchosarm64device/lib
-compilerOpts.watchos_simulator_arm64 = -Ibuild/libffi/watchosarm64simulator/include
-libraryPaths.watchos_simulator_arm64 = build/libffi/watchosarm64simulator/lib
+compilerOpts.watchos_x64 = -Ibuild/libffi/watchosX64Simulator/include
+libraryPaths.watchos_x64 = build/libffi/watchosX64Simulator/lib
+compilerOpts.watchos_arm64 = -Ibuild/libffi/watchosArm64Device/include
+libraryPaths.watchos_arm64 = build/libffi/watchosArm64Device/lib
+compilerOpts.watchos_simulator_arm64 = -Ibuild/libffi/watchosArm64Simulator/include
+libraryPaths.watchos_simulator_arm64 = build/libffi/watchosArm64Simulator/lib

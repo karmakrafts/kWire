@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.kapt)
-    `maven-publish`
-}
+package dev.karmakrafts.kwire
 
-dependencies {
-    compileOnly(libs.kotlin.compiler.embeddable)
-    compileOnly(libs.autoService)
-    kapt(libs.autoService)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.iridium)
-}
-
-tasks {
-    test {
-        useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors()
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("compilerPlugin") {
-            from(components["java"])
-        }
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.FUNCTION)
+internal annotation class KWireIntrinsic(val type: Type) {
+    enum class Type {
+        SIZE_OF, ALIGN_OF, ADDRESS_OF, PTR_NULL, PTR_DEREF, PTR_REF, PTR_ARRAY_GET, PTR_ARRAY_SET
     }
 }

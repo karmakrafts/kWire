@@ -37,6 +37,5 @@ dependencyResolutionManagement {
 }
 
 include("kwire-runtime")
-include("kwire-compiler-rt")
 include("kwire-compiler-plugin")
 include("kwire-gradle-plugin")

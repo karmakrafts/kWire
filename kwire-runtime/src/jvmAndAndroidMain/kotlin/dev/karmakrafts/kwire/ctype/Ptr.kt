@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.kapt)
-    `maven-publish`
-}
+@file:JvmName("PtrImpl")
 
-dependencies {
-    compileOnly(libs.kotlin.compiler.embeddable)
-    compileOnly(libs.autoService)
-    kapt(libs.autoService)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.iridium)
-}
+package dev.karmakrafts.kwire.ctype
 
-tasks {
-    test {
-        useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors()
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("compilerPlugin") {
-            from(components["java"])
-        }
-    }
+internal actual val pointerSize: Int by lazy {
+    System.getProperty("sun.arch.data.model").toIntOrNull()
+        ?.let { it shr 3 }
+        ?: Int.SIZE_BYTES
 }

@@ -1,6 +1,7 @@
 import dev.karmakrafts.conventions.GitLabPackage
+import dev.karmakrafts.conventions.dependsOn
 import dev.karmakrafts.conventions.getBinaryBaseName
-import dev.karmakrafts.conventions.getTargetPair
+import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
@@ -65,16 +66,13 @@ kotlin {
         publishLibraryVariants("release")
     }
     targets.withType<KotlinNativeTarget>().configureEach { ->
-        val baseName = getBinaryBaseName()
-        val extractTask = binaryPackage["build-${baseName}-release.zip", baseName.replace("-", "")].extractTask
+        val libffiArtifact = binaryPackage["build-${getBinaryBaseName()}-release.zip", getBinaryTaskSuffix()]
         compilations {
             val main by getting {
                 cinterops {
                     val posix_wrappers by creating
                     val libffi by creating {
-                        tasks.named(interopProcessingTaskName) {
-                            dependsOn(extractTask)
-                        }
+                        dependsOn(libffiArtifact)
                     }
                 }
             }
@@ -92,6 +90,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.stately.common)
+                implementation(libs.stately.concurrent.collections)
             }
         }
 
