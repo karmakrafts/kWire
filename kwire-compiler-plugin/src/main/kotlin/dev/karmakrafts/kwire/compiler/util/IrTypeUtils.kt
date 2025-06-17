@@ -21,11 +21,13 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isSubclassOf
@@ -69,3 +71,8 @@ internal fun IrType.isPtr(): Boolean = getClass()?.isPtr() == true
 
 internal fun IrClass.isVoidPtr(): Boolean = isClassWithFqName(KWireNames.VoidPtr.fqName)
 internal fun IrType.isVoidPtr(): Boolean = getClass()?.isVoidPtr() == true
+
+internal fun IrType.getPointedType(): IrType? {
+    if (this !is IrSimpleType) return null
+    return arguments.first().typeOrNull
+}

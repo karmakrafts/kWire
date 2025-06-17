@@ -20,9 +20,13 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.isStruct
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
@@ -40,12 +44,37 @@ internal class StructValidationVisitor(
         return context.computeMemoryLayout(type) != ReferenceMemoryLayout
     }
 
+    // Enforce compatible field types and visibility
     override fun visitProperty(declaration: IrProperty) {
         super.visitProperty(declaration)
         val parentClass = declaration.parentClassOrNull ?: return
         if (!parentClass.isStruct(context)) return
-        val type = declaration.getter?.returnType ?: declaration.backingField?.type
-        if (type == null || isValidStructFieldType(type)) return
-        reportError("Unsupported structure field type ${type.render()}", declaration)
+        val type = (declaration.getter?.returnType ?: declaration.backingField?.type) ?: return
+        if (!isValidStructFieldType(type)) {
+            reportError("Unsupported struct field type ${type.render()}", declaration)
+        }
+        val visibility = declaration.visibility
+        if (visibility != DescriptorVisibilities.PUBLIC && visibility != DescriptorVisibilities.INTERNAL) {
+            reportError("Unsupported struct field visibility $visibility, must be public or internal", declaration)
+        }
+    }
+
+    // Enforce default constructor and visibility
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    override fun visitClass(declaration: IrClass) {
+        super.visitClass(declaration)
+        if (!declaration.isStruct(context)) return
+        val constructor = declaration.defaultConstructor
+        if (constructor == null) {
+            reportError("Struct requires default constructor", declaration)
+            return
+        }
+        val visibility = constructor.visibility
+        if (visibility != DescriptorVisibilities.PUBLIC && visibility != DescriptorVisibilities.INTERNAL) {
+            reportError(
+                "Unsupported struct constructor visibility $visibility, must be public or internal",
+                declaration
+            )
+        }
     }
 }

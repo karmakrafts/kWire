@@ -195,9 +195,9 @@ internal enum class BuiltinMemoryLayout(
 internal data class StructMemoryLayout(
     val fields: List<MemoryLayout>
 ) : MemoryLayout {
-    override fun emitSize(context: KWirePluginContext): IrExpression = when {
-        fields.isEmpty() -> constInt(context, 0)
-        fields.size == 1 -> fields.first().emitSize(context)
+    override fun emitSize(context: KWirePluginContext): IrExpression = when (fields.size) {
+        0 -> constInt(context, 0)
+        1 -> fields.first().emitSize(context)
         else -> {
             val (first, second) = fields
             var expr = first.emitSize(context).plus(second.emitSize(context))
@@ -208,9 +208,9 @@ internal data class StructMemoryLayout(
         }
     }
 
-    override fun emitAlignment(context: KWirePluginContext): IrExpression = when {
-        fields.isEmpty() -> constInt(context, 0)
-        fields.size == 1 -> fields.first().emitAlignment(context)
+    override fun emitAlignment(context: KWirePluginContext): IrExpression = when (fields.size) {
+        0 -> constInt(context, 0)
+        1 -> fields.first().emitAlignment(context)
         else -> {
             val (first, second) = fields
             var expr = first.emitAlignment(context).max(context, second.emitAlignment(context))

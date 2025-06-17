@@ -15,7 +15,6 @@
  */
 
 import dev.karmakrafts.conventions.GitLabCI
-import dev.karmakrafts.conventions.configureJava
 import dev.karmakrafts.conventions.defaultDependencyLocking
 import dev.karmakrafts.conventions.setProjectInfo
 import java.net.URI
@@ -39,10 +38,6 @@ plugins {
 group = "dev.karmakrafts.kwire"
 version = GitLabCI.getDefaultVersion(libs.versions.kwire)
 
-allprojects {
-    configureJava(rootProject.libs.versions.java)
-}
-
 subprojects {
     apply<PublishingPlugin>()
     apply<SigningPlugin>()
@@ -53,14 +48,12 @@ subprojects {
 
     publishing {
         setProjectInfo(
-            rootProject.name,
-            "Shared library access and FFI for Kotlin Multiplatform"
+            rootProject.name, "Shared library access and FFI for Kotlin Multiplatform"
         )
         with(GitLabCI) { karmaKraftsDefaults() }
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
-    signing {
+    @OptIn(ExperimentalEncodingApi::class) signing {
         System.getenv("SIGNING_KEY_ID")?.let { keyId ->
             useInMemoryPgpKeys( // @formatter:off
                 keyId,

@@ -1,4 +1,5 @@
 import dev.karmakrafts.conventions.GitLabPackage
+import dev.karmakrafts.conventions.configureJava
 import dev.karmakrafts.conventions.dependsOn
 import dev.karmakrafts.conventions.getBinaryBaseName
 import dev.karmakrafts.conventions.getBinaryTaskSuffix
@@ -33,6 +34,8 @@ plugins {
     signing
     `maven-publish`
 }
+
+configureJava(rootProject.libs.versions.java)
 
 val binaryPackage: GitLabPackage = gitlab().project(
     "kk/prebuilts/libffi"

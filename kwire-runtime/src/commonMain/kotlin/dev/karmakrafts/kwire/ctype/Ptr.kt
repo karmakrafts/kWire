@@ -61,11 +61,6 @@ inline operator fun Address.minus(other: Long): VoidPtr = VoidPtr(rawAddress - o
 value class Ptr<T : Pointed> @PublishedApi internal constructor(
     override val rawAddress: NUInt
 ) : Address, Pointed {
-    companion object {
-        @PublishedApi
-        internal val nullptr: Ptr<Pointed> = Ptr(0U.toNUInt())
-    }
-
     inline var value: T
         get() = deref()
         set(value) {
@@ -129,9 +124,5 @@ inline fun <T : Pointed> Int.asPtr(): Ptr<T> = Ptr(toNUInt())
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
 fun <T : Pointed> T.ref(): Ptr<T> = throw KWirePluginNotAppliedException()
 
-inline fun <reified P : Address> nullptr(): P = when (P::class) {
-    VoidPtr::class -> VoidPtr.nullptr
-    NumPtr::class -> NumPtr.nullptr
-    Ptr::class -> Ptr.nullptr
-    else -> error("Unsupported pointer type ${P::class}")
-} as P
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_NULL)
+fun <P : Address> nullptr(): P = throw KWirePluginNotAppliedException()

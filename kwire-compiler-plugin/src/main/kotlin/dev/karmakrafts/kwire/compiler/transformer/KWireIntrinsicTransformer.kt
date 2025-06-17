@@ -36,9 +36,14 @@ internal abstract class KWireIntrinsicTransformer( // @formatter:off
     ): IrElement // @formatter:on
 
     override fun visitCall(expression: IrCall, data: KWireIntrinsicContext): IrElement {
-        val function = expression.target
-        val type = function.getIntrinsicType() ?: return super.visitCall(expression, data)
-        if (type !in types) return super.visitCall(expression, data)
-        return visitIntrinsic(expression, data, type)
+        // Transform using depth-first search strategy
+        val transformedCall = super.visitCall(expression, data)
+        if (transformedCall is IrCall) {
+            val function = transformedCall.target
+            val type = function.getIntrinsicType() ?: return transformedCall
+            if (type !in types) return transformedCall
+            return visitIntrinsic(transformedCall, data, type)
+        }
+        return transformedCall
     }
 }

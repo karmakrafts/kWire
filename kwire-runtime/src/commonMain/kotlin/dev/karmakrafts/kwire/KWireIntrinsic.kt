@@ -24,6 +24,7 @@ internal annotation class KWireIntrinsic(val type: Type) {
         SIZE_OF,
         ALIGN_OF,
         OFFSET_OF,
+        PTR_NULL,
         PTR_REF,
         PTR_DEREF,
         PTR_SET,

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import dev.karmakrafts.conventions.configureJava
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
@@ -24,6 +25,8 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
 }
+
+configureJava(rootProject.libs.versions.java)
 
 dependencies {
     compileOnly(gradleApi())

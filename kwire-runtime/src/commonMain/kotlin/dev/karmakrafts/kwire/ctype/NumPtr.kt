@@ -29,11 +29,6 @@ import kotlin.jvm.JvmInline
 value class NumPtr<N : Number> @PublishedApi internal constructor(
     override val rawAddress: NUInt
 ) : Address, Pointed {
-    companion object {
-        @PublishedApi
-        internal val nullptr: NumPtr<Number> = NumPtr(0U.toNUInt())
-    }
-
     inline var value: N
         get() = deref()
         set(value) {

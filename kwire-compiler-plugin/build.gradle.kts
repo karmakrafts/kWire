@@ -1,3 +1,5 @@
+import dev.karmakrafts.conventions.configureJava
+
 /*
  * Copyright 2025 Karma Krafts & associates
  *
@@ -20,6 +22,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     `maven-publish`
 }
+
+configureJava(rootProject.libs.versions.java)
 
 dependencies {
     compileOnly(libs.kotlin.compiler.embeddable)
