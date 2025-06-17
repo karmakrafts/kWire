@@ -20,6 +20,7 @@ import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
 import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.MemoryLayout
+import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.serialize
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -126,6 +127,28 @@ class MemoryLayoutTest {
 
             val innerField = nestedFields[0]
             innerField::class shouldBe StructMemoryLayout::class
+        }
+    }
+
+    @Test
+    fun `Serialize and deserialize reference layout`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            class Foo(val s: String)
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            val context = KWirePluginContext(pluginContext, element, element.files.first())
+            val struct = getChild<IrClass> { it.name.asString() == "Foo" }
+            val layout = context.computeMemoryLayout(struct.defaultType)
+            layout shouldBe ReferenceMemoryLayout
+
+            val data = layout.serialize()
+
+            val deserializedLayout = MemoryLayout.deserialize(data)
+            deserializedLayout shouldBe ReferenceMemoryLayout
         }
     }
 }

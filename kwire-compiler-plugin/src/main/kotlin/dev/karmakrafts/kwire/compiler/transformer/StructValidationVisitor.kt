@@ -17,19 +17,20 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
-import org.jetbrains.kotlin.backend.common.getCompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import dev.karmakrafts.kwire.compiler.util.isStruct
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
 internal class StructValidationVisitor(
     private val context: KWirePluginContext
-) : IrVisitorVoid() {
+) : IrVisitorVoid(), MessageCollectorExtensions by context {
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
     }
@@ -41,12 +42,10 @@ internal class StructValidationVisitor(
 
     override fun visitProperty(declaration: IrProperty) {
         super.visitProperty(declaration)
+        val parentClass = declaration.parentClassOrNull ?: return
+        if (!parentClass.isStruct(context)) return
         val type = declaration.getter?.returnType ?: declaration.backingField?.type
         if (type == null || isValidStructFieldType(type)) return
-        context.messageCollector.report(
-            severity = CompilerMessageSeverity.ERROR,
-            message = "Unsupported structure field type ${type.render()}",
-            location = declaration.getCompilerMessageLocation(context.irFile)
-        )
+        reportError("Unsupported structure field type ${type.render()}", declaration)
     }
 }

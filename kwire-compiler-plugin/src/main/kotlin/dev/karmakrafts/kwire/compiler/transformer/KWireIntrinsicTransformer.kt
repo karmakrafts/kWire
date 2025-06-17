@@ -16,16 +16,19 @@
 
 package dev.karmakrafts.kwire.compiler.transformer
 
+import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
-internal abstract class KWireIntrinsicTransformer(
+internal abstract class KWireIntrinsicTransformer( // @formatter:off
+    protected val context: KWirePluginContext,
     private val types: Set<KWireIntrinsicType>
-) : IrTransformer<KWireIntrinsicContext>() {
+) : IrTransformer<KWireIntrinsicContext>(), MessageCollectorExtensions by context { // @formatter:on
     abstract fun visitIntrinsic(
         expression: IrCall, data: KWireIntrinsicContext, type: KWireIntrinsicType
     ): IrElement

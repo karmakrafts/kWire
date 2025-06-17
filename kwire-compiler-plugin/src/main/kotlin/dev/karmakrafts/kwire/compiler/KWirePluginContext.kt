@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.compiler
 import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MemoryLayout
+import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
@@ -61,8 +62,8 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal class KWirePluginContext(
-    val pluginContext: IrPluginContext, val irModule: IrModuleFragment, val irFile: IrFile
-) : IrPluginContext by pluginContext {
+    val pluginContext: IrPluginContext, val irModule: IrModuleFragment, override val irFile: IrFile
+) : IrPluginContext by pluginContext, MessageCollectorExtensions {
     val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.alignOf).first()
 

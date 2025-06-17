@@ -18,7 +18,6 @@ package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
-import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
 import dev.karmakrafts.kwire.compiler.util.hasCustomAlignment
@@ -33,8 +32,8 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.target
 
 internal class MemoryIntrinsicsTransformer(
-    private val context: KWirePluginContext
-) : KWireIntrinsicTransformer(setOf( // @formatter:off
+    context: KWirePluginContext
+) : KWireIntrinsicTransformer(context, setOf( // @formatter:off
     KWireIntrinsicType.SIZE_OF,
     KWireIntrinsicType.ALIGN_OF,
     KWireIntrinsicType.OFFSET_OF
@@ -59,13 +58,18 @@ internal class MemoryIntrinsicsTransformer(
     private fun emitOffsetOf(call: IrCall): IrExpression {
         val function = call.target
         val ref = call.arguments[function.parameters.first { it.name.asString() == "field" }]
-        check(ref is IrPropertyReference) { "Parameter of offsetOf needs to be a property reference" }
+        if (ref !is IrPropertyReference) {
+            reportError("offsetOf parameter needs to be a property reference", call)
+            return call
+        }
         val property = ref.symbol.owner
         val clazz = property.parentAsClass
         val layout = context.computeMemoryLayout(clazz.defaultType)
-        check(layout is StructMemoryLayout) { "Memory layout needs to be that of a structure for offsetOf" }
         val index = clazz.properties.indexOf(property)
-        check(index != -1) { "Could not determine field index for offsetOf" }
+        if (index == -1) {
+            reportError("Could not determine field index for offsetOf", call)
+            return call
+        }
         return context.toNUInt(layout.emitOffsetOf(context, index))
     }
 

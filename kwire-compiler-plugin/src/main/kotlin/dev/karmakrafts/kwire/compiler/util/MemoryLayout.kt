@@ -50,6 +50,7 @@ internal sealed interface MemoryLayout {
 
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
+    fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression
 
     fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
@@ -144,6 +145,10 @@ internal enum class BuiltinMemoryLayout(
 
     override fun emitSize(context: KWirePluginContext): IrExpression = sizeEmitter(context)
     override fun emitAlignment(context: KWirePluginContext): IrExpression = alignmentEmitter(context)
+
+    override fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression {
+        return constInt(context, 0) // Offset for scalars is always 0
+    }
 
     override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression =
         readEmitter(context, address)
@@ -257,7 +262,7 @@ internal data class StructMemoryLayout(
         TODO("Not yet implemented")
     }
 
-    fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression = when (index) {
+    override fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression = when (index) {
         0 -> constInt(context, 0)
         1 -> fields.first().emitSize(context)
         else -> {
@@ -280,6 +285,10 @@ internal object ReferenceMemoryLayout : MemoryLayout {
 
     override fun emitAlignment(context: KWirePluginContext): IrExpression {
         return context.emitPointerSize()
+    }
+
+    override fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression {
+        return constInt(context, 0) // Offset for references is always 0
     }
 
     override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression {

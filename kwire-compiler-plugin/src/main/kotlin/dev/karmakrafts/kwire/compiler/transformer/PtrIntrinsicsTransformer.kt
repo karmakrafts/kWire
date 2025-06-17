@@ -24,8 +24,8 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.isNumber
 
 internal class PtrIntrinsicsTransformer(
-    private val context: KWirePluginContext
-) : KWireIntrinsicTransformer(setOf( // @formatter:off
+    context: KWirePluginContext
+) : KWireIntrinsicTransformer(context, setOf( // @formatter:off
     KWireIntrinsicType.PTR_REF,
     KWireIntrinsicType.PTR_DEREF,
     KWireIntrinsicType.PTR_ARRAY_GET,
