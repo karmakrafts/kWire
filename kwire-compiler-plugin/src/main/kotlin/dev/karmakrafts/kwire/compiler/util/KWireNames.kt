@@ -66,6 +66,30 @@ internal object KWireNames {
             val fqName: FqName = id.asSingleFqName()
         }
 
+        object UByte {
+            val name: Name = Name.identifier("UByte")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
+        object UShort {
+            val name: Name = Name.identifier("UShort")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
+        object UInt {
+            val name: Name = Name.identifier("UInt")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
+        object ULong {
+            val name: Name = Name.identifier("ULong")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
         object Float {
             val name: Name = Name.identifier("Float")
             val id: ClassId = ClassId(packageName, name)
@@ -112,6 +136,24 @@ internal object KWireNames {
             val fqName: FqName = id.asSingleFqName()
             val SIZE_BYTES: CallableId = CallableId(ctypePackageName, name, Functions.SIZE_BYTES)
         }
+    }
+
+    object Memory {
+        val name: Name = Name.identifier("Memory")
+        val id: ClassId = ClassId(memoryPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+
+        object Companion {
+            val name: FqName = FqName("Memory.Companion")
+            val id: ClassId = ClassId(memoryPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+        }
+    }
+
+    object Pointed {
+        val name: Name = Name.identifier("Pointed")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
     }
 
     object NInt {
@@ -170,6 +212,7 @@ internal object KWireNames {
     object Marshal {
         val name: Name = Name.identifier("Marshal")
         val id: ClassId = ClassId(packageName, name)
+        val fqName: FqName = id.asSingleFqName()
     }
 
     object SharedImport {

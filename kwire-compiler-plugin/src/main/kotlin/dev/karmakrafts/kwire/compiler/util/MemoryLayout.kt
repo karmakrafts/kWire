@@ -27,7 +27,12 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.util.functions
 
 private val msgPack: MsgPack = MsgPack(serializersModule = SerializersModule {
     polymorphic(MemoryLayout::class) {
@@ -45,38 +50,171 @@ internal sealed interface MemoryLayout {
 
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
+    fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
+    fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
 }
 
 internal fun MemoryLayout.serialize(): ByteArray = msgPack.encodeToByteArray(this)
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 @SerialName("builtin")
 @Serializable
 internal enum class BuiltinMemoryLayout(
     @Transient private val sizeEmitter: (KWirePluginContext) -> IrExpression,
-    @Transient private val alignmentEmitter: (KWirePluginContext) -> IrExpression
+    @Transient private val alignmentEmitter: (KWirePluginContext) -> IrExpression,
+    @Transient private val readEmitter: (KWirePluginContext, IrExpression) -> IrExpression,
+    @Transient private val writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
 ) : MemoryLayout {
     // @formatter:off
-    VOID    ({ constInt(it, 0) }),
-    BYTE    ({ constInt(it, Byte.SIZE_BYTES) }),
-    SHORT   ({ constInt(it, Short.SIZE_BYTES) }),
-    INT     ({ constInt(it, Int.SIZE_BYTES) }),
-    LONG    ({ constInt(it, Long.SIZE_BYTES) }),
-    NINT    ({ it.emitPointerSize() }),
-    UBYTE   ({ constInt(it, UByte.SIZE_BYTES) }),
-    USHORT  ({ constInt(it, UShort.SIZE_BYTES) }),
-    UINT    ({ constInt(it, UInt.SIZE_BYTES) }),
-    ULONG   ({ constInt(it, ULong.SIZE_BYTES) }),
-    NUINT   ({ it.emitPointerSize() }),
-    FLOAT   ({ constInt(it, Float.SIZE_BYTES) }),
-    DOUBLE  ({ constInt(it, Double.SIZE_BYTES) }),
-    NFLOAT  ({ it.emitPointerSize() }),
-    ADDRESS ({ it.emitPointerSize() });
+    VOID({ constInt(it, 0) },
+        { _, _ -> error("Unit/void type cannot be read from memory") },
+        { _, _, _ -> error("Unit/void type cannot be written to memory") }),
+
+    // Signed types
+
+    BYTE({ constInt(it, Byte.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.byteType } },
+        ::writePrimitive),
+
+    SHORT({ constInt(it, Short.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.shortType } },
+        ::writePrimitive),
+
+    INT({ constInt(it, Int.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.intType } },
+        ::writePrimitive),
+
+    LONG({ constInt(it, Long.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.longType } },
+        ::writePrimitive),
+
+    NINT({ it.emitPointerSize() },
+        { ctx, addr -> readNative(ctx, addr) { it.nIntType.owner.expandedType } },
+        ::writeNative),
+
+    // Unsigned types
+
+    UBYTE({ constInt(it, UByte.SIZE_BYTES) },
+        { ctx, addr -> readUnsigned(ctx, addr) { it.uByteType.defaultType } },
+        ::writeUnsigned),
+
+    USHORT({ constInt(it, UShort.SIZE_BYTES) },
+        { ctx, addr -> readUnsigned(ctx, addr) { it.uShortType.defaultType } },
+        ::writeUnsigned),
+
+    UINT({ constInt(it, UInt.SIZE_BYTES) },
+        { ctx, addr -> readUnsigned(ctx, addr) { it.uIntType.defaultType } },
+        ::writeUnsigned),
+
+    ULONG({ constInt(it, ULong.SIZE_BYTES) },
+        { ctx, addr -> readUnsigned(ctx, addr) { it.uLongType.defaultType } },
+        ::writeUnsigned),
+
+    NUINT({ it.emitPointerSize() },
+        { ctx, addr -> readNative(ctx, addr) { it.nUIntType.defaultType } },
+        ::writeNative),
+
+    // IEEE-754 types
+
+    FLOAT({ constInt(it, Float.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.floatType } },
+        ::writePrimitive),
+
+    DOUBLE({ constInt(it, Double.SIZE_BYTES) },
+        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.doubleType } },
+        ::writePrimitive),
+
+    NFLOAT({ it.emitPointerSize() },
+        { ctx, addr -> readNative(ctx, addr) { it.nFloatType.owner.expandedType } },
+        ::writeNative),
+
+    // Pointer types
+
+    ADDRESS ({ it.emitPointerSize() },
+        { ctx, addr -> readNative(ctx, addr) { it.voidPtrType.defaultType } },
+        ::writeNative);
     // @formatter:on
 
-    constructor(sizeEmitter: (KWirePluginContext) -> IrExpression) : this(sizeEmitter, sizeEmitter)
+    constructor(
+        sizeEmitter: (KWirePluginContext) -> IrExpression,
+        readEmitter: (KWirePluginContext, IrExpression) -> IrExpression,
+        writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
+    ) : this(sizeEmitter, sizeEmitter, readEmitter, writeEmitter)
 
     override fun emitSize(context: KWirePluginContext): IrExpression = sizeEmitter(context)
     override fun emitAlignment(context: KWirePluginContext): IrExpression = alignmentEmitter(context)
+
+    override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression =
+        readEmitter(context, address)
+
+    override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression =
+        writeEmitter(context, address, value)
+
+    companion object {
+        private fun readPrimitive( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            typeSelector: (KWirePluginContext) -> IrType
+        ): IrExpression { // @formatter:on
+            val type = typeSelector(context)
+            val function = context.memoryCompanionType.functions.map { it.owner }.first { function ->
+                function.name.asString().startsWith("read") && function.returnType == type
+            }
+            return function.call( // @formatter:off
+                dispatchReceiver = context.memoryCompanionType.getObjectInstance(),
+                valueArguments = mapOf("address" to address)
+            ) // @formatter:on
+        }
+
+        private fun writePrimitive( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            value: IrExpression
+        ): IrExpression { // @formatter:on
+            val type = value.type
+            val function = context.memoryCompanionType.functions.map { it.owner }.first { function ->
+                val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
+                function.name.asString().startsWith("write") && params.last().type == type
+            }
+            return function.call( // @formatter:off
+                dispatchReceiver = context.memoryCompanionType.getObjectInstance(),
+                valueArguments = mapOf("address" to address, "value" to value)
+            ) // @formatter:on
+        }
+
+        private fun readUnsigned( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            typeSelector: (KWirePluginContext) -> IrType
+        ): IrExpression { // @formatter:on
+            val type = typeSelector(context)
+            return address // TODO: implement this
+        }
+
+        private fun writeUnsigned( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            value: IrExpression
+        ): IrExpression { // @formatter:on
+            return address // TODO: implement this
+        }
+
+        private fun readNative( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            typeSelector: (KWirePluginContext) -> IrType
+        ): IrExpression { // @formatter:on
+            return address // TODO: implement this
+        }
+
+        private fun writeNative( // @formatter:off
+            context: KWirePluginContext,
+            address: IrExpression,
+            value: IrExpression
+        ): IrExpression { // @formatter:on
+            return address // TODO: implement this
+        }
+    }
 }
 
 @SerialName("struct")
@@ -89,9 +227,9 @@ internal data class StructMemoryLayout(
         fields.size == 1 -> fields.first().emitSize(context)
         else -> {
             val (first, second) = fields
-            var expr = first.emitSize(context).plus(context, second.emitSize(context))
+            var expr = first.emitSize(context).plus(second.emitSize(context))
             for (index in 2..<fields.size) {
-                expr = expr.plus(context, fields[index].emitSize(context))
+                expr = expr.plus(fields[index].emitSize(context))
             }
             expr
         }
@@ -108,5 +246,13 @@ internal data class StructMemoryLayout(
             }
             expr
         }
+    }
+
+    override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression {
+        TODO("Not yet implemented")
+    }
+
+    override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression {
+        TODO("Not yet implemented")
     }
 }

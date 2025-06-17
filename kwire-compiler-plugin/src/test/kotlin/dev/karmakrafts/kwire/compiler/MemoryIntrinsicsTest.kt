@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -43,7 +42,8 @@ class MemoryIntrinsicsTest {
         // @formatter:off
         source("""
             import dev.karmakrafts.kwire.memory.sizeOf
-            val test: Int = sizeOf<Unit>()
+            import dev.karmakrafts.kwire.ctype.NUInt
+            val test: NUInt = sizeOf<Unit>()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -53,7 +53,7 @@ class MemoryIntrinsicsTest {
                     val initializer = element.initializer
                     initializer shouldNotBe null
                     val expr = initializer!!.expression
-                    expr::class shouldBe IrConstImpl::class
+                    expr::class shouldBe IrCallImpl::class
                     val value = expr.unwrapConstValue<Number>()!!.toInt()
                     value shouldBe 0
                 }
@@ -74,7 +74,8 @@ class MemoryIntrinsicsTest {
             // @formatter:off
             source("""
                 import dev.karmakrafts.kwire.memory.sizeOf
-                val test: Int = sizeOf<$type>()
+                import dev.karmakrafts.kwire.ctype.NUInt
+                val test: NUInt = sizeOf<$type>()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -83,7 +84,7 @@ class MemoryIntrinsicsTest {
                         val initializer = element.initializer
                         initializer shouldNotBe null
                         val expr = initializer!!.expression
-                        expr::class shouldBe IrConstImpl::class
+                        expr::class shouldBe IrCallImpl::class
                         val value = expr.unwrapConstValue<Number>()!!.toInt()
                         value shouldBe expectedSize
                     }
@@ -107,8 +108,9 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.sizeOf
                 import dev.karmakrafts.kwire.ctype.Struct
+                import dev.karmakrafts.kwire.ctype.NUInt
                 class Foo(val x: $type) : Struct
-                val test: Int = sizeOf<Foo>()
+                val test: NUInt = sizeOf<Foo>()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -117,7 +119,7 @@ class MemoryIntrinsicsTest {
                         val initializer = element.initializer
                         initializer shouldNotBe null
                         val expr = initializer!!.expression
-                        expr::class shouldBe IrConstImpl::class
+                        expr::class shouldBe IrCallImpl::class
                         val value = expr.unwrapConstValue<Number>()!!.toInt()
                         value shouldBe expectedSize
                     }
@@ -141,12 +143,13 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.sizeOf
                 import dev.karmakrafts.kwire.ctype.Struct
+                import dev.karmakrafts.kwire.ctype.NUInt
                 class Foo(
                     val x: $type,
                     val y: $type,
                     val z: $type
                 ) : Struct
-                val test: Int = sizeOf<Foo>()
+                val test: NUInt = sizeOf<Foo>()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -184,7 +187,8 @@ class MemoryIntrinsicsTest {
         // @formatter:off
         source("""
             import dev.karmakrafts.kwire.memory.alignOf
-            val test: Int = alignOf<Unit>()
+            import dev.karmakrafts.kwire.ctype.NUInt
+            val test: NUInt = alignOf<Unit>()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -194,7 +198,7 @@ class MemoryIntrinsicsTest {
                     val initializer = element.initializer
                     initializer shouldNotBe null
                     val expr = initializer!!.expression
-                    expr::class shouldBe IrConstImpl::class
+                    expr::class shouldBe IrCallImpl::class
                     val value = expr.unwrapConstValue<Number>()!!.toInt()
                     value shouldBe 0
                 }
@@ -215,7 +219,8 @@ class MemoryIntrinsicsTest {
             // @formatter:off
             source("""
                 import dev.karmakrafts.kwire.memory.alignOf
-                val test: Int = alignOf<$type>()
+                import dev.karmakrafts.kwire.ctype.NUInt
+                val test: NUInt = alignOf<$type>()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -224,7 +229,7 @@ class MemoryIntrinsicsTest {
                         val initializer = element.initializer
                         initializer shouldNotBe null
                         val expr = initializer!!.expression
-                        expr::class shouldBe IrConstImpl::class
+                        expr::class shouldBe IrCallImpl::class
                         val value = expr.unwrapConstValue<Number>()!!.toInt()
                         value shouldBe expectedAlignment
                     }
@@ -248,8 +253,9 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.alignOf
                 import dev.karmakrafts.kwire.ctype.Struct
+                import dev.karmakrafts.kwire.ctype.NUInt
                 class Foo(val x: $type) : Struct
-                val test: Int = alignOf<Foo>()
+                val test: NUInt = alignOf<Foo>()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -258,7 +264,7 @@ class MemoryIntrinsicsTest {
                         val initializer = element.initializer
                         initializer shouldNotBe null
                         val expr = initializer!!.expression
-                        expr::class shouldBe IrConstImpl::class
+                        expr::class shouldBe IrCallImpl::class
                         val value = expr.unwrapConstValue<Number>()!!.toInt()
                         value shouldBe expectedAlignment
                     }
@@ -282,12 +288,13 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.alignOf
                 import dev.karmakrafts.kwire.ctype.Struct
+                import dev.karmakrafts.kwire.ctype.NUInt
                 class Foo(
                     val x: $type,
                     val y: $type,
                     val z: $type
                 ) : Struct
-                val test: Int = alignOf<Foo>()
+                val test: NUInt = alignOf<Foo>()
             """.trimIndent())
             // @formatter:on
             result irMatches {

@@ -292,7 +292,7 @@ interface FFIArgBuffer {
  * and the types of arguments stored.
  */
 @PublishedApi
-internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuffer, AutoCloseable {
+internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuffer {
     /**
      * The memory address of the buffer.
      */
@@ -310,7 +310,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
 
     init {
         // Register for cleanup on shutdown
-        ShutdownHandler.Companion.register(this)
+        ShutdownHandler.register(AutoCloseable(::free))
     }
 
     /**
@@ -546,7 +546,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
     /**
      * Frees the memory allocated for the buffer.
      */
-    override fun close() {
+    private fun free() {
         Memory.free(address)
         types.clear()
     }

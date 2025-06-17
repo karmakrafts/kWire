@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.transformer.KWireIntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
+import dev.karmakrafts.kwire.compiler.transformer.SharedImportTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -28,6 +29,8 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val kwireContext = KWirePluginContext(pluginContext)
+        // Generate all FFI/native related code before lowering intrinsics etc.
+        moduleFragment.acceptVoid(SharedImportTransformer(kwireContext))
         // Pre-compute all struct layouts and export them using @StructLayout
         moduleFragment.acceptVoid(MemoryLayoutTransformer(kwireContext))
         // Transform all intrinsics

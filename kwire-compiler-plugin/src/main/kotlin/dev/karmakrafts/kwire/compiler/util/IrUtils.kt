@@ -39,9 +39,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
@@ -67,49 +65,74 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrExpression.binaryOp(symbol: IrSimpleFunctionSymbol, other: IrExpression): IrExpression =
-    IrCallImplWithShape(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = this@binaryOp.type,
-        symbol = symbol,
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 1,
-        contextParameterCount = 0,
-        hasDispatchReceiver = true,
-        hasExtensionReceiver = false
-    ).apply {
-        val function = symbol.owner
-        arguments[function.parameters.first { it.name.asString() == "other" }] = other
-        dispatchReceiver = this@binaryOp
+internal fun IrSimpleFunctionSymbol.call(
+    startOffset: Int = SYNTHETIC_OFFSET,
+    endOffset: Int = SYNTHETIC_OFFSET,
+    typeArguments: Map<String, IrType> = emptyMap(),
+    valueArguments: Map<String, IrExpression> = emptyMap(),
+    dispatchReceiver: IrExpression? = null,
+    extensionReceiver: IrExpression? = null
+): IrCall = IrCallImplWithShape(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = owner.returnType,
+    symbol = this,
+    typeArgumentsCount = typeArguments.size,
+    valueArgumentsCount = valueArguments.size,
+    contextParameterCount = 0,
+    hasDispatchReceiver = dispatchReceiver != null,
+    hasExtensionReceiver = extensionReceiver != null
+).apply {
+    this.dispatchReceiver = dispatchReceiver
+    this.extensionReceiver = extensionReceiver
+    for ((name, type) in typeArguments) {
+        val parameter = owner.typeParameters.first { it.name.asString() == name }
+        this.typeArguments[parameter.index] = type
     }
+    for ((name, value) in valueArguments) {
+        val parameter = owner.parameters.first { it.name.asString() == name }
+        arguments[parameter] = value
+    }
+}
+
+internal fun IrSimpleFunction.call(
+    startOffset: Int = SYNTHETIC_OFFSET,
+    endOffset: Int = SYNTHETIC_OFFSET,
+    typeArguments: Map<String, IrType> = emptyMap(),
+    valueArguments: Map<String, IrExpression> = emptyMap(),
+    dispatchReceiver: IrExpression? = null,
+    extensionReceiver: IrExpression? = null
+): IrCall = symbol.call(startOffset, endOffset, typeArguments, valueArguments, dispatchReceiver, extensionReceiver)
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.binaryOp(
+    symbol: IrSimpleFunctionSymbol, other: IrExpression, isExtension: Boolean = false
+): IrExpression = symbol.call(
+    dispatchReceiver = if (isExtension) null else this@binaryOp,
+    extensionReceiver = if (isExtension) this@binaryOp else null,
+    valueArguments = mapOf("other" to other)
+)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.topLevelBinaryOp(
     lhsName: String = "a", rhsName: String = "b", symbol: IrSimpleFunctionSymbol, other: IrExpression
-): IrExpression = IrCallImplWithShape(
-    startOffset = SYNTHETIC_OFFSET,
-    endOffset = SYNTHETIC_OFFSET,
-    type = this@topLevelBinaryOp.type,
-    symbol = symbol,
-    typeArgumentsCount = 0,
-    valueArgumentsCount = 1,
-    contextParameterCount = 0,
-    hasDispatchReceiver = true,
-    hasExtensionReceiver = false
-).apply {
-    val function = symbol.owner
-    arguments[function.parameters.first { it.name.asString() == lhsName }] = this@topLevelBinaryOp
-    arguments[function.parameters.first { it.name.asString() == rhsName }] = other
-}
+): IrExpression = symbol.call(
+    valueArguments = mapOf(
+        lhsName to this@topLevelBinaryOp, rhsName to other
+    )
+)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrExpression.plus(context: KWirePluginContext, other: IrExpression): IrExpression =
-    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "plus" }.symbol, other)
+internal fun IrExpression.plus(
+    other: IrExpression, isExtension: Boolean = false
+): IrExpression =
+    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "plus" }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrExpression.times(context: KWirePluginContext, other: IrExpression): IrExpression =
-    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "times" }.symbol, other)
+internal fun IrExpression.times(
+    other: IrExpression, isExtension: Boolean = false
+): IrExpression =
+    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "times" }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
@@ -159,6 +182,17 @@ internal fun constNFloat(context: KWirePluginContext, value: Double): IrExpressi
 )
 ) // @formatter:on
 
+// Shared imports
+
+internal fun IrAnnotationContainer.isSharedImport(): Boolean = hasAnnotation(KWireNames.SharedImport.id)
+
+internal fun IrAnnotationContainer.isMarshal(): Boolean = hasAnnotation(KWireNames.Marshal.id)
+
+internal fun IrAnnotationContainer.getMarshalType(): IrType? {
+    val annotation = getAnnotation(KWireNames.Marshal.fqName) ?: return null
+    return annotation.typeArguments.firstOrNull()
+}
+
 // Intrinsics
 
 internal fun IrAnnotationContainer.getIntrinsicType(): KWireIntrinsicType? =
@@ -195,11 +229,24 @@ internal fun IrElement?.unwrapRawConstValue(): Any? {
         is IrConst -> value
         is IrConstantPrimitive -> value.unwrapRawConstValue()
         is IrConstantArray -> elements.map { it.unwrapRawConstValue() }.toList()
-        // TODO: support constant objects?
+
         is IrVararg -> elements.map { element ->
             check(element is IrExpression) { "Annotation vararg element must be an expression" }
             element.unwrapRawConstValue()
         }.toList()
+
+        // Edge case for handling constants wrapped by conversion functions such as toNInt, toNUInt, toNFloat etc.
+        is IrCall -> {
+            var receiver = dispatchReceiver
+            if (receiver != null && receiver is IrConst) {
+                return receiver.unwrapRawConstValue()
+            }
+            receiver = extensionReceiver
+            if (receiver != null && receiver is IrConst) {
+                return receiver.unwrapRawConstValue()
+            }
+            null
+        }
 
         else -> null
     }
@@ -330,18 +377,4 @@ internal inline fun <reified T : IrElement> IrElement.findElement(crossinline pr
         }
     })
     return result
-}
-
-internal fun IrFunction.createCall(
-    origin: IrStatementOrigin? = null
-): IrCall {
-    check(this is IrSimpleFunction)
-    return IrCallImpl(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = returnType,
-        symbol = symbol,
-        typeArgumentsCount = typeParameters.size,
-        origin = origin
-    )
 }

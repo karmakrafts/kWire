@@ -55,8 +55,11 @@ internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.isAddress(context: KWirePluginContext): Boolean = isSubclassOf(context.addressType.owner)
-
 internal fun IrType.isAddress(context: KWirePluginContext): Boolean = getClass()?.isAddress(context) == true
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrClass.isPointed(context: KWirePluginContext): Boolean = isSubclassOf(context.pointedType.owner)
+internal fun IrType.isPointed(context: KWirePluginContext): Boolean = getClass()?.isPointed(context) == true
 
 internal fun IrClass.isNumPtr(): Boolean = isClassWithFqName(KWireNames.NumPtr.fqName)
 internal fun IrType.isNumPtr(): Boolean = getClass()?.isNumPtr() == true

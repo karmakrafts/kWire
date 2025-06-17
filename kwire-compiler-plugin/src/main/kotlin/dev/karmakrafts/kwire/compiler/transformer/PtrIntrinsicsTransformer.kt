@@ -18,45 +18,37 @@ package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
-import dev.karmakrafts.kwire.compiler.util.constNUInt
-import dev.karmakrafts.kwire.compiler.util.isNumPtr
-import dev.karmakrafts.kwire.compiler.util.isPtr
-import dev.karmakrafts.kwire.compiler.util.isVoidPtr
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.ir.types.isNumber
 
 internal class PtrIntrinsicsTransformer(
     private val context: KWirePluginContext
 ) : KWireIntrinsicTransformer(setOf( // @formatter:off
-    KWireIntrinsicType.PTR_NULL,
     KWireIntrinsicType.PTR_REF,
     KWireIntrinsicType.PTR_DEREF,
     KWireIntrinsicType.PTR_ARRAY_GET,
     KWireIntrinsicType.PTR_ARRAY_SET
 )) {
-    // @formatter:on
-    private fun emitNull(call: IrCall): IrExpression {
+    private fun emitRef(call: IrCall): IrExpression {
         val type = call.typeArguments.first()!!
-        return when { // @formatter:off
-            type.isNumPtr() -> context.createNumPtr(
-                constNUInt(context, 0U),
-                (type as IrSimpleType).arguments.first().typeOrFail
-            )
-            type.isPtr() -> context.createPtr(
-                constNUInt(context, 0U),
-                (type as IrSimpleType).arguments.first().typeOrFail
-            )
-            type.isVoidPtr() -> context.createVoidPtr(constNUInt(context, 0U))
-            else -> error("Unsupported pointer type for nullptr() intrinsic")
-        } // @formatter:on
+        // We need to build a NumPtr
+        if(type.isNumber()) {
+            return call
+        }
+        // We need to build a Ptr
+        return call
+    }
+
+    private fun emitDeref(call: IrCall): IrExpression {
+        TODO("Implement this")
     }
 
     override fun visitIntrinsic(expression: IrCall, data: KWireIntrinsicContext, type: KWireIntrinsicType): IrElement {
         return when (type) {
-            KWireIntrinsicType.PTR_NULL -> emitNull(expression)
+            KWireIntrinsicType.PTR_REF -> emitRef(expression)
+            KWireIntrinsicType.PTR_DEREF -> emitDeref(expression)
             else -> error("Unsupported intrinsic type $type for PtrIntrinsicsTransformer")
         }
     }

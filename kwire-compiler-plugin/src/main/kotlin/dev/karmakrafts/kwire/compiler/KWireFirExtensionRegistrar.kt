@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.compiler
 
-internal enum class KWireIntrinsicType {
-    // @formatter:off
-    SIZE_OF,
-    ALIGN_OF,
-    PTR_REF,
-    PTR_DEREF,
-    PTR_ARRAY_GET,
-    PTR_ARRAY_SET
-    // @formatter:on
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
+
+internal class KWireFirExtensionRegistrar(
+    private val messageCollector: MessageCollector
+) : FirExtensionRegistrar() {
+    override fun ExtensionRegistrarContext.configurePlugin() {
+        +FirDeclarationGenerationExtension.Factory { KWireFirGenerationExtension(it, messageCollector) }
+    }
 }

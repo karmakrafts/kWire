@@ -21,6 +21,7 @@ import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
@@ -31,7 +32,6 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
@@ -63,9 +63,14 @@ internal class KWirePluginContext(
     val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.alignOf).first()
 
+    val pointedType: IrClassSymbol = referenceClass(KWireNames.Pointed.id)!!
+
     val addressType: IrClassSymbol = referenceClass(KWireNames.Address.id)!!
     val addressCompanionType: IrClassSymbol = referenceClass(KWireNames.Address.Companion.id)!!
     val addressSizeBytes: IrPropertySymbol = referenceProperties(KWireNames.Address.Companion.SIZE_BYTES).first()
+
+    val memoryType: IrClassSymbol = referenceClass(KWireNames.Memory.id)!!
+    val memoryCompanionType: IrClassSymbol = referenceClass(KWireNames.Memory.Companion.id)!!
 
     val structType: IrClassSymbol = referenceClass(KWireNames.Struct.id)!!
     val structLayoutType: IrClassSymbol = referenceClass(KWireNames.StructLayout.id)!!
@@ -84,52 +89,33 @@ internal class KWirePluginContext(
     val nUIntType: IrClassSymbol = referenceClass(KWireNames.NUInt.id)!!
     val nFloatType: IrTypeAliasSymbol = referenceTypeAlias(KWireNames.NFloat.id)!!
 
+    val uByteType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UByte.id)!!
+    val uShortType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UShort.id)!!
+    val uIntType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UInt.id)!!
+    val uLongType: IrClassSymbol = referenceClass(KWireNames.Kotlin.ULong.id)!!
+
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun toNInt(expr: IrExpression): IrExpression = IrCallImplWithShape(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = nIntType.owner.expandedType,
-        symbol = referenceFunctions(KWireNames.toNInt).first { it.owner.extensionReceiverParameter!!.type == expr.type },
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 0,
-        contextParameterCount = 0,
-        hasDispatchReceiver = false,
-        hasExtensionReceiver = true
-    ).apply {
-        extensionReceiver = expr
+    fun toNInt(expr: IrExpression): IrExpression {
+        val symbol =
+            referenceFunctions(KWireNames.toNInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun toNUInt(expr: IrExpression): IrExpression = IrCallImplWithShape(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = nUIntType.defaultType,
-        symbol = referenceFunctions(KWireNames.toNUInt).first { it.owner.extensionReceiverParameter!!.type == expr.type },
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 0,
-        contextParameterCount = 0,
-        hasDispatchReceiver = false,
-        hasExtensionReceiver = true
-    ).apply {
-        extensionReceiver = expr
+    fun toNUInt(expr: IrExpression): IrExpression {
+        val symbol =
+            referenceFunctions(KWireNames.toNUInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun toNFloat(expr: IrExpression): IrExpression = IrCallImplWithShape(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = nFloatType.owner.expandedType,
-        symbol = referenceFunctions(KWireNames.toNFloat).first { it.owner.extensionReceiverParameter!!.type == expr.type },
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 0,
-        contextParameterCount = 0,
-        hasDispatchReceiver = false,
-        hasExtensionReceiver = true
-    ).apply {
-        extensionReceiver = expr
+    fun toNFloat(expr: IrExpression): IrExpression {
+        val symbol =
+            referenceFunctions(KWireNames.toNFloat).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -247,7 +233,7 @@ internal class KWirePluginContext(
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun emitPointerSize(): IrCall = IrCallImplWithShape(
+    fun emitPointerSize(): IrExpression = IrCallImplWithShape(
         startOffset = SYNTHETIC_OFFSET,
         endOffset = SYNTHETIC_OFFSET,
         type = irBuiltIns.intType,
@@ -260,4 +246,8 @@ internal class KWirePluginContext(
     ).apply {
         dispatchReceiver = addressCompanionType.getObjectInstance()
     }
+
+    // Memory functions
+
+
 }

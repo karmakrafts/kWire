@@ -61,7 +61,7 @@ internal expect fun getPlatformMemory(): Memory
  * as well as reading and writing various data types to and from memory addresses.
  * It serves as a type-safe wrapper around platform-specific memory operations.
  */
-interface Memory {
+interface Memory : Allocator {
     /**
      * Companion object that delegates to the platform-specific Memory implementation.
      *
@@ -89,32 +89,6 @@ interface Memory {
      * for memory operations on the current platform.
      */
     val defaultAlignment: NUInt
-
-    /**
-     * Allocates a block of memory of the specified size with the given alignment.
-     *
-     * @param size The size of the memory block to allocate in bytes
-     * @param alignment The alignment boundary for the allocated memory, defaults to [defaultAlignment]
-     * @return A pointer to the allocated memory block
-     */
-    fun allocate(size: NUInt, alignment: NUInt = defaultAlignment): VoidPtr
-
-    /**
-     * Reallocates a previously allocated memory block to a new size.
-     *
-     * @param address The pointer to the memory block to reallocate
-     * @param size The new size for the memory block in bytes
-     * @param alignment The alignment boundary for the reallocated memory, defaults to [defaultAlignment]
-     * @return A pointer to the reallocated memory block, which may be different from the original address
-     */
-    fun reallocate(address: Address, size: NUInt, alignment: NUInt = defaultAlignment): VoidPtr
-
-    /**
-     * Frees a previously allocated memory block.
-     *
-     * @param address The pointer to the memory block to free
-     */
-    fun free(address: Address)
 
     /**
      * Sets a block of memory to a specific byte value, similar to C's memset.

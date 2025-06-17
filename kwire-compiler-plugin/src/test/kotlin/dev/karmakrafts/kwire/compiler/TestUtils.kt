@@ -36,6 +36,7 @@ internal fun CompilerTestScope.kwirePipeline(moduleName: String = "test") {
 internal fun CompilerTestScope.kwireTransformerPipeline(moduleName: String = "test") {
     kwirePipeline(moduleName)
     pipeline {
+        firExtensionRegistrar(::KWireFirExtensionRegistrar)
         irExtension(KWireIrGenerationExtension())
     }
 }
