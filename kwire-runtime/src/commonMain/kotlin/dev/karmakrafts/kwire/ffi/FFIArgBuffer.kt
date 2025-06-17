@@ -36,15 +36,10 @@ import dev.karmakrafts.kwire.ctype.plus
 import dev.karmakrafts.kwire.ctype.size
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory
-import dev.karmakrafts.kwire.memory.writeNUInt
 import dev.karmakrafts.kwire.memory.writeNUInts
-import dev.karmakrafts.kwire.memory.writeUByte
 import dev.karmakrafts.kwire.memory.writeUBytes
-import dev.karmakrafts.kwire.memory.writeUInt
 import dev.karmakrafts.kwire.memory.writeUInts
-import dev.karmakrafts.kwire.memory.writeULong
 import dev.karmakrafts.kwire.memory.writeULongs
-import dev.karmakrafts.kwire.memory.writeUShort
 import dev.karmakrafts.kwire.memory.writeUShorts
 
 @PublishedApi

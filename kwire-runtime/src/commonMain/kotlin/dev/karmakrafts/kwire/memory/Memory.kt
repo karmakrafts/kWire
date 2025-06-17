@@ -227,6 +227,46 @@ interface Memory : Allocator {
     fun readNFloat(address: Address): NFloat
 
     /**
+     * Reads an unsigned byte value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The unsigned byte value at the specified address
+     */
+    fun readUByte(address: Address): UByte = readByte(address).toUByte()
+
+    /**
+     * Reads an unsigned short value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The unsigned short value at the specified address
+     */
+    fun readUShort(address: Address): UShort = readShort(address).toUShort()
+
+    /**
+     * Reads an unsigned int value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The unsigned int value at the specified address
+     */
+    fun readUInt(address: Address): UInt = readInt(address).toUInt()
+
+    /**
+     * Reads an unsigned long value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The unsigned long value at the specified address
+     */
+    fun readULong(address: Address): ULong = readLong(address).toULong()
+
+    /**
+     * Reads a native unsigned integer value from the specified memory address.
+     *
+     * @param address The memory address to read from
+     * @return The native unsigned integer value at the specified address
+     */
+    fun readNUInt(address: Address): NUInt = readNInt(address).toUnsigned()
+
+    /**
      * Reads an array of bytes from the specified memory address.
      *
      * @param address The memory address to read from
@@ -389,6 +429,46 @@ interface Memory : Allocator {
     fun writeNFloat(address: Address, value: NFloat)
 
     /**
+     * Writes an unsigned byte value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The unsigned byte value to write
+     */
+    fun writeUByte(address: Address, value: UByte) = writeByte(address, value.toByte())
+
+    /**
+     * Writes an unsigned short value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The unsigned short value to write
+     */
+    fun writeUShort(address: Address, value: UShort) = writeShort(address, value.toShort())
+
+    /**
+     * Writes an unsigned int value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The unsigned int value to write
+     */
+    fun writeUInt(address: Address, value: UInt) = writeInt(address, value.toInt())
+
+    /**
+     * Writes an unsigned long value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The unsigned long value to write
+     */
+    fun writeULong(address: Address, value: ULong) = writeLong(address, value.toLong())
+
+    /**
+     * Writes a native unsigned integer value to the specified memory address.
+     *
+     * @param address The memory address to write to
+     * @param value The native unsigned integer value to write
+     */
+    fun writeNUInt(address: Address, value: NUInt) = writeNInt(address, value.toSigned())
+
+    /**
      * Writes an array of bytes to the specified memory address.
      *
      * @param address The memory address to write to
@@ -501,46 +581,6 @@ inline fun Memory.splat(value: Byte, size: NUInt, alignment: NUInt = defaultAlig
     }
 
 /**
- * Reads an unsigned byte value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The unsigned byte value at the specified address
- */
-inline fun Memory.readUByte(address: Address): UByte = readByte(address).toUByte()
-
-/**
- * Reads an unsigned short value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The unsigned short value at the specified address
- */
-inline fun Memory.readUShort(address: Address): UShort = readShort(address).toUShort()
-
-/**
- * Reads an unsigned int value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The unsigned int value at the specified address
- */
-inline fun Memory.readUInt(address: Address): UInt = readInt(address).toUInt()
-
-/**
- * Reads an unsigned long value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The unsigned long value at the specified address
- */
-inline fun Memory.readULong(address: Address): ULong = readLong(address).toULong()
-
-/**
- * Reads a native unsigned integer value from the specified memory address.
- *
- * @param address The memory address to read from
- * @return The native unsigned integer value at the specified address
- */
-inline fun Memory.readNUInt(address: Address): NUInt = readNInt(address).toUnsigned()
-
-/**
  * Reads an array of unsigned bytes from the specified memory address.
  *
  * @param address The memory address to read from
@@ -594,46 +634,6 @@ inline fun Memory.readULongs(address: Address, data: ULongArray, dataStart: Int 
  */
 inline fun Memory.readNUInts(address: Address, data: NUIntArray, dataStart: Int = 0, dataEnd: Int = data.size) =
     readNInts(address, data.asNIntArray(), dataStart, dataEnd)
-
-/**
- * Writes an unsigned byte value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The unsigned byte value to write
- */
-inline fun Memory.writeUByte(address: Address, value: UByte) = writeByte(address, value.toByte())
-
-/**
- * Writes an unsigned short value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The unsigned short value to write
- */
-inline fun Memory.writeUShort(address: Address, value: UShort) = writeShort(address, value.toShort())
-
-/**
- * Writes an unsigned int value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The unsigned int value to write
- */
-inline fun Memory.writeUInt(address: Address, value: UInt) = writeInt(address, value.toInt())
-
-/**
- * Writes an unsigned long value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The unsigned long value to write
- */
-inline fun Memory.writeULong(address: Address, value: ULong) = writeLong(address, value.toLong())
-
-/**
- * Writes a native unsigned integer value to the specified memory address.
- *
- * @param address The memory address to write to
- * @param value The native unsigned integer value to write
- */
-inline fun Memory.writeNUInt(address: Address, value: NUInt) = writeNInt(address, value.toSigned())
 
 /**
  * Writes an array of unsigned bytes to the specified memory address.

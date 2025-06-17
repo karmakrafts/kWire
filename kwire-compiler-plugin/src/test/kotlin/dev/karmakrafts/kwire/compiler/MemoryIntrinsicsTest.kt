@@ -166,6 +166,33 @@ class MemoryIntrinsicsTest {
     }
 
     @Test
+    fun `Obtain size of zero-size struct`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+                import dev.karmakrafts.kwire.memory.sizeOf
+                import dev.karmakrafts.kwire.ctype.Struct
+                import dev.karmakrafts.kwire.ctype.NUInt
+                class Foo : Struct
+                val test: NUInt = sizeOf<Foo>()
+            """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            getChild<IrProperty> { it.name.asString() == "test" } matches {
+                getChild<IrField>() matches {
+                    val initializer = element.initializer
+                    initializer shouldNotBe null
+                    val expr = initializer!!.expression
+                    expr::class shouldBe IrCallImpl::class
+                    val value = expr.unwrapConstValue<Number>()!!.toInt()
+                    value shouldBe 0
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Obtain size of single field struct`() = setupCompilerTest {
         kwireTransformerPipeline()
         default {

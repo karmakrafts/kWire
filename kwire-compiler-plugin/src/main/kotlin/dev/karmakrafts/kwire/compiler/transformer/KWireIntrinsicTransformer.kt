@@ -29,9 +29,11 @@ internal abstract class KWireIntrinsicTransformer( // @formatter:off
     protected val context: KWirePluginContext,
     private val types: Set<KWireIntrinsicType>
 ) : IrTransformer<KWireIntrinsicContext>(), MessageCollectorExtensions by context { // @formatter:on
-    abstract fun visitIntrinsic(
-        expression: IrCall, data: KWireIntrinsicContext, type: KWireIntrinsicType
-    ): IrElement
+    abstract fun visitIntrinsic( // @formatter:off
+        expression: IrCall,
+        data: KWireIntrinsicContext,
+        type: KWireIntrinsicType
+    ): IrElement // @formatter:on
 
     override fun visitCall(expression: IrCall, data: KWireIntrinsicContext): IrElement {
         val function = expression.target

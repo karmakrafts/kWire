@@ -75,66 +75,66 @@ internal enum class BuiltinMemoryLayout(
     // Signed types
 
     BYTE({ constInt(it, Byte.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.byteType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.byteType } },
+        ::write),
 
     SHORT({ constInt(it, Short.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.shortType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.shortType } },
+        ::write),
 
     INT({ constInt(it, Int.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.intType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.intType } },
+        ::write),
 
     LONG({ constInt(it, Long.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.longType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.longType } },
+        ::write),
 
     NINT({ it.emitPointerSize() },
-        { ctx, addr -> readNative(ctx, addr) { it.nIntType.owner.expandedType } },
-        ::writeNative),
+        { ctx, addr -> read(ctx, addr) { it.nIntType.owner.expandedType } },
+        ::write),
 
     // Unsigned types
 
     UBYTE({ constInt(it, UByte.SIZE_BYTES) },
-        { ctx, addr -> readUnsigned(ctx, addr) { it.uByteType.defaultType } },
-        ::writeUnsigned),
+        { ctx, addr -> read(ctx, addr) { it.uByteType.defaultType } },
+        ::write),
 
     USHORT({ constInt(it, UShort.SIZE_BYTES) },
-        { ctx, addr -> readUnsigned(ctx, addr) { it.uShortType.defaultType } },
-        ::writeUnsigned),
+        { ctx, addr -> read(ctx, addr) { it.uShortType.defaultType } },
+        ::write),
 
     UINT({ constInt(it, UInt.SIZE_BYTES) },
-        { ctx, addr -> readUnsigned(ctx, addr) { it.uIntType.defaultType } },
-        ::writeUnsigned),
+        { ctx, addr -> read(ctx, addr) { it.uIntType.defaultType } },
+        ::write),
 
     ULONG({ constInt(it, ULong.SIZE_BYTES) },
-        { ctx, addr -> readUnsigned(ctx, addr) { it.uLongType.defaultType } },
-        ::writeUnsigned),
+        { ctx, addr -> read(ctx, addr) { it.uLongType.defaultType } },
+        ::write),
 
     NUINT({ it.emitPointerSize() },
-        { ctx, addr -> readNative(ctx, addr) { it.nUIntType.defaultType } },
-        ::writeNative),
+        { ctx, addr -> read(ctx, addr) { it.nUIntType.defaultType } },
+        ::write),
 
     // IEEE-754 types
 
     FLOAT({ constInt(it, Float.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.floatType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.floatType } },
+        ::write),
 
     DOUBLE({ constInt(it, Double.SIZE_BYTES) },
-        { ctx, addr -> readPrimitive(ctx, addr) { it.irBuiltIns.doubleType } },
-        ::writePrimitive),
+        { ctx, addr -> read(ctx, addr) { it.irBuiltIns.doubleType } },
+        ::write),
 
     NFLOAT({ it.emitPointerSize() },
-        { ctx, addr -> readNative(ctx, addr) { it.nFloatType.owner.expandedType } },
-        ::writeNative),
+        { ctx, addr -> read(ctx, addr) { it.nFloatType.owner.expandedType } },
+        ::write),
 
     // Pointer types
 
     ADDRESS ({ it.emitPointerSize() },
-        { ctx, addr -> readNative(ctx, addr) { it.voidPtrType.defaultType } },
-        ::writeNative);
+        { ctx, addr -> read(ctx, addr) { it.voidPtrType.defaultType } },
+        ::write);
     // @formatter:on
 
     constructor(
@@ -157,7 +157,7 @@ internal enum class BuiltinMemoryLayout(
         writeEmitter(context, address, value)
 
     companion object {
-        private fun readPrimitive( // @formatter:off
+        private fun read( // @formatter:off
             context: KWirePluginContext,
             address: IrExpression,
             typeSelector: (KWirePluginContext) -> IrType
@@ -172,7 +172,7 @@ internal enum class BuiltinMemoryLayout(
             ) // @formatter:on
         }
 
-        private fun writePrimitive( // @formatter:off
+        private fun write( // @formatter:off
             context: KWirePluginContext,
             address: IrExpression,
             value: IrExpression
@@ -186,39 +186,6 @@ internal enum class BuiltinMemoryLayout(
                 dispatchReceiver = context.memoryCompanionType.getObjectInstance(),
                 valueArguments = mapOf("address" to address, "value" to value)
             ) // @formatter:on
-        }
-
-        private fun readUnsigned( // @formatter:off
-            context: KWirePluginContext,
-            address: IrExpression,
-            typeSelector: (KWirePluginContext) -> IrType
-        ): IrExpression { // @formatter:on
-            typeSelector(context)
-            return address // TODO: implement this
-        }
-
-        private fun writeUnsigned( // @formatter:off
-            context: KWirePluginContext,
-            address: IrExpression,
-            value: IrExpression
-        ): IrExpression { // @formatter:on
-            return address // TODO: implement this
-        }
-
-        private fun readNative( // @formatter:off
-            context: KWirePluginContext,
-            address: IrExpression,
-            typeSelector: (KWirePluginContext) -> IrType
-        ): IrExpression { // @formatter:on
-            return address // TODO: implement this
-        }
-
-        private fun writeNative( // @formatter:off
-            context: KWirePluginContext,
-            address: IrExpression,
-            value: IrExpression
-        ): IrExpression { // @formatter:on
-            return address // TODO: implement this
         }
     }
 }
