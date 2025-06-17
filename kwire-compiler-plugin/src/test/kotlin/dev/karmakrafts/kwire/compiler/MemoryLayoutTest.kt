@@ -50,7 +50,7 @@ class MemoryLayoutTest {
         for (type in primitiveTypes) {
             resetAssertions()
             result irMatches {
-                val context = KWirePluginContext(pluginContext)
+                val context = KWirePluginContext(pluginContext, element, element.files.first())
                 val layout = context.computeMemoryLayout(type.typeGetter(context))
                 val data = layout.serialize()
                 val deserializedLayout = MemoryLayout.deserialize(data)
@@ -76,7 +76,7 @@ class MemoryLayoutTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            val context = KWirePluginContext(pluginContext)
+            val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = context.computeMemoryLayout(struct.defaultType)
 
@@ -108,7 +108,7 @@ class MemoryLayoutTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            val context = KWirePluginContext(pluginContext)
+            val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = context.computeMemoryLayout(struct.defaultType)
 

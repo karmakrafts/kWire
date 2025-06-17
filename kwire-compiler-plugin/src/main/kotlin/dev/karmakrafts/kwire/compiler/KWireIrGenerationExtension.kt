@@ -21,6 +21,7 @@ import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.SharedImportTransformer
+import dev.karmakrafts.kwire.compiler.transformer.StructValidationVisitor
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -28,14 +29,16 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        val kwireContext = KWirePluginContext(pluginContext)
-        // Generate all FFI/native related code before lowering intrinsics etc.
-        moduleFragment.acceptVoid(SharedImportTransformer(kwireContext))
-        // Pre-compute all struct layouts and export them using @StructLayout
-        moduleFragment.acceptVoid(MemoryLayoutTransformer(kwireContext))
-        // Transform all intrinsics
-        val intrinsicContext = KWireIntrinsicContext()
-        moduleFragment.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
-        moduleFragment.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
+        for (file in moduleFragment.files) {
+            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file)
+
+            file.acceptVoid(StructValidationVisitor(kwireContext))
+            file.acceptVoid(SharedImportTransformer(kwireContext))
+            file.acceptVoid(MemoryLayoutTransformer(kwireContext))
+
+            val intrinsicContext = KWireIntrinsicContext()
+            file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
+            file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
+        }
     }
 }

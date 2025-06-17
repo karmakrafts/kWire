@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.NativeType
+import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getNativeType
@@ -32,6 +33,8 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
@@ -58,7 +61,7 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal class KWirePluginContext(
-    val pluginContext: IrPluginContext
+    val pluginContext: IrPluginContext, val irModule: IrModuleFragment, val irFile: IrFile
 ) : IrPluginContext by pluginContext {
     val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.alignOf).first()
@@ -217,7 +220,7 @@ internal class KWirePluginContext(
             NativeType.PTR -> BuiltinMemoryLayout.ADDRESS
         }
         // Handle reference objects
-        if (!type.isStruct(this)) return BuiltinMemoryLayout.ADDRESS
+        if (!type.isStruct(this)) return ReferenceMemoryLayout
         // Handle user defined types
         val clazz = type.getClass() ?: return@getOrPut BuiltinMemoryLayout.VOID
         if (clazz.hasStructLayoutData()) {
@@ -246,8 +249,4 @@ internal class KWirePluginContext(
     ).apply {
         dispatchReceiver = addressCompanionType.getObjectInstance()
     }
-
-    // Memory functions
-
-
 }

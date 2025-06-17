@@ -37,6 +37,77 @@ class MemoryIntrinsicsTest {
         arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES)
 
     @Test
+    fun `Obtain offset of field in single field struct`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.Struct
+            import dev.karmakrafts.kwire.ctype.NUInt
+            import dev.karmakrafts.kwire.memory.offsetOf
+            class Foo(val x: Int) : Struct
+            val test: NUInt = offsetOf(Foo::x)
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            getChild<IrProperty> { it.name.asString() == "test" } matches {
+                getChild<IrField>() matches {
+                    val initializer = element.initializer
+                    initializer shouldNotBe null
+                    val expr = initializer!!.expression
+                    expr::class shouldBe IrCallImpl::class
+                    val value = expr.unwrapConstValue<Number>()!!.toInt()
+                    value shouldBe 0
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Obtain offset of field in multi field struct`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.Struct
+            import dev.karmakrafts.kwire.ctype.NUInt
+            import dev.karmakrafts.kwire.memory.offsetOf
+            class Foo(
+                val x: Int,
+                val y: Int,
+                val z: Int
+            ) : Struct
+            val test: NUInt = offsetOf(Foo::z)
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            getChild<IrProperty> { it.name.asString() == "test" } matches {
+                getChild<IrField>() matches {
+                    val initializer = element.initializer
+                    initializer shouldNotBe null
+                    val expr = initializer!!.expression
+                    expr::class shouldBe IrCallImpl::class
+                    val constants = ArrayList<IrConst>()
+                    expr.acceptVoid(object : IrVisitorVoid() {
+                        override fun visitElement(element: IrElement) {
+                            element.acceptChildrenVoid(this)
+                        }
+
+                        override fun visitConst(expression: IrConst) {
+                            super.visitConst(expression)
+                            constants += expression
+                        }
+                    })
+                    constants.size shouldBe 2
+                    for (constant in constants) {
+                        constant.unwrapConstValue<Number>()!!.toInt() shouldBe 4
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Obtain size of void`() = runCompilerTest {
         kwireTransformerPipeline()
         // @formatter:off

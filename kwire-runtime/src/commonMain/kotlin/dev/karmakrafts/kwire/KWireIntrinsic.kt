@@ -23,6 +23,7 @@ internal annotation class KWireIntrinsic(val type: Type) {
         // @formatter:off
         SIZE_OF,
         ALIGN_OF,
+        OFFSET_OF,
         PTR_REF,
         PTR_DEREF,
         PTR_SET,

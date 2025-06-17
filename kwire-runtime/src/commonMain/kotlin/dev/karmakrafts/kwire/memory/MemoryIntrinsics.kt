@@ -19,6 +19,8 @@ package dev.karmakrafts.kwire.memory
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.ctype.NUInt
+import dev.karmakrafts.kwire.ctype.Struct
+import kotlin.reflect.KProperty1
 
 /**
  * This will calculate the size of the given type in bytes.
@@ -41,3 +43,13 @@ fun <T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
  */
 @KWireIntrinsic(KWireIntrinsic.Type.ALIGN_OF)
 fun <T> alignOf(): NUInt = throw KWirePluginNotAppliedException()
+
+/**
+ * This will calculate the offset of the given field within
+ * the enclosing structure type in bytes.
+ *
+ * @param field The field to calculate the offset of.
+ * @return The offset of the given field in its enclosing structure in bytes.
+ */
+@KWireIntrinsic(KWireIntrinsic.Type.OFFSET_OF)
+fun offsetOf(field: KProperty1<out Struct, *>): NUInt = throw KWirePluginNotAppliedException()

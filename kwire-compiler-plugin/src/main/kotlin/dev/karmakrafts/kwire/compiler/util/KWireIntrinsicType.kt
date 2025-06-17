@@ -20,6 +20,7 @@ internal enum class KWireIntrinsicType {
     // @formatter:off
     SIZE_OF,
     ALIGN_OF,
+    OFFSET_OF,
     PTR_REF,
     PTR_DEREF,
     PTR_ARRAY_GET,

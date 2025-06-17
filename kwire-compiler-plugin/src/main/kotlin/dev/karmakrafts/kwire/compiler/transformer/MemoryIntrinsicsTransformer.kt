@@ -18,18 +18,26 @@ package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
 import dev.karmakrafts.kwire.compiler.util.hasCustomAlignment
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.target
 
 internal class MemoryIntrinsicsTransformer(
     private val context: KWirePluginContext
 ) : KWireIntrinsicTransformer(setOf( // @formatter:off
     KWireIntrinsicType.SIZE_OF,
-    KWireIntrinsicType.ALIGN_OF
+    KWireIntrinsicType.ALIGN_OF,
+    KWireIntrinsicType.OFFSET_OF
 )) {
     // @formatter:on
     private fun emitSizeOf(call: IrCall): IrExpression {
@@ -47,6 +55,20 @@ internal class MemoryIntrinsicsTransformer(
         return context.toNUInt(layout.emitAlignment(context))
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun emitOffsetOf(call: IrCall): IrExpression {
+        val function = call.target
+        val ref = call.arguments[function.parameters.first { it.name.asString() == "field" }]
+        check(ref is IrPropertyReference) { "Parameter of offsetOf needs to be a property reference" }
+        val property = ref.symbol.owner
+        val clazz = property.parentAsClass
+        val layout = context.computeMemoryLayout(clazz.defaultType)
+        check(layout is StructMemoryLayout) { "Memory layout needs to be that of a structure for offsetOf" }
+        val index = clazz.properties.indexOf(property)
+        check(index != -1) { "Could not determine field index for offsetOf" }
+        return context.toNUInt(layout.emitOffsetOf(context, index))
+    }
+
     override fun visitIntrinsic( // @formatter:off
         expression: IrCall,
         data: KWireIntrinsicContext,
@@ -55,6 +77,7 @@ internal class MemoryIntrinsicsTransformer(
         return when (type) {
             KWireIntrinsicType.SIZE_OF -> emitSizeOf(expression)
             KWireIntrinsicType.ALIGN_OF -> emitAlignOf(expression)
+            KWireIntrinsicType.OFFSET_OF -> emitOffsetOf(expression)
             else -> error("Unsupported intrinsic type $type for MemoryIntrinsicTransformer")
         }
     }

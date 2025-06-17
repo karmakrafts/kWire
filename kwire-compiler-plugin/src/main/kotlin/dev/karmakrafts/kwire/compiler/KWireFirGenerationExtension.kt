@@ -21,8 +21,5 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 
 internal class KWireFirGenerationExtension(
-    session: FirSession,
-    private val messageCollector: MessageCollector
-) : FirDeclarationGenerationExtension(session) {
-
-}
+    session: FirSession, private val messageCollector: MessageCollector
+) : FirDeclarationGenerationExtension(session)

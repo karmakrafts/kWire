@@ -50,6 +50,7 @@ internal sealed interface MemoryLayout {
 
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
+
     fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
 }
@@ -187,7 +188,7 @@ internal enum class BuiltinMemoryLayout(
             address: IrExpression,
             typeSelector: (KWirePluginContext) -> IrType
         ): IrExpression { // @formatter:on
-            val type = typeSelector(context)
+            typeSelector(context)
             return address // TODO: implement this
         }
 
@@ -254,5 +255,38 @@ internal data class StructMemoryLayout(
 
     override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression {
         TODO("Not yet implemented")
+    }
+
+    fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression = when (index) {
+        0 -> constInt(context, 0)
+        1 -> fields.first().emitSize(context)
+        else -> {
+            val (first, second) = fields
+            var expr = first.emitSize(context).plus(second.emitSize(context))
+            for (fieldIndex in 2..<index) {
+                expr = expr.plus(fields[fieldIndex].emitSize(context))
+            }
+            expr
+        }
+    }
+}
+
+@SerialName("ref")
+@Serializable
+internal object ReferenceMemoryLayout : MemoryLayout {
+    override fun emitSize(context: KWirePluginContext): IrExpression {
+        return context.emitPointerSize()
+    }
+
+    override fun emitAlignment(context: KWirePluginContext): IrExpression {
+        return context.emitPointerSize()
+    }
+
+    override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression {
+        error("Reading references from memory is not supported")
+    }
+
+    override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression {
+        error("Writing references to memory is not supported")
     }
 }
