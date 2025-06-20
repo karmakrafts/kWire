@@ -12,14 +12,14 @@ kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.8.1"
 kotlinx-serialization-msgpack = "0.6.0"
 dokka = "2.0.0" # https://github.com/Kotlin/dokka/releases"
-karmaConventions = "1.4.1.0-SNAPSHOT" # https://github.com/karmakrafts/karma-conventions/tags
+karmaConventions = "1.4.1.79-SNAPSHOT" # https://github.com/karmakrafts/karma-conventions/tags
 autoService = "1.1.1" # https://github.com/google/auto/releases
 gradleNexus = "2.0.0" # https://github.com/gradle-nexus/publish-plugin/releases
 stately = "2.1.0"
 kotlinPoet = "2.2.0"
 libffi = "3.4.8-5"
 lwjgl = "3.3.6"
-panamaPort = "v0.0.7-preview"
+panamaPort = "v0.0.7-preview" # https://github.com/vova7878/PanamaPort/releases
 
 [libraries]
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }

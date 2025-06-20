@@ -23,7 +23,6 @@ import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.minus
-import dev.karmakrafts.kwire.ctype.plus
 import dev.karmakrafts.kwire.ctype.toNUInt
 
 private data class StackFrame( // @formatter:off

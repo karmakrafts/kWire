@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.compiler
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.MemoryStack
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.serialize
@@ -74,6 +75,10 @@ internal class KWirePluginContext(
 
     val memoryType: IrClassSymbol = referenceClass(KWireNames.Memory.id)!!
     val memoryCompanionType: IrClassSymbol = referenceClass(KWireNames.Memory.Companion.id)!!
+    val allocatorType: IrClassSymbol = referenceClass(KWireNames.Allocator.id)!!
+    val allocatorAllocate: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.allocate).first()
+    val allocatorReallocate: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.reallocate).first()
+    val allocatorFree: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.free).first()
 
     val structType: IrClassSymbol = referenceClass(KWireNames.Struct.id)!!
     val structLayoutType: IrClassSymbol = referenceClass(KWireNames.StructLayout.id)!!
@@ -101,6 +106,7 @@ internal class KWirePluginContext(
 
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     val ffi: FFI = FFI(this)
+    val memoryStack: MemoryStack = MemoryStack(this)
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)

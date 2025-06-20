@@ -35,6 +35,11 @@ internal object KWireNames {
         val toNFloat: Name = Name.identifier("toNFloat")
         val get: Name = Name.identifier("get")
         val putAll: Name = Name.identifier("putAll")
+        val push: Name = Name.identifier("push")
+        val pop: Name = Name.identifier("pop")
+        val allocate: Name = Name.identifier("allocate")
+        val reallocate: Name = Name.identifier("reallocate")
+        val free: Name = Name.identifier("free")
     }
 
     object Kotlin {
@@ -232,6 +237,15 @@ internal object KWireNames {
         val alignOf: CallableId = CallableId(memoryPackageName, Functions.alignOf)
     }
 
+    object Allocator {
+        val name: Name = Name.identifier("Allocator")
+        val id: ClassId = ClassId(memoryPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+        val allocate: CallableId = CallableId(id, Functions.allocate)
+        val reallocate: CallableId = CallableId(id, Functions.reallocate)
+        val free: CallableId = CallableId(id, Functions.free)
+    }
+
     object Memory {
         val name: Name = Name.identifier("Memory")
         val id: ClassId = ClassId(memoryPackageName, name)
@@ -241,6 +255,21 @@ internal object KWireNames {
             val name: FqName = FqName("Memory.Companion")
             val id: ClassId = ClassId(memoryPackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
+        }
+    }
+
+    object MemoryStack {
+        val name: Name = Name.identifier("MemoryStack")
+        val id: ClassId = ClassId(memoryPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+        val push: CallableId = CallableId(id, Functions.push)
+        val pop: CallableId = CallableId(id, Functions.pop)
+
+        object Companion {
+            val name: FqName = FqName("MemoryStack.Companion")
+            val id: ClassId = ClassId(memoryPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+            val get: CallableId = CallableId(memoryPackageName, name, Functions.get)
         }
     }
 
