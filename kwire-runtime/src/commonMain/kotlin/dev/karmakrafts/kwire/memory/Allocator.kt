@@ -20,11 +20,14 @@ package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NFloat
+import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.Pointed
 import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.toNFloatArray
+import dev.karmakrafts.kwire.ctype.toNIntArray
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory.Companion.defaultAlignment
 
@@ -106,6 +109,12 @@ inline fun Allocator.long(value: Long): NumPtr<Long> {
     return address.reinterpretNum()
 }
 
+inline fun Allocator.nInt(value: NInt): NumPtr<NInt> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writeNInt(address, value)
+    return address.reinterpretNum()
+}
+
 inline fun Allocator.float(value: Float): NumPtr<Float> {
     val address = allocate(Float.SIZE_BYTES.toNUInt(), Float.SIZE_BYTES.toNUInt())
     Memory.writeFloat(address, value)
@@ -150,6 +159,12 @@ inline fun Allocator.longs(vararg values: Long): NumPtr<Long> {
     return address.reinterpretNum()
 }
 
+inline fun Allocator.nInts(vararg values: NInt): NumPtr<NInt> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writeNInts(address, (values as Array<NInt>).toNIntArray())
+    return address.reinterpretNum()
+}
+
 inline fun Allocator.floats(vararg values: Float): NumPtr<Float> {
     val address = allocate(Float.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Float.SIZE_BYTES.toNUInt())
     Memory.writeFloats(address, values)
@@ -159,5 +174,11 @@ inline fun Allocator.floats(vararg values: Float): NumPtr<Float> {
 inline fun Allocator.doubles(vararg values: Double): NumPtr<Double> {
     val address = allocate(Double.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Double.SIZE_BYTES.toNUInt())
     Memory.writeDoubles(address, values)
+    return address.reinterpretNum()
+}
+
+inline fun Allocator.nFloats(vararg values: NFloat): NumPtr<NFloat> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writeNFloats(address, (values as Array<NFloat>).toNFloatArray())
     return address.reinterpretNum()
 }
