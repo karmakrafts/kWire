@@ -18,23 +18,25 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+@KWireCompilerApi
 actual typealias NFloat = Float
 
+@KWireCompilerApi
 actual inline fun Float.toNFloat(): NFloat = this
+
+@KWireCompilerApi
 actual inline fun Double.toNFloat(): NFloat = toFloat()
-actual inline fun NInt.toNFloat(): NFloat = toFloat()
-actual inline fun NUInt.toNFloat(): NFloat = value.toFloat()
 
-actual inline val NFloat.floatValue: Float
-    get() = this
+@KWireCompilerApi
+actual inline fun Byte.toNFloat(): NFloat = toFloat()
 
-actual inline val NFloat.doubleValue: Double
-    get() = toDouble()
+@KWireCompilerApi
+actual inline fun Short.toNFloat(): NFloat = toFloat()
 
-actual inline operator fun NFloat.compareTo(other: NFloat): Int = this.compareTo(other)
+@KWireCompilerApi
+actual inline fun Int.toNFloat(): NFloat = toFloat()
 
-actual inline operator fun NFloat.plus(other: NFloat): NFloat = this + other
-actual inline operator fun NFloat.minus(other: NFloat): NFloat = this - other
-actual inline operator fun NFloat.times(other: NFloat): NFloat = this * other
-actual inline operator fun NFloat.div(other: NFloat): NFloat = this / other
-actual inline operator fun NFloat.rem(other: NFloat): NFloat = this % other
+@KWireCompilerApi
+actual inline fun Long.toNFloat(): NFloat = toFloat()

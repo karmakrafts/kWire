@@ -16,12 +16,17 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+@KWireCompilerApi
 interface Struct : Pointed
 
+@KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.CLASS)
 annotation class AlignAs(val alignment: Int)
 
+@KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.CLASS)
 internal annotation class StructLayout(val data: ByteArray)

@@ -18,6 +18,8 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
 /**
  * Represents a platform-dependent signed integer type.
  *
@@ -28,185 +30,64 @@ package dev.karmakrafts.kwire.ctype
  * NInt supports standard arithmetic operations, comparisons, and bitwise operations, making it
  * suitable for platform-specific memory addressing and low-level operations.
  */
-expect class NInt : Number {
+@KWireCompilerApi
+expect class NInt : Number, Comparable<NInt> {
     override fun toByte(): Byte
     override fun toDouble(): Double
     override fun toFloat(): Float
     override fun toInt(): Int
     override fun toLong(): Long
     override fun toShort(): Short
+
+    override operator fun compareTo(other: NInt): Int
+
+    operator fun plus(other: NInt): NInt
+    operator fun minus(other: NInt): NInt
+    operator fun times(other: NInt): NInt
+    operator fun div(other: NInt): NInt
+    operator fun rem(other: NInt): NInt
+
+    operator fun inc(): NInt
+    operator fun dec(): NInt
+
+    operator fun unaryPlus(): NInt
+    operator fun unaryMinus(): NInt
+
+    infix fun shl(bitCount: Int): NInt
+    infix fun shr(bitCount: Int): NInt
+    infix fun and(other: NInt): NInt
+    infix fun or(other: NInt): NInt
+    infix fun xor(other: NInt): NInt
+    fun inv(): NInt
 }
 
-/**
- * Converts a standard 32-bit signed integer to a native integer.
- *
- * @return A native integer representation of this Int value
- */
+@KWireCompilerApi
+expect inline fun Byte.toNInt(): NInt
+
+@KWireCompilerApi
+expect inline fun Short.toNInt(): NInt
+
+@KWireCompilerApi
 expect inline fun Int.toNInt(): NInt
 
-/**
- * Converts a standard 32-bit unsigned integer to a native integer.
- *
- * @return A native integer representation of this UInt value
- */
-expect inline fun UInt.toNInt(): NInt
-
-/**
- * Converts a standard 64-bit signed integer to a native integer.
- *
- * @return A native integer representation of this Long value
- * @note On 32-bit platforms, this may result in truncation if the value exceeds the range of a 32-bit integer
- */
+@KWireCompilerApi
 expect inline fun Long.toNInt(): NInt
 
-/**
- * Converts a standard 64-bit unsigned integer to a native integer.
- *
- * @return A native integer representation of this ULong value
- * @note On 32-bit platforms, this may result in truncation if the value exceeds the range of a 32-bit integer
- */
-expect inline fun ULong.toNInt(): NInt
+@KWireCompilerApi
+expect inline fun Float.toNInt(): NInt
 
-/**
- * Converts a native floating-point number to a native integer.
- *
- * @return A native integer representation of this NFloat value
- * @note This may result in truncation of the fractional part
- */
-expect inline fun NFloat.toNInt(): NInt
+@KWireCompilerApi
+expect inline fun Double.toNInt(): NInt
 
-/**
- * Gets the value of this native integer as a standard 32-bit signed integer.
- *
- * @return The Int representation of this native integer
- * @note On 64-bit platforms, this may result in truncation if the value exceeds the range of a 32-bit integer
- */
-expect inline val NInt.intValue: Int
+inline fun UByte.toNInt(): NInt = toInt().toNInt()
+inline fun UShort.toNInt(): NInt = toShort().toNInt()
+inline fun UInt.toNInt(): NInt = toInt().toNInt()
+inline fun ULong.toNInt(): NInt = toLong().toNInt()
 
-/**
- * Gets the value of this native integer as a standard 64-bit signed integer.
- *
- * @return The Long representation of this native integer
- */
-expect inline val NInt.longValue: Long
-
-/**
- * Compares this native integer with another native integer.
- *
- * @param other The native integer to compare with
- * @return A negative value if this < other, zero if this == other, or a positive value if this > other
- */
-expect inline operator fun NInt.compareTo(other: NInt): Int
-
-/**
- * Adds another native integer to this native integer.
- *
- * @param other The native integer to add
- * @return The sum of this native integer and the other native integer
- */
-expect inline operator fun NInt.plus(other: NInt): NInt
-
-/**
- * Subtracts another native integer from this native integer.
- *
- * @param other The native integer to subtract
- * @return The difference between this native integer and the other native integer
- */
-expect inline operator fun NInt.minus(other: NInt): NInt
-
-/**
- * Multiplies this native integer by another native integer.
- *
- * @param other The native integer to multiply by
- * @return The product of this native integer and the other native integer
- */
-expect inline operator fun NInt.times(other: NInt): NInt
-
-/**
- * Divides this native integer by another native integer.
- *
- * @param other The native integer to divide by
- * @return The quotient of this native integer divided by the other native integer
- * @throws ArithmeticException if the divisor is zero
- */
-expect inline operator fun NInt.div(other: NInt): NInt
-
-/**
- * Calculates the remainder of dividing this native integer by another native integer.
- *
- * @param other The native integer to divide by
- * @return The remainder of this native integer divided by the other native integer
- * @throws ArithmeticException if the divisor is zero
- */
-expect inline operator fun NInt.rem(other: NInt): NInt
-
-/**
- * Increments this native integer by one.
- *
- * @return The incremented native integer
- */
-expect inline operator fun NInt.inc(): NInt
-
-/**
- * Decrements this native integer by one.
- *
- * @return The decremented native integer
- */
-expect inline operator fun NInt.dec(): NInt
-
-/**
- * Performs a bitwise AND operation between this native integer and another native integer.
- *
- * @param other The native integer to perform the AND operation with
- * @return The result of the bitwise AND operation
- */
-expect inline infix fun NInt.and(other: NInt): NInt
-
-/**
- * Performs a bitwise OR operation between this native integer and another native integer.
- *
- * @param other The native integer to perform the OR operation with
- * @return The result of the bitwise OR operation
- */
-expect inline infix fun NInt.or(other: NInt): NInt
-
-/**
- * Performs a bitwise XOR operation between this native integer and another native integer.
- *
- * @param other The native integer to perform the XOR operation with
- * @return The result of the bitwise XOR operation
- */
-expect inline infix fun NInt.xor(other: NInt): NInt
-
-/**
- * Performs a bitwise left shift operation on this native integer.
- *
- * @param count The number of bits to shift left
- * @return The result of the bitwise left shift operation
- */
-expect inline infix fun NInt.shl(count: Int): NInt
-
-/**
- * Performs a bitwise right shift operation on this native integer.
- *
- * @param count The number of bits to shift right
- * @return The result of the bitwise right shift operation
- */
-expect inline infix fun NInt.shr(count: Int): NInt
-
-/**
- * Performs a bitwise inversion (NOT) operation on this native integer.
- *
- * @return The result of the bitwise inversion operation
- */
-expect inline fun NInt.inv(): NInt
-
-/**
- * Converts this native integer to a native unsigned integer.
- *
- * @return The native unsigned integer representation of this native integer
- */
-inline fun NInt.toUnsigned(): NUInt = NUInt(this)
+inline fun NInt.toUByte(): UByte = toByte().toUByte()
+inline fun NInt.toUShort(): UShort = toShort().toUShort()
+inline fun NInt.toUInt(): UInt = toInt().toUInt()
+inline fun NInt.toULong(): ULong = toLong().toULong()
 
 /**
  * Converts this native integer to a hexadecimal string representation.
@@ -214,5 +95,5 @@ inline fun NInt.toUnsigned(): NUInt = NUInt(this)
  * @return A string containing the hexadecimal representation of this native integer
  */
 @ExperimentalStdlibApi
-inline fun NInt.toHexString(): String = if (Address.SIZE_BYTES == Int.SIZE_BYTES) intValue.toHexString()
-else longValue.toHexString()
+inline fun NInt.toHexString(): String = if (Address.SIZE_BYTES == Int.SIZE_BYTES) toInt().toHexString()
+else toLong().toHexString()

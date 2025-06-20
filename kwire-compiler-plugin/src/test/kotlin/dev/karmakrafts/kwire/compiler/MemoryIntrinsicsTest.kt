@@ -19,6 +19,8 @@ package dev.karmakrafts.kwire.compiler
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
 import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
+import dev.karmakrafts.kwire.ctype.NFloat
+import dev.karmakrafts.kwire.ctype.NInt
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -30,11 +32,13 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import kotlin.test.Test
 
 class MemoryIntrinsicsTest {
-    val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double")
+    val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
     val primitiveSizes: Array<Int> =
-        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES)
+        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES,
+            NInt.SIZE_BYTES, NFloat.SIZE_BYTES)
     val primitiveAlignments: Array<Int> =
-        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES)
+        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES,
+            NInt.SIZE_BYTES, NFloat.SIZE_BYTES)
 
     @Test
     fun `Obtain offset of field in single field struct`() = runCompilerTest {
@@ -44,7 +48,7 @@ class MemoryIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.NUInt
             import dev.karmakrafts.kwire.memory.offsetOf
-            class Foo(val x: Int) : Struct
+            class Foo(val x: Int = 0) : Struct
             val test: NUInt = offsetOf(Foo::x)
         """.trimIndent())
         // @formatter:on
@@ -72,9 +76,9 @@ class MemoryIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.NUInt
             import dev.karmakrafts.kwire.memory.offsetOf
             class Foo(
-                val x: Int,
-                val y: Int,
-                val z: Int
+                val x: Int = 0,
+                val y: Int = 0,
+                val z: Int = 0
             ) : Struct
             val test: NUInt = offsetOf(Foo::z)
         """.trimIndent())
@@ -146,6 +150,8 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.sizeOf
                 import dev.karmakrafts.kwire.ctype.NUInt
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
                 val test: NUInt = sizeOf<$type>()
             """.trimIndent())
             // @formatter:on
@@ -207,7 +213,11 @@ class MemoryIntrinsicsTest {
                 import dev.karmakrafts.kwire.memory.sizeOf
                 import dev.karmakrafts.kwire.ctype.Struct
                 import dev.karmakrafts.kwire.ctype.NUInt
-                class Foo(val x: $type) : Struct
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                class Foo(val x: $type = 0.to$type()) : Struct
                 val test: NUInt = sizeOf<Foo>()
             """.trimIndent())
             // @formatter:on
@@ -242,10 +252,14 @@ class MemoryIntrinsicsTest {
                 import dev.karmakrafts.kwire.memory.sizeOf
                 import dev.karmakrafts.kwire.ctype.Struct
                 import dev.karmakrafts.kwire.ctype.NUInt
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
                 class Foo(
-                    val x: $type,
-                    val y: $type,
-                    val z: $type
+                    val x: $type = 0.to$type(),
+                    val y: $type = 0.to$type(),
+                    val z: $type = 0.to$type()
                 ) : Struct
                 val test: NUInt = sizeOf<Foo>()
             """.trimIndent())
@@ -318,6 +332,8 @@ class MemoryIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.memory.alignOf
                 import dev.karmakrafts.kwire.ctype.NUInt
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
                 val test: NUInt = alignOf<$type>()
             """.trimIndent())
             // @formatter:on
@@ -352,7 +368,11 @@ class MemoryIntrinsicsTest {
                 import dev.karmakrafts.kwire.memory.alignOf
                 import dev.karmakrafts.kwire.ctype.Struct
                 import dev.karmakrafts.kwire.ctype.NUInt
-                class Foo(val x: $type) : Struct
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                class Foo(val x: $type = 0.to$type()) : Struct
                 val test: NUInt = alignOf<Foo>()
             """.trimIndent())
             // @formatter:on
@@ -387,10 +407,14 @@ class MemoryIntrinsicsTest {
                 import dev.karmakrafts.kwire.memory.alignOf
                 import dev.karmakrafts.kwire.ctype.Struct
                 import dev.karmakrafts.kwire.ctype.NUInt
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
                 class Foo(
-                    val x: $type,
-                    val y: $type,
-                    val z: $type
+                    val x: $type = 0.to$type(),
+                    val y: $type = 0.to$type(),
+                    val z: $type = 0.to$type()
                 ) : Struct
                 val test: NUInt = alignOf<Foo>()
             """.trimIndent())

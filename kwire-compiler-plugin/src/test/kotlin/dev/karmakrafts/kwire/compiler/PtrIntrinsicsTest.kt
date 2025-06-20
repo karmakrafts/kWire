@@ -18,7 +18,6 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.iridium.util.renderIrTree
 import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -30,7 +29,9 @@ import org.jetbrains.kotlin.ir.util.target
 import kotlin.test.Test
 
 class PtrIntrinsicsTest {
-    val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double")
+    val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
+    val resolvedPrimitiveTypes: Array<String> =
+        arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "Long", "Double")
 
     @Test
     fun `Obtain nullptr of void`() = runCompilerTest {
@@ -71,6 +72,8 @@ class PtrIntrinsicsTest {
             source("""
                 import dev.karmakrafts.kwire.ctype.NumPtr
                 import dev.karmakrafts.kwire.ctype.nullptr
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
                 val test: NumPtr<$type> = nullptr()
             """.trimIndent())
             // @formatter:on
@@ -154,17 +157,22 @@ class PtrIntrinsicsTest {
         default {
             compiler shouldNotReport { error() }
         }
-        for (type in primitiveTypes) {
+        for (typeIndex in primitiveTypes.indices) {
+            val type = primitiveTypes[typeIndex]
+            val resolvedType = resolvedPrimitiveTypes[typeIndex]
             resetAssertions()
             // @formatter:off
             source("""
                 import dev.karmakrafts.kwire.ctype.NumPtr
                 import dev.karmakrafts.kwire.ctype.nullptr
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
                 val test: $type = nullptr<NumPtr<$type>>().deref()
             """.trimIndent())
             // @formatter:on
             result irMatches {
-                println(element.renderIrTree(Int.MAX_VALUE))
                 getChild<IrProperty> { it.name.asString() == "test" } matches {
                     val field = getChild<IrField>()
                     val initializer = field.initializer?.expression
@@ -173,8 +181,37 @@ class PtrIntrinsicsTest {
 
                     val call = initializer as IrCall
                     val callee = call.target
-                    callee.name.asString() shouldBe "read$type"
+                    callee.name.asString() shouldBe "read$resolvedType"
                 }
+            }
+            evaluate()
+        }
+    }
+
+    @Test
+    fun `Write to primitive pointer`() = setupCompilerTest {
+        kwireTransformerPipeline()
+        default {
+            compiler shouldNotReport { error() }
+        }
+        for (type in primitiveTypes) {
+            resetAssertions()
+            // @formatter:off
+            source("""
+                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.nullptr
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                val value: NumPtr<$type> = nullptr<NumPtr<$type>>()
+                fun test() {
+                    value.set(0.to$type())
+                }
+            """.trimIndent())
+            // @formatter:on
+            result irMatches {
+
             }
             evaluate()
         }

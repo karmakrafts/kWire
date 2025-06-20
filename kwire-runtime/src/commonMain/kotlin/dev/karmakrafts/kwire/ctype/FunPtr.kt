@@ -19,13 +19,15 @@
 package dev.karmakrafts.kwire.ctype
 
 import dev.karmakrafts.kwire.KWireCompilerApi
+import dev.karmakrafts.kwire.KWireIntrinsic
+import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
 import kotlin.jvm.JvmInline
 
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class VoidPtr @PublishedApi internal constructor(
+value class FunPtr<F : Function<*>> @PublishedApi internal constructor(
     override val rawAddress: NUInt
 ) : Address, Pointed {
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
@@ -33,7 +35,7 @@ value class VoidPtr @PublishedApi internal constructor(
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
     inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
-    inline fun align(alignment: NUInt): VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
+    inline fun align(alignment: NUInt): FunPtr<F> = FunPtr(Memory.align(rawAddress, alignment))
 
     inline fun asNUInt(): NUInt = rawAddress
     inline fun asNInt(): NInt = rawAddress.value
@@ -42,15 +44,15 @@ value class VoidPtr @PublishedApi internal constructor(
     inline fun asULong(): ULong = rawAddress.toULong()
     inline fun asLong(): Long = rawAddress.value.toLong()
 
-    inline operator fun plus(other: NUInt): VoidPtr = VoidPtr(rawAddress + other)
-    inline operator fun plus(other: Int): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
-    inline operator fun plus(other: Long): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+    inline operator fun plus(other: NUInt): FunPtr<F> = FunPtr(rawAddress + other)
+    inline operator fun plus(other: Int): FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
+    inline operator fun plus(other: Long): FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
 
-    inline operator fun minus(other: NUInt): VoidPtr = VoidPtr(rawAddress - other)
-    inline operator fun minus(other: Int): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
-    inline operator fun minus(other: Long): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+    inline operator fun minus(other: NUInt): FunPtr<F> = FunPtr(rawAddress - other)
+    inline operator fun minus(other: Int): FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
+    inline operator fun minus(other: Long): FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
 
-    inline operator fun equals(other: VoidPtr): Boolean = rawAddress == other.rawAddress
+    inline operator fun equals(other: FunPtr<*>): Boolean = rawAddress == other.rawAddress
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 
     override fun equals(other: Any?): Boolean = when (other) {
@@ -64,8 +66,14 @@ value class VoidPtr @PublishedApi internal constructor(
     override fun hashCode(): Int = rawAddress.hashCode()
 }
 
-inline fun NUInt.asVoidPtr(): VoidPtr = VoidPtr(this)
-inline fun ULong.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
-inline fun Long.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
-inline fun UInt.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
-inline fun Int.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_INVOKE)
+operator fun <R, F : Function<R>> FunPtr<F>.invoke(vararg args: Any?): R = throw KWirePluginNotAppliedException()
+
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
+fun <F : Function<*>> F.ref(): FunPtr<F> = throw KWirePluginNotAppliedException()
+
+inline fun <F : Function<*>> NUInt.asFunPtr(): FunPtr<F> = FunPtr(this)
+inline fun <F : Function<*>> ULong.asFunPtr(): FunPtr<F> = FunPtr(toNUInt())
+inline fun <F : Function<*>> Long.asFunPtr(): FunPtr<F> = FunPtr(toNUInt())
+inline fun <F : Function<*>> UInt.asFunPtr(): FunPtr<F> = FunPtr(toNUInt())
+inline fun <F : Function<*>> Int.asFunPtr(): FunPtr<F> = FunPtr(toNUInt())

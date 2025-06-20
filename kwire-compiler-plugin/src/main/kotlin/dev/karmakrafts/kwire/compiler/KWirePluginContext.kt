@@ -16,20 +16,22 @@
 
 package dev.karmakrafts.kwire.compiler
 
-import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
+import dev.karmakrafts.kwire.compiler.ffi.FFI
+import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.serialize
 import dev.karmakrafts.kwire.compiler.util.KWireNames
-import dev.karmakrafts.kwire.compiler.util.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.NativeType
-import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.isStruct
-import dev.karmakrafts.kwire.compiler.util.serialize
+import dev.karmakrafts.kwire.compiler.util.new
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
@@ -38,10 +40,8 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantArrayImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
@@ -56,7 +56,6 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
@@ -64,8 +63,8 @@ import org.jetbrains.kotlin.ir.util.toIrConst
 internal class KWirePluginContext(
     val pluginContext: IrPluginContext, val irModule: IrModuleFragment, override val irFile: IrFile
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions {
-    val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.sizeOf).first()
-    val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.alignOf).first()
+    val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.sizeOf).first()
+    val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.alignOf).first()
 
     val pointedType: IrClassSymbol = referenceClass(KWireNames.Pointed.id)!!
 
@@ -86,6 +85,8 @@ internal class KWirePluginContext(
     val numPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.NumPtr.id).first()
     val ptrType: IrClassSymbol = referenceClass(KWireNames.Ptr.id)!!
     val ptrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.Ptr.id).first()
+    val funPtrType: IrClassSymbol = referenceClass(KWireNames.FunPtr.id)!!
+    val funPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.FunPtr.id).first()
     val voidPtrType: IrClassSymbol = referenceClass(KWireNames.VoidPtr.id)!!
     val voidPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.VoidPtr.id).first()
 
@@ -99,98 +100,74 @@ internal class KWirePluginContext(
     val uLongType: IrClassSymbol = referenceClass(KWireNames.Kotlin.ULong.id)!!
 
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
+    val ffi: FFI = FFI(this)
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNInt(expr: IrExpression): IrExpression {
         val symbol =
-            referenceFunctions(KWireNames.toNInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+            referenceFunctions(KWireNames.CTypePkg.toNInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
         return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNUInt(expr: IrExpression): IrExpression {
         val symbol =
-            referenceFunctions(KWireNames.toNUInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+            referenceFunctions(KWireNames.CTypePkg.toNUInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
         return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNFloat(expr: IrExpression): IrExpression {
         val symbol =
-            referenceFunctions(KWireNames.toNFloat).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+            referenceFunctions(KWireNames.CTypePkg.toNFloat).first { it.owner.extensionReceiverParameter!!.type == expr.type }
         return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createNumPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = IrConstructorCallImpl(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = numPtrType.typeWith(pointedType),
-        symbol = numPtrConstructor,
-        typeArgumentsCount = 1,
-        constructorTypeArgumentsCount = 1
-    ).apply {
-        typeArguments[0] = pointedType
-        val constructor = symbol.owner
-        arguments[constructor.parameters.first { it.name.asString() == "rawAddress" }] = address
-    }
+    fun createNumPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = numPtrConstructor.new( // @formatter:off
+        typeArguments = mapOf("N" to pointedType),
+        valueArguments = mapOf("rawAddress" to address)
+    ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = IrConstructorCallImpl(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = ptrType.typeWith(pointedType),
-        symbol = ptrConstructor,
-        typeArgumentsCount = 1,
-        constructorTypeArgumentsCount = 1
-    ).apply {
-        typeArguments[0] = pointedType
-        val constructor = symbol.owner
-        arguments[constructor.parameters.first { it.name.asString() == "rawAddress" }] = address
-    }
+    fun createPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = ptrConstructor.new( // @formatter:off
+        typeArguments = mapOf("T" to pointedType),
+        valueArguments = mapOf("rawAddress" to address)
+    ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createVoidPtr(address: IrExpression): IrConstructorCall = IrConstructorCallImpl(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = voidPtrType.defaultType,
-        symbol = voidPtrConstructor,
-        typeArgumentsCount = 0,
-        constructorTypeArgumentsCount = 0
-    ).apply {
-        val constructor = symbol.owner
-        arguments[constructor.parameters.first { it.name.asString() == "rawAddress" }] = address
-    }
+    fun createFunPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = funPtrConstructor.new( // @formatter:off
+        typeArguments = mapOf("F" to pointedType),
+        valueArguments = mapOf("rawAddress" to address)
+    ) // @formatter:on
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    fun createVoidPtr(address: IrExpression): IrConstructorCall = voidPtrConstructor.new( // @formatter:off
+        valueArguments = mapOf("rawAddress" to address)
+    ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun attachMemoryLayout(type: IrClass, layout: MemoryLayout) {
-        val annotation = IrConstructorCallImpl(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET,
-            type = structLayoutType.defaultType,
-            symbol = structLayoutConstructor,
-            typeArgumentsCount = 0,
-            constructorTypeArgumentsCount = 0
-        ).apply {
-            val function = symbol.owner
-            arguments[function.parameters.first { it.name.asString() == "data" }] = IrConstantArrayImpl(
+        val data = layout.serialize().map { value ->
+            IrConstantPrimitiveImpl(
                 startOffset = SYNTHETIC_OFFSET,
                 endOffset = SYNTHETIC_OFFSET,
-                type = irBuiltIns.byteArray.defaultType,
-                initElements = layout.serialize().map { value ->
-                    IrConstantPrimitiveImpl(
-                        startOffset = SYNTHETIC_OFFSET,
-                        endOffset = SYNTHETIC_OFFSET,
-                        value = value.toIrConst(irBuiltIns.byteType)
-                    )
-                })
+                value = value.toIrConst(irBuiltIns.byteType)
+            )
         }
+        val dataArray = IrConstantArrayImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = irBuiltIns.byteArray.defaultType,
+            initElements = data
+        )
+        val annotation = structLayoutConstructor.new(valueArguments = mapOf("data" to dataArray))
         metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(type, listOf(annotation))
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun computeMemoryLayout(type: IrType): MemoryLayout = memoryLayoutCache.getOrPut(type) {
+    fun getOrComputeMemoryLayout(type: IrType): MemoryLayout = memoryLayoutCache.getOrPut(type) {
         // Handle Unit/void type
         if (type.isUnit()) return@getOrPut BuiltinMemoryLayout.VOID
         // Handle signed integer types and IEEE-754 types
@@ -225,29 +202,20 @@ internal class KWirePluginContext(
         // Handle user defined types
         val clazz = type.getClass() ?: return@getOrPut BuiltinMemoryLayout.VOID
         if (clazz.hasStructLayoutData()) {
+            // If this struct already has layout data attached, deserialize it
             return@getOrPut MemoryLayout.deserialize(clazz.getStructLayoutData()!!)
         }
         val fields = ArrayList<MemoryLayout>()
         for (property in clazz.properties) {
             val propertyType = property.backingField?.type
             check(propertyType != null) { "Struct field must have a backing field" }
-            fields += computeMemoryLayout(propertyType)
+            fields += getOrComputeMemoryLayout(propertyType)
         }
         if (fields.isEmpty()) BuiltinMemoryLayout.VOID else StructMemoryLayout(fields)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun emitPointerSize(): IrExpression = IrCallImplWithShape(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = irBuiltIns.intType,
-        symbol = addressSizeBytes.owner.getter!!.symbol,
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 0,
-        contextParameterCount = 0,
-        hasDispatchReceiver = true,
-        hasExtensionReceiver = false
-    ).apply {
+    fun emitPointerSize(): IrExpression = addressSizeBytes.owner.getter!!.call(
         dispatchReceiver = addressCompanionType.getObjectInstance()
-    }
+    )
 }

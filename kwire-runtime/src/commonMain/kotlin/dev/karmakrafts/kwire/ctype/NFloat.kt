@@ -18,6 +18,8 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
 /**
  * Represents a platform-dependent floating-point number type.
  *
@@ -28,96 +30,51 @@ package dev.karmakrafts.kwire.ctype
  * NFloat supports standard arithmetic operations and comparisons, making it
  * suitable for platform-specific floating-point calculations and low-level operations.
  */
-expect class NFloat
+@KWireCompilerApi
+expect class NFloat : Number, Comparable<NFloat> {
+    override fun toByte(): Byte
+    override fun toDouble(): Double
+    override fun toFloat(): Float
+    override fun toInt(): Int
+    override fun toLong(): Long
+    override fun toShort(): Short
 
-/**
- * Converts a standard Float to a native floating-point number.
- *
- * @return A native floating-point representation of this Float value
- */
+    override operator fun compareTo(other: NFloat): Int
+
+    operator fun plus(other: NFloat): NFloat
+    operator fun minus(other: NFloat): NFloat
+    operator fun times(other: NFloat): NFloat
+    operator fun div(other: NFloat): NFloat
+    operator fun rem(other: NFloat): NFloat
+
+    operator fun unaryPlus(): NFloat
+    operator fun unaryMinus(): NFloat
+}
+
+@KWireCompilerApi
 expect inline fun Float.toNFloat(): NFloat
 
-/**
- * Converts a standard Double to a native floating-point number.
- *
- * @return A native floating-point representation of this Double value
- */
+@KWireCompilerApi
 expect inline fun Double.toNFloat(): NFloat
 
-/**
- * Converts a native integer to a native floating-point number.
- *
- * @return A native floating-point representation of this NInt value
- */
-expect inline fun NInt.toNFloat(): NFloat
+@KWireCompilerApi
+expect inline fun Byte.toNFloat(): NFloat
 
-/**
- * Converts a native unsigned integer to a native floating-point number.
- *
- * @return A native floating-point representation of this NUInt value
- */
-expect inline fun NUInt.toNFloat(): NFloat
+@KWireCompilerApi
+expect inline fun Short.toNFloat(): NFloat
 
-/**
- * Gets the value of this native floating-point number as a standard Float.
- *
- * @return The Float representation of this native floating-point number
- */
-expect inline val NFloat.floatValue: Float
+@KWireCompilerApi
+expect inline fun Int.toNFloat(): NFloat
 
-/**
- * Gets the value of this native floating-point number as a standard Double.
- *
- * @return The Double representation of this native floating-point number
- */
-expect inline val NFloat.doubleValue: Double
+@KWireCompilerApi
+expect inline fun Long.toNFloat(): NFloat
 
-/**
- * Compares this native floating-point number with another native floating-point number.
- *
- * @param other The native floating-point number to compare with
- * @return A negative value if this < other, zero if this == other, or a positive value if this > other
- */
-expect inline operator fun NFloat.compareTo(other: NFloat): Int
+inline fun UByte.toNFloat(): NFloat = toByte().toNFloat()
+inline fun UShort.toNFloat(): NFloat = toShort().toNFloat()
+inline fun UInt.toNFloat(): NFloat = toInt().toNFloat()
+inline fun ULong.toNFloat(): NFloat = toLong().toNFloat()
 
-/**
- * Adds another native floating-point number to this native floating-point number.
- *
- * @param other The native floating-point number to add
- * @return The sum of this native floating-point number and the other native floating-point number
- */
-expect inline operator fun NFloat.plus(other: NFloat): NFloat
-
-/**
- * Subtracts another native floating-point number from this native floating-point number.
- *
- * @param other The native floating-point number to subtract
- * @return The difference between this native floating-point number and the other native floating-point number
- */
-expect inline operator fun NFloat.minus(other: NFloat): NFloat
-
-/**
- * Multiplies this native floating-point number by another native floating-point number.
- *
- * @param other The native floating-point number to multiply by
- * @return The product of this native floating-point number and the other native floating-point number
- */
-expect inline operator fun NFloat.times(other: NFloat): NFloat
-
-/**
- * Divides this native floating-point number by another native floating-point number.
- *
- * @param other The native floating-point number to divide by
- * @return The quotient of this native floating-point number divided by the other native floating-point number
- * @throws ArithmeticException if the divisor is zero
- */
-expect inline operator fun NFloat.div(other: NFloat): NFloat
-
-/**
- * Calculates the remainder of dividing this native floating-point number by another native floating-point number.
- *
- * @param other The native floating-point number to divide by
- * @return The remainder of this native floating-point number divided by the other native floating-point number
- * @throws ArithmeticException if the divisor is zero
- */
-expect inline operator fun NFloat.rem(other: NFloat): NFloat
+inline fun NFloat.toUByte(): UByte = toByte().toUByte()
+inline fun NFloat.toUShort(): UShort = toShort().toUShort()
+inline fun NFloat.toUInt(): UInt = toInt().toUInt()
+inline fun NFloat.toULong(): ULong = toLong().toULong()

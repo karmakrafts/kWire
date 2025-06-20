@@ -23,24 +23,20 @@ package dev.karmakrafts.kwire.ffi
 
 import co.touchlab.stately.concurrency.ThreadLocalRef
 import co.touchlab.stately.concurrency.value
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.NFloat
+import dev.karmakrafts.kwire.ctype.NFloatArray
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NIntArray
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NUIntArray
 import dev.karmakrafts.kwire.ctype.PtrArray
 import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.compareTo
-import dev.karmakrafts.kwire.ctype.plus
 import dev.karmakrafts.kwire.ctype.size
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory
-import dev.karmakrafts.kwire.memory.writeNUInts
-import dev.karmakrafts.kwire.memory.writeUBytes
-import dev.karmakrafts.kwire.memory.writeUInts
-import dev.karmakrafts.kwire.memory.writeULongs
-import dev.karmakrafts.kwire.memory.writeUShorts
 
 @PublishedApi
 internal val _argBuffer: ThreadLocalRef<FFIArgBufferImpl> = ThreadLocalRef()
@@ -63,7 +59,9 @@ internal inline val argBuffer: FFIArgBufferImpl
  * types of arguments stored. This is used by the FFI system to pass arguments to
  * native functions.
  */
+@KWireCompilerApi
 interface FFIArgBuffer {
+    @KWireCompilerApi
     companion object {
         /**
          * Default size of the argument buffer in bytes.
@@ -75,6 +73,7 @@ interface FFIArgBuffer {
          *
          * @return The cleared argument buffer
          */
+        @KWireCompilerApi
         inline fun get(): FFIArgBuffer = argBuffer.clear()
     }
 
@@ -97,10 +96,18 @@ interface FFIArgBuffer {
     fun getAddress(index: Int): VoidPtr
 
     /**
+     * Unboxes all values in the given array and
+     * puts them into the buffer accordingly.
+     */
+    @KWireCompilerApi
+    fun putAll(arguments: Array<Any>)
+
+    /**
      * Puts a byte value into the buffer.
      *
      * @param value The byte value to store
      */
+    @KWireCompilerApi
     fun putByte(value: Byte)
 
     /**
@@ -108,6 +115,7 @@ interface FFIArgBuffer {
      *
      * @param value The short value to store
      */
+    @KWireCompilerApi
     fun putShort(value: Short)
 
     /**
@@ -115,6 +123,7 @@ interface FFIArgBuffer {
      *
      * @param value The int value to store
      */
+    @KWireCompilerApi
     fun putInt(value: Int)
 
     /**
@@ -122,6 +131,7 @@ interface FFIArgBuffer {
      *
      * @param value The long value to store
      */
+    @KWireCompilerApi
     fun putLong(value: Long)
 
     /**
@@ -129,6 +139,7 @@ interface FFIArgBuffer {
      *
      * @param value The native integer value to store
      */
+    @KWireCompilerApi
     fun putNInt(value: NInt)
 
     /**
@@ -136,6 +147,7 @@ interface FFIArgBuffer {
      *
      * @param value The pointer value to store
      */
+    @KWireCompilerApi
     fun putPointer(value: Address)
 
     /**
@@ -143,6 +155,7 @@ interface FFIArgBuffer {
      *
      * @param value The float value to store
      */
+    @KWireCompilerApi
     fun putFloat(value: Float)
 
     /**
@@ -150,48 +163,63 @@ interface FFIArgBuffer {
      *
      * @param value The double value to store
      */
+    @KWireCompilerApi
     fun putDouble(value: Double)
+
+    /**
+     * Puts a native float value into the buffer.
+     *
+     * @param value The native float value to store
+     */
+    @KWireCompilerApi
+    fun putNFloat(value: NFloat)
 
     /**
      * Puts a byte array into the buffer.
      *
-     * @param value The byte array to store
+     * @param values The byte array to store
      */
-    fun putBytes(value: ByteArray)
+    @KWireCompilerApi
+    fun putBytes(values: ByteArray)
 
     /**
      * Puts a short array into the buffer.
      *
-     * @param value The short array to store
+     * @param values The short array to store
      */
-    fun putShorts(value: ShortArray)
+    @KWireCompilerApi
+    fun putShorts(values: ShortArray)
 
     /**
      * Puts an int array into the buffer.
      *
-     * @param value The int array to store
+     * @param values The int array to store
      */
-    fun putInts(value: IntArray)
+    @KWireCompilerApi
+    fun putInts(values: IntArray)
 
     /**
      * Puts a long array into the buffer.
      *
-     * @param value The long array to store
+     * @param values The long array to store
      */
-    fun putLongs(value: LongArray)
+    @KWireCompilerApi
+    fun putLongs(values: LongArray)
 
     /**
      * Puts a native integer array into the buffer.
      *
-     * @param value The native integer array to store
+     * @param values The native integer array to store
      */
-    fun putNInts(value: NIntArray)
+    @KWireCompilerApi
+    fun putNInts(values: NIntArray)
 
     /**
      * Puts an unsigned byte value into the buffer.
      *
      * @param value The unsigned byte value to store
      */
+    @KWireCompilerApi
     fun putUByte(value: UByte)
 
     /**
@@ -199,6 +227,7 @@ interface FFIArgBuffer {
      *
      * @param value The unsigned short value to store
      */
+    @KWireCompilerApi
     fun putUShort(value: UShort)
 
     /**
@@ -206,6 +235,7 @@ interface FFIArgBuffer {
      *
      * @param value The unsigned int value to store
      */
+    @KWireCompilerApi
     fun putUInt(value: UInt)
 
     /**
@@ -213,6 +243,7 @@ interface FFIArgBuffer {
      *
      * @param value The unsigned long value to store
      */
+    @KWireCompilerApi
     fun putULong(value: ULong)
 
     /**
@@ -220,87 +251,86 @@ interface FFIArgBuffer {
      *
      * @param value The native unsigned integer value to store
      */
+    @KWireCompilerApi
     fun putNUInt(value: NUInt)
 
     /**
      * Puts an unsigned byte array into the buffer.
      *
-     * @param value The unsigned byte array to store
+     * @param values The unsigned byte array to store
      */
-    fun putUBytes(value: UByteArray)
+    @KWireCompilerApi
+    fun putUBytes(values: UByteArray)
 
     /**
      * Puts an unsigned short array into the buffer.
      *
-     * @param value The unsigned short array to store
+     * @param values The unsigned short array to store
      */
-    fun putUShorts(value: UShortArray)
+    @KWireCompilerApi
+    fun putUShorts(values: UShortArray)
 
     /**
      * Puts an unsigned int array into the buffer.
      *
-     * @param value The unsigned int array to store
+     * @param values The unsigned int array to store
      */
-    fun putUInts(value: UIntArray)
+    @KWireCompilerApi
+    fun putUInts(values: UIntArray)
 
     /**
      * Puts an unsigned long array into the buffer.
      *
-     * @param value The unsigned long array to store
+     * @param values The unsigned long array to store
      */
-    fun putULongs(value: ULongArray)
+    @KWireCompilerApi
+    fun putULongs(values: ULongArray)
 
     /**
      * Puts a native unsigned integer array into the buffer.
      *
-     * @param value The native unsigned integer array to store
+     * @param values The native unsigned integer array to store
      */
-    fun putNUInts(value: NUIntArray)
+    @KWireCompilerApi
+    fun putNUInts(values: NUIntArray)
 
     /**
      * Puts a float array into the buffer.
      *
-     * @param value The float array to store
+     * @param values The float array to store
      */
-    fun putFloats(value: FloatArray)
+    @KWireCompilerApi
+    fun putFloats(values: FloatArray)
 
     /**
      * Puts a double array into the buffer.
      *
-     * @param value The double array to store
+     * @param values The double array to store
      */
-    fun putDoubles(value: DoubleArray)
+    @KWireCompilerApi
+    fun putDoubles(values: DoubleArray)
+
+    /**
+     * Puts a native float array into the buffer.
+     *
+     * @param values The native float array to store
+     */
+    @KWireCompilerApi
+    fun putNFloats(values: NFloatArray)
 
     /**
      * Puts an array of pointers into the buffer.
      *
-     * @param value The pointer array to store
+     * @param values The pointer array to store
      */
-    fun putPointers(value: PtrArray<*>)
+    @KWireCompilerApi
+    fun putPointers(values: PtrArray<*>)
 }
 
-/**
- * Internal implementation of [FFIArgBuffer] that manages a memory buffer for storing arguments.
- *
- * This class allocates a memory buffer of [FFIArgBuffer.DEFAULT_SIZE] bytes and provides methods
- * for writing values of various types to the buffer. It tracks the current offset in the buffer
- * and the types of arguments stored.
- */
 @PublishedApi
 internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuffer {
-    /**
-     * The memory address of the buffer.
-     */
     override val address: VoidPtr = Memory.allocate(FFIArgBuffer.DEFAULT_SIZE.toNUInt())
-
-    /**
-     * The current offset in the buffer.
-     */
     private var offset: NUInt = 0U.toNUInt()
-
-    /**
-     * List of types of arguments stored in the buffer.
-     */
     override val types: ArrayList<FFIType> = ArrayList()
 
     init {
@@ -308,13 +338,6 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
         ShutdownHandler.register(AutoCloseable(::free))
     }
 
-    /**
-     * Calculates the next offset in the buffer for storing a value of the given type.
-     *
-     * @param type The type of value to store
-     * @return The offset in the buffer where the value should be stored
-     * @throws IllegalStateException if the buffer would overflow
-     */
     private fun nextOffset(type: FFIType, count: Int = 1): NUInt {
         val newOffset = offset + (type.size * count).toNUInt()
         check(newOffset < FFIArgBuffer.DEFAULT_SIZE.toNUInt()) { "Exceeded argument buffer limit" }
@@ -324,212 +347,79 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
         return oldOffset
     }
 
-    /**
-     * Calculates the next address in the buffer for storing a value of the given type.
-     *
-     * @param type The type of value to store
-     * @param count The number of values to store (for arrays)
-     * @return The address in the buffer where the value should be stored
-     */
     private inline fun nextAddress(type: FFIType, count: Int = 1): VoidPtr = address + nextOffset(type, count)
 
-    /**
-     * Gets the memory address for the argument at the specified index in the buffer.
-     *
-     * @param index The index of the argument to get the address for
-     * @return The memory address where the argument is stored
-     */
     override fun getAddress(index: Int): VoidPtr {
         return address + types.take(index).sumOf { it.size }
     }
 
-    /**
-     * Puts a byte value into the buffer.
-     *
-     * @param value The byte value to store
-     */
+    override fun putAll(arguments: Array<Any>) {
+        // We only need to handle NUInt here because it's got its own type identity;
+        // NInt and NFloat are expanded into their respective types, so Int/Long and Float/Double handles them.
+        for (argument in arguments) when (argument) {
+            is Byte -> putByte(argument)
+            is Short -> putShort(argument)
+            is Int -> putInt(argument)
+            is Long -> putLong(argument)
+            is UByte -> putUByte(argument)
+            is UShort -> putUShort(argument)
+            is UInt -> putUInt(argument)
+            is ULong -> putULong(argument)
+            is Float -> putFloat(argument)
+            is Double -> putDouble(argument)
+            is NUInt -> putNUInt(argument)
+            is ByteArray -> putBytes(argument)
+            is ShortArray -> putShorts(argument)
+            is IntArray -> putInts(argument)
+            is LongArray -> putLongs(argument)
+            is UByteArray -> putUBytes(argument)
+            is UShortArray -> putUShorts(argument)
+            is UIntArray -> putUInts(argument)
+            is ULongArray -> putULongs(argument)
+            is FloatArray -> putFloats(argument)
+            is NUIntArray -> putNUInts(argument)
+            is Address -> putPointer(argument)
+            is PtrArray<*> -> putPointers(argument)
+            else -> error("Unsupported FFI argument type ${argument::class}")
+        }
+    }
+
     override fun putByte(value: Byte) = Memory.writeByte(nextAddress(FFIType.BYTE), value)
-
-    /**
-     * Puts a short value into the buffer.
-     *
-     * @param value The short value to store
-     */
     override fun putShort(value: Short) = Memory.writeShort(nextAddress(FFIType.SHORT), value)
-
-    /**
-     * Puts an int value into the buffer.
-     *
-     * @param value The int value to store
-     */
     override fun putInt(value: Int) = Memory.writeInt(nextAddress(FFIType.INT), value)
-
-    /**
-     * Puts a long value into the buffer.
-     *
-     * @param value The long value to store
-     */
     override fun putLong(value: Long) = Memory.writeLong(nextAddress(FFIType.LONG), value)
-
-    /**
-     * Puts a native integer value into the buffer.
-     *
-     * @param value The native integer value to store
-     */
     override fun putNInt(value: NInt) = Memory.writeNInt(nextAddress(FFIType.NINT), value)
 
-    /**
-     * Puts a pointer value into the buffer.
-     *
-     * @param value The pointer value to store
-     */
-    override fun putPointer(value: Address) = Memory.writePointer(nextAddress(FFIType.PTR), value)
-
-    /**
-     * Puts an unsigned byte value into the buffer.
-     *
-     * @param value The unsigned byte value to store
-     */
     override fun putUByte(value: UByte) = Memory.writeUByte(nextAddress(FFIType.UBYTE), value)
-
-    /**
-     * Puts an unsigned short value into the buffer.
-     *
-     * @param value The unsigned short value to store
-     */
     override fun putUShort(value: UShort) = Memory.writeUShort(nextAddress(FFIType.USHORT), value)
-
-    /**
-     * Puts an unsigned int value into the buffer.
-     *
-     * @param value The unsigned int value to store
-     */
     override fun putUInt(value: UInt) = Memory.writeUInt(nextAddress(FFIType.UINT), value)
-
-    /**
-     * Puts an unsigned long value into the buffer.
-     *
-     * @param value The unsigned long value to store
-     */
     override fun putULong(value: ULong) = Memory.writeULong(nextAddress(FFIType.ULONG), value)
-
-    /**
-     * Puts a native unsigned integer value into the buffer.
-     *
-     * @param value The native unsigned integer value to store
-     */
     override fun putNUInt(value: NUInt) = Memory.writeNUInt(nextAddress(FFIType.NUINT), value)
 
-    /**
-     * Puts a float value into the buffer.
-     *
-     * @param value The float value to store
-     */
+    override fun putPointer(value: Address) = Memory.writePointer(nextAddress(FFIType.PTR), value)
+
     override fun putFloat(value: Float) = Memory.writeFloat(nextAddress(FFIType.FLOAT), value)
-
-    /**
-     * Puts a double value into the buffer.
-     *
-     * @param value The double value to store
-     */
     override fun putDouble(value: Double) = Memory.writeDouble(nextAddress(FFIType.DOUBLE), value)
+    override fun putNFloat(value: NFloat) = Memory.writeNFloat(nextAddress(FFIType.NFLOAT), value)
 
-    /**
-     * Puts a byte array into the buffer.
-     *
-     * @param value The byte array to store
-     */
-    override fun putBytes(value: ByteArray) = Memory.writeBytes(nextAddress(FFIType.BYTE, value.size), value)
+    override fun putBytes(values: ByteArray) = Memory.writeBytes(nextAddress(FFIType.BYTE, values.size), values)
+    override fun putShorts(values: ShortArray) = Memory.writeShorts(nextAddress(FFIType.SHORT, values.size), values)
+    override fun putInts(values: IntArray) = Memory.writeInts(nextAddress(FFIType.INT, values.size), values)
+    override fun putLongs(values: LongArray) = Memory.writeLongs(nextAddress(FFIType.LONG, values.size), values)
+    override fun putNInts(values: NIntArray) = Memory.writeNInts(nextAddress(FFIType.NINT, values.size), values)
 
-    /**
-     * Puts a short array into the buffer.
-     *
-     * @param value The short array to store
-     */
-    override fun putShorts(value: ShortArray) = Memory.writeShorts(nextAddress(FFIType.SHORT, value.size), value)
+    override fun putUBytes(values: UByteArray) = Memory.writeUBytes(nextAddress(FFIType.UBYTE, values.size), values)
+    override fun putUShorts(values: UShortArray) = Memory.writeUShorts(nextAddress(FFIType.USHORT, values.size), values)
+    override fun putUInts(values: UIntArray) = Memory.writeUInts(nextAddress(FFIType.UINT, values.size), values)
+    override fun putULongs(values: ULongArray) = Memory.writeULongs(nextAddress(FFIType.ULONG, values.size), values)
+    override fun putNUInts(values: NUIntArray) = Memory.writeNUInts(nextAddress(FFIType.NUINT, values.size), values)
 
-    /**
-     * Puts an int array into the buffer.
-     *
-     * @param value The int array to store
-     */
-    override fun putInts(value: IntArray) = Memory.writeInts(nextAddress(FFIType.INT, value.size), value)
+    override fun putFloats(values: FloatArray) = Memory.writeFloats(nextAddress(FFIType.FLOAT, values.size), values)
+    override fun putDoubles(values: DoubleArray) = Memory.writeDoubles(nextAddress(FFIType.DOUBLE, values.size), values)
+    override fun putNFloats(values: NFloatArray) = Memory.writeNFloats(nextAddress(FFIType.NFLOAT, values.size), values)
 
-    /**
-     * Puts a long array into the buffer.
-     *
-     * @param value The long array to store
-     */
-    override fun putLongs(value: LongArray) = Memory.writeLongs(nextAddress(FFIType.LONG, value.size), value)
+    override fun putPointers(values: PtrArray<*>) = Memory.writePointers(nextAddress(FFIType.PTR, values.size), values)
 
-    /**
-     * Puts a native integer array into the buffer.
-     *
-     * @param value The native integer array to store
-     */
-    override fun putNInts(value: NIntArray) = Memory.writeNInts(nextAddress(FFIType.NINT, value.size), value)
-
-    /**
-     * Puts an unsigned byte array into the buffer.
-     *
-     * @param value The unsigned byte array to store
-     */
-    override fun putUBytes(value: UByteArray) = Memory.writeUBytes(nextAddress(FFIType.UBYTE, value.size), value)
-
-    /**
-     * Puts an unsigned short array into the buffer.
-     *
-     * @param value The unsigned short array to store
-     */
-    override fun putUShorts(value: UShortArray) = Memory.writeUShorts(nextAddress(FFIType.USHORT, value.size), value)
-
-    /**
-     * Puts an unsigned int array into the buffer.
-     *
-     * @param value The unsigned int array to store
-     */
-    override fun putUInts(value: UIntArray) = Memory.writeUInts(nextAddress(FFIType.UINT, value.size), value)
-
-    /**
-     * Puts an unsigned long array into the buffer.
-     *
-     * @param value The unsigned long array to store
-     */
-    override fun putULongs(value: ULongArray) = Memory.writeULongs(nextAddress(FFIType.ULONG, value.size), value)
-
-    /**
-     * Puts a native unsigned integer array into the buffer.
-     *
-     * @param value The native unsigned integer array to store
-     */
-    override fun putNUInts(value: NUIntArray) = Memory.writeNUInts(nextAddress(FFIType.NUINT, value.size), value)
-
-    /**
-     * Puts a float array into the buffer.
-     *
-     * @param value The float array to store
-     */
-    override fun putFloats(value: FloatArray) = Memory.writeFloats(nextAddress(FFIType.FLOAT, value.size), value)
-
-    /**
-     * Puts a double array into the buffer.
-     *
-     * @param value The double array to store
-     */
-    override fun putDoubles(value: DoubleArray) = Memory.writeDoubles(nextAddress(FFIType.DOUBLE, value.size), value)
-
-    /**
-     * Puts an array of pointers into the buffer.
-     *
-     * @param value The pointer array to store
-     */
-    override fun putPointers(value: PtrArray<*>) = Memory.writePointers(nextAddress(FFIType.PTR, value.size), value)
-
-    /**
-     * Clears the buffer by resetting the offset and types list.
-     *
-     * @return This buffer instance
-     */
     @PublishedApi
     internal fun clear(): FFIArgBufferImpl {
         if (offset == 0U.toNUInt()) return this
@@ -538,9 +428,6 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
         return this
     }
 
-    /**
-     * Frees the memory allocated for the buffer.
-     */
     private fun free() {
         Memory.free(address)
         types.clear()

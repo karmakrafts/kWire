@@ -18,12 +18,14 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
 import dev.karmakrafts.kwire.memory.sizeOf
 import kotlin.jvm.JvmInline
 
+@KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
 value class NumPtr<N : Number> @PublishedApi internal constructor(
@@ -37,15 +39,17 @@ value class NumPtr<N : Number> @PublishedApi internal constructor(
 
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
     inline fun <N : Number> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
+    inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
     inline fun align(alignment: NUInt): NumPtr<N> = NumPtr(Memory.align(rawAddress, alignment))
 
     inline fun asNUInt(): NUInt = rawAddress
     inline fun asNInt(): NInt = rawAddress.value
-    inline fun asUInt(): UInt = rawAddress.uintValue
-    inline fun asInt(): Int = rawAddress.value.intValue
-    inline fun asULong(): ULong = rawAddress.ulongValue
-    inline fun asLong(): Long = rawAddress.value.longValue
+    inline fun asUInt(): UInt = rawAddress.toUInt()
+    inline fun asInt(): Int = rawAddress.value.toInt()
+    inline fun asULong(): ULong = rawAddress.toULong()
+    inline fun asLong(): Long = rawAddress.value.toLong()
 
     inline operator fun plus(other: NUInt): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other))
     inline operator fun plus(other: Int): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other.toNUInt()))
@@ -76,6 +80,7 @@ value class NumPtr<N : Number> @PublishedApi internal constructor(
         is Ptr<*> -> rawAddress == other.rawAddress
         is NumPtr<*> -> rawAddress == other.rawAddress
         is VoidPtr -> rawAddress == other.rawAddress
+        is FunPtr<*> -> rawAddress == other.rawAddress
         else -> false
     }
 

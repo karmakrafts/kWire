@@ -17,15 +17,11 @@
 package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -37,14 +33,17 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
+import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
@@ -55,14 +54,61 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.constructors
+import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.filterIsInstanceAnd
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrFunctionAccessExpression.putArguments( // @formatter:off
+    typeArguments: Map<String, IrType>,
+    valueArguments: Map<String, IrExpression>
+) { // @formatter:on
+    val function = symbol.owner
+    for ((name, type) in typeArguments) {
+        var parameter = function.typeParameters.find { it.name.asString() == name }
+        // For constructor calls, alternatively attempt to resolve type parameter from class
+        if(parameter == null && this is IrConstructorCall) {
+            parameter = this.type.getClass()?.typeParameters?.find { it.name.asString() == name }
+        }
+        check(parameter != null) { "No type parameter named $name found in ${function.dump()}" }
+        this.typeArguments[parameter.index] = type
+    }
+    for ((name, value) in valueArguments) {
+        val parameter = function.parameters.find { it.name.asString() == name }
+        check(parameter != null) { "No value parameter named $name found in ${function.dump()}" }
+        arguments[parameter] = value
+    }
+}
+
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrConstructorSymbol.new(
+    startOffset: Int = SYNTHETIC_OFFSET,
+    endOffset: Int = SYNTHETIC_OFFSET,
+    typeArguments: Map<String, IrType> = emptyMap(),
+    valueArguments: Map<String, IrExpression> = emptyMap()
+): IrConstructorCall = IrConstructorCallImpl(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = owner.returnType,
+    symbol = this,
+    typeArgumentsCount = typeArguments.size,
+    constructorTypeArgumentsCount = typeArguments.size
+).apply {
+    putArguments(typeArguments, valueArguments)
+}
+
+internal fun IrConstructor.new(
+    startOffset: Int = SYNTHETIC_OFFSET,
+    endOffset: Int = SYNTHETIC_OFFSET,
+    typeArguments: Map<String, IrType> = emptyMap(),
+    valueArguments: Map<String, IrExpression> = emptyMap()
+): IrConstructorCall = symbol.new(startOffset, endOffset, typeArguments, valueArguments)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrSimpleFunctionSymbol.call(
@@ -85,14 +131,7 @@ internal fun IrSimpleFunctionSymbol.call(
 ).apply {
     this.dispatchReceiver = dispatchReceiver
     this.extensionReceiver = extensionReceiver
-    for ((name, type) in typeArguments) {
-        val parameter = owner.typeParameters.first { it.name.asString() == name }
-        this.typeArguments[parameter.index] = type
-    }
-    for ((name, value) in valueArguments) {
-        val parameter = owner.parameters.first { it.name.asString() == name }
-        arguments[parameter] = value
-    }
+    putArguments(typeArguments, valueArguments)
 }
 
 internal fun IrSimpleFunction.call(
@@ -326,25 +365,6 @@ internal fun IrConstructorCall.getAnnotationValues(): Map<String, Any?> {
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.getCompanionObjects(): List<IrClass> = declarations.filterIsInstanceAnd<IrClass> { it.isCompanion }
-
-internal fun Visibility.getVisibilityName(): String = when (this) {
-    Visibilities.Public -> "PUBLIC"
-    Visibilities.Protected -> "PROTECTED"
-    Visibilities.Internal -> "INTERNAL"
-    else -> "PRIVATE"
-}
-
-internal fun Modality.getModalityName(): String = when (this) {
-    Modality.OPEN -> "OPEN"
-    Modality.SEALED -> "SEALED"
-    Modality.ABSTRACT -> "ABSTRACT"
-    Modality.FINAL -> "FINAL"
-}
-
-internal fun IrFunction.getModality(): Modality = when {
-    isOverridable -> Modality.OPEN
-    else -> Modality.FINAL
-}
 
 internal fun IrClassSymbol.getObjectInstance(): IrGetObjectValueImpl = IrGetObjectValueImpl(
     startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = defaultType, symbol = this@getObjectInstance

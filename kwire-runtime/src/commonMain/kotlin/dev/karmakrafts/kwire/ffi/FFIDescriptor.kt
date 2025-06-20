@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
 /**
  * Descriptor for a foreign function interface (FFI) function signature.
  *
@@ -30,6 +32,7 @@ package dev.karmakrafts.kwire.ffi
  * @property returnType The return type of the function, defaults to [FFIType.VOID]
  * @property parameterTypes List of parameter types for the function, defaults to an empty list
  */
+@KWireCompilerApi
 data class FFIDescriptor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()

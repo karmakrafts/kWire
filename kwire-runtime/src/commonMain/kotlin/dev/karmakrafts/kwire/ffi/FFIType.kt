@@ -18,7 +18,9 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
 import kotlin.reflect.KClass
@@ -34,76 +36,98 @@ import kotlin.reflect.KClass
  * @property size The size of this type in bytes.
  * @property dimensions The number of array dimensions. For primitive types, this is 0.
  */
+@KWireCompilerApi
 interface FFIType {
+    @KWireCompilerApi
     companion object {
         /**
          * Represents the void type (no value).
          */
+        @KWireCompilerApi
         val VOID: FFIType = DefaultFFIType(Unit::class, 0)
 
         /**
          * Represents a signed 8-bit integer.
          */
+        @KWireCompilerApi
         val BYTE: FFIType = DefaultFFIType(Byte::class, Byte.SIZE_BYTES)
 
         /**
          * Represents a signed 16-bit integer.
          */
+        @KWireCompilerApi
         val SHORT: FFIType = DefaultFFIType(Short::class, Short.SIZE_BYTES)
 
         /**
          * Represents a signed 32-bit integer.
          */
+        @KWireCompilerApi
         val INT: FFIType = DefaultFFIType(Int::class, Int.SIZE_BYTES)
 
         /**
          * Represents a signed 64-bit integer.
          */
+        @KWireCompilerApi
         val LONG: FFIType = DefaultFFIType(Long::class, Long.SIZE_BYTES)
 
         /**
          * Represents a native signed integer with platform-specific size.
          */
+        @KWireCompilerApi
         val NINT: FFIType = DefaultFFIType(NInt::class, Address.SIZE_BYTES)
 
         /**
          * Represents an unsigned 8-bit integer.
          */
+        @KWireCompilerApi
         val UBYTE: FFIType = DefaultFFIType(UByte::class, UByte.SIZE_BYTES)
 
         /**
          * Represents an unsigned 16-bit integer.
          */
+        @KWireCompilerApi
         val USHORT: FFIType = DefaultFFIType(UShort::class, UShort.SIZE_BYTES)
 
         /**
          * Represents an unsigned 32-bit integer.
          */
+        @KWireCompilerApi
         val UINT: FFIType = DefaultFFIType(UInt::class, UInt.SIZE_BYTES)
 
         /**
          * Represents an unsigned 64-bit integer.
          */
+        @KWireCompilerApi
         val ULONG: FFIType = DefaultFFIType(ULong::class, ULong.SIZE_BYTES)
 
         /**
          * Represents a native unsigned integer with platform-specific size.
          */
+        @KWireCompilerApi
         val NUINT: FFIType = DefaultFFIType(NUInt::class, Address.SIZE_BYTES)
 
         /**
          * Represents a 32-bit floating-point number.
          */
+        @KWireCompilerApi
         val FLOAT: FFIType = DefaultFFIType(Float::class, Float.SIZE_BYTES)
 
         /**
          * Represents a 64-bit floating-point number.
          */
+        @KWireCompilerApi
         val DOUBLE: FFIType = DefaultFFIType(Double::class, Double.SIZE_BYTES)
+
+        /**
+         * Represents a native floating-point number.
+         */
+        @KWireCompilerApi
+        val NFLOAT: FFIType = DefaultFFIType(NFloat::class, Address.SIZE_BYTES)
 
         /**
          * Represents a pointer type.
          */
+        @KWireCompilerApi
         val PTR: FFIType = DefaultFFIType(Address::class, Address.SIZE_BYTES)
 
         /**
@@ -128,6 +152,7 @@ interface FFIType {
  * @param elementCount The number of elements in the array.
  * @return A new [FFIType] representing an array of the original type.
  */
+@KWireCompilerApi
 inline fun FFIType.array(elementCount: Int): FFIType = FFIArrayType(this, elementCount, dimensions + 1)
 
 /**

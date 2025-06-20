@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-@file:JvmName("PtrImpl")
-
 package dev.karmakrafts.kwire.ctype
 
-internal actual val pointerSize: Int by lazy {
-    System.getProperty("sun.arch.data.model").toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
-}
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+/**
+ * A marker annotation which, when applied to a value parameter or a type
+ * which represents a pointer, omits readbacks from unmanaged memory to
+ * the source (variable or field) of the pointer reference.
+ */
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE)
+annotation class Const

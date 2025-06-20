@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+@file:JvmName("AddressImpl")
 
-internal enum class KWireIntrinsicType {
-    // @formatter:off
-    SIZE_OF,
-    ALIGN_OF,
-    OFFSET_OF,
-    PTR_NULL,
-    PTR_REF,
-    PTR_DEREF,
-    PTR_SET,
-    PTR_ARRAY_GET,
-    PTR_ARRAY_SET,
-    PTR_INVOKE
-    // @formatter:on
+package dev.karmakrafts.kwire.ctype
+
+internal actual val pointerSize: Int by lazy {
+    System.getProperty("sun.arch.data.model").toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
 }

@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.transformer
+package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
-import dev.karmakrafts.kwire.compiler.util.isStruct
+import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
-internal class MemoryLayoutTransformer(
-    private val context: KWirePluginContext
-) : IrVisitorVoid() {
+internal class ConstValidationVisitor(
+    context: KWirePluginContext
+) : IrVisitorVoid(), MessageCollectorExtensions by context {
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
     }
 
-    // Pre-compute memory layout and attach to class using @Struct.Layout annotation
-    override fun visitClass(declaration: IrClass) {
-        super.visitClass(declaration)
-        if (!declaration.isStruct(context) || declaration.hasStructLayoutData()) return
-        val layout = context.getOrComputeMemoryLayout(declaration.defaultType)
-        context.attachMemoryLayout(declaration, layout)
+    override fun visitValueParameter(declaration: IrValueParameter) {
+        super.visitValueParameter(declaration)
+        // TODO: check type of const parameter(s)
     }
 }

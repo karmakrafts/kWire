@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.ir.util.target
 
 internal class MemoryIntrinsicsTransformer(
     context: KWirePluginContext
-) : KWireIntrinsicTransformer(context, setOf( // @formatter:off
+) : IntrinsicTransformer(context, setOf( // @formatter:off
     KWireIntrinsicType.SIZE_OF,
     KWireIntrinsicType.ALIGN_OF,
     KWireIntrinsicType.OFFSET_OF
@@ -41,7 +41,7 @@ internal class MemoryIntrinsicsTransformer(
     // @formatter:on
     private fun emitSizeOf(call: IrCall): IrExpression {
         val type = call.typeArguments.first() ?: return constNUInt(context, 0UL)
-        val layout = context.computeMemoryLayout(type)
+        val layout = context.getOrComputeMemoryLayout(type)
         return context.toNUInt(layout.emitSize(context))
     }
 
@@ -50,7 +50,7 @@ internal class MemoryIntrinsicsTransformer(
         if (type.hasCustomAlignment()) {
             return constNUInt(context, type.getCustomAlignment()!!.toULong())
         }
-        val layout = context.computeMemoryLayout(type)
+        val layout = context.getOrComputeMemoryLayout(type)
         return context.toNUInt(layout.emitAlignment(context))
     }
 
@@ -64,7 +64,7 @@ internal class MemoryIntrinsicsTransformer(
         }
         val property = ref.symbol.owner
         val clazz = property.parentAsClass
-        val layout = context.computeMemoryLayout(clazz.defaultType)
+        val layout = context.getOrComputeMemoryLayout(clazz.defaultType)
         val index = clazz.properties.indexOf(property)
         if (index == -1) {
             reportError("Could not determine field index for offsetOf", call)
@@ -75,7 +75,7 @@ internal class MemoryIntrinsicsTransformer(
 
     override fun visitIntrinsic( // @formatter:off
         expression: IrCall,
-        data: KWireIntrinsicContext,
+        data: IntrinsicContext,
         type: KWireIntrinsicType
     ): IrElement { // @formatter:on
         return when (type) {

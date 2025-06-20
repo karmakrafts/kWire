@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.compiler.transformer
 
-internal enum class KWireIntrinsicType {
-    // @formatter:off
-    SIZE_OF,
-    ALIGN_OF,
-    OFFSET_OF,
-    PTR_NULL,
-    PTR_REF,
-    PTR_DEREF,
-    PTR_SET,
-    PTR_ARRAY_GET,
-    PTR_ARRAY_SET,
-    PTR_INVOKE
-    // @formatter:on
-}
+internal class IntrinsicContext

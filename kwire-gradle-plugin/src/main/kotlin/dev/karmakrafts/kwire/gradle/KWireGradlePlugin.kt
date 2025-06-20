@@ -21,6 +21,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import javax.inject.Inject
@@ -90,5 +91,9 @@ open class KWireGradlePlugin @Inject constructor(
      * @param kotlinCompilation The Kotlin compilation to check.
      * @return Always returns true, as this plugin is applicable to all compilations.
      */
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        val platformType = kotlinCompilation.target.platformType
+        // We only support JVM and Kotlin/Native
+        return platformType != KotlinPlatformType.js && platformType != KotlinPlatformType.wasm
+    }
 }

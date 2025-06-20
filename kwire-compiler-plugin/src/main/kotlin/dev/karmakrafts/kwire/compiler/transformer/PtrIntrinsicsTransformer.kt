@@ -21,55 +21,53 @@ import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.isAddress
+import dev.karmakrafts.kwire.compiler.util.isFunPtr
 import dev.karmakrafts.kwire.compiler.util.isNumPtr
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.isVoidPtr
+import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
-import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.classifierOrNull
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.typeOrNull
-import org.jetbrains.kotlin.ir.util.isTypeParameter
+import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.target
 
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
-) : KWireIntrinsicTransformer(context, setOf( // @formatter:off
+) : IntrinsicTransformer(context, setOf( // @formatter:off
     KWireIntrinsicType.PTR_NULL,
     KWireIntrinsicType.PTR_REF,
     KWireIntrinsicType.PTR_DEREF,
     KWireIntrinsicType.PTR_SET,
     KWireIntrinsicType.PTR_ARRAY_GET,
-    KWireIntrinsicType.PTR_ARRAY_SET
+    KWireIntrinsicType.PTR_ARRAY_SET,
+    KWireIntrinsicType.PTR_INVOKE
 )) {
+    private inline fun emitTypedNull( // @formatter:off
+        call: IrCall,
+        type: IrType,
+        emitter: (IrExpression, IrType) -> IrExpression
+    ): IrExpression { // @formatter:on
+        val pointedType = type.getPointedType()
+        if (pointedType == null) {
+            reportError("Could not determine pointed type for NumPtr", call)
+            return call
+        }
+        return emitter(constNUInt(context, 0UL), pointedType)
+    }
+
     private fun emitNull(call: IrCall): IrExpression {
         val type = call.typeArguments.first()
-        if(type == null) {
+        if (type == null) {
             reportError("Could not determine pointer type for nullptr", call)
             return call
         }
         return when {
-            type.isNumPtr() -> {
-                val pointedType = type.getPointedType()
-                if(pointedType == null) {
-                    reportError("Could not determine pointed type for NumPtr", call)
-                    return call
-                }
-                context.createNumPtr(constNUInt(context, 0UL), pointedType)
-            }
-            type.isPtr() -> {
-                val pointedType = type.getPointedType()
-                if(pointedType == null) {
-                    reportError("Could not determine pointed type for Ptr", call)
-                    return call
-                }
-                context.createPtr(constNUInt(context, 0UL), pointedType)
-            }
-            // Void pointers and raw addresses are handled the same since VoidPtr is polymorphic over Address
+            type.isNumPtr() -> emitTypedNull(call, type, context::createNumPtr)
+            type.isFunPtr() -> emitTypedNull(call, type, context::createFunPtr)
+            type.isPtr() -> emitTypedNull(call, type, context::createPtr)
             type.isVoidPtr() || type.isAddress(context) -> context.createVoidPtr(constNUInt(context, 0UL))
             else -> {
                 reportError("Could not determine pointer type for nullptr", call)
@@ -79,54 +77,32 @@ internal class PtrIntrinsicsTransformer(
     }
 
     private fun emitRef(call: IrCall): IrExpression {
+        // TODO: implement allocation scopes
         TODO("Implement this")
     }
 
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun emitDeref(call: IrCall): IrExpression {
-        val function = call.target
-
-        // Determine the outgoing type (parameter)
-        val type = function.returnType // This references the N type for NumPtr and the T type for Ptr
-        if (!type.isTypeParameter()) {
-            reportError("Could not determine type of dereference", call)
+        val type = call.type.resolveFromReceiver(call)
+        if (type == null) {
+            reportError("Could not resolve reference type for dereference", call)
             return call
         }
-        val typeParam = (type.classifierOrNull as? IrTypeParameterSymbol)?.owner
-        if(typeParam == null) {
-            reportError("Could not determine type parameter symbol of dereference", call)
-            return call
-        }
-
-        // Determine the concrete pointed type of the given pointer dispatch receiver
-        val dispatchType = call.dispatchReceiver?.type
-        if(dispatchType == null || dispatchType !is IrSimpleType) {
-            reportError("Could not determine dispatch receiver type of dereference", call)
-            return call
-        }
-        val dispatchClass = dispatchType.getClass()
-        if(dispatchClass == null) {
-            reportError("Could not determine dispatch receiver class of dereference", call)
-            return call
-        }
-        val classTypeParam = dispatchClass.typeParameters.find { it.name == typeParam.name }
-        if(classTypeParam == null) {
-            reportError("Could not determine parent type parameter of dereference", call)
-            return call
-        }
-        val actualType = dispatchType.arguments[classTypeParam.index].typeOrNull
-        if(actualType == null) {
-            reportError("Could not determine concrete type of dereference", call)
-            return call
-        }
-
-        // Determine the memory layout of the concrete type and emit a read
-        val layout = context.computeMemoryLayout(actualType)
+        val layout = context.getOrComputeMemoryLayout(type)
         return layout.emitRead(context, call.dispatchReceiver!!)
     }
 
     private fun emitSet(call: IrCall): IrExpression {
-        TODO("Implement this")
+        val function = call.target
+        val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        val valueParam = params.first { it.name.asString() == "value" }
+        val type = valueParam.type.resolveFromReceiver(call)
+        if (type == null) {
+            reportError("Could not resolve reference type for pointer write", call)
+            return call
+        }
+        val layout = context.getOrComputeMemoryLayout(type)
+        val value = call.arguments[valueParam]!!
+        return layout.emitWrite(context, call.dispatchReceiver!!, value)
     }
 
     private fun emitArrayGet(call: IrCall): IrExpression {
@@ -137,7 +113,21 @@ internal class PtrIntrinsicsTransformer(
         TODO("Implement this")
     }
 
-    override fun visitIntrinsic(expression: IrCall, data: KWireIntrinsicContext, type: KWireIntrinsicType): IrElement {
+    private fun emitInvoke(call: IrCall): IrExpression {
+        val function = call.target
+        val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        val argsParam = params.first { it.name.asString() == "args" }
+        val argsValue = call.arguments[argsParam]!!
+        check(argsValue is IrVararg) { "Function pointer invocation requires variadic arguments" }
+        val argBuffer = context.ffi.extractArgumentsIntoBuffer(argsValue)
+        if (argBuffer == null) {
+            reportError("Could not extract pointer invocation arguments", call)
+            return call
+        }
+        return call
+    }
+
+    override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {
         return when (type) {
             KWireIntrinsicType.PTR_NULL -> emitNull(expression)
             KWireIntrinsicType.PTR_REF -> emitRef(expression)
@@ -145,6 +135,7 @@ internal class PtrIntrinsicsTransformer(
             KWireIntrinsicType.PTR_SET -> emitSet(expression)
             KWireIntrinsicType.PTR_ARRAY_GET -> emitArrayGet(expression)
             KWireIntrinsicType.PTR_ARRAY_SET -> emitArraySet(expression)
+            KWireIntrinsicType.PTR_INVOKE -> emitInvoke(expression)
             else -> error("Unsupported intrinsic type $type for PtrIntrinsicsTransformer")
         }
     }

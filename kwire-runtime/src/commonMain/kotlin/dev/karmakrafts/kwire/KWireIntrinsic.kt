@@ -29,7 +29,8 @@ internal annotation class KWireIntrinsic(val type: Type) {
         PTR_DEREF,
         PTR_SET,
         PTR_ARRAY_GET,
-        PTR_ARRAY_SET;
+        PTR_ARRAY_SET,
+        PTR_INVOKE
         // @formatter:on
     }
 }

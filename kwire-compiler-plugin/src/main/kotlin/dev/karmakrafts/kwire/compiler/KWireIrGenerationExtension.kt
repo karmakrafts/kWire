@@ -16,12 +16,13 @@
 
 package dev.karmakrafts.kwire.compiler
 
-import dev.karmakrafts.kwire.compiler.transformer.KWireIntrinsicContext
+import dev.karmakrafts.kwire.compiler.checker.ConstValidationVisitor
+import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.SharedImportTransformer
-import dev.karmakrafts.kwire.compiler.transformer.StructValidationVisitor
+import dev.karmakrafts.kwire.compiler.checker.StructValidationVisitor
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -31,12 +32,14 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         for (file in moduleFragment.files) {
             val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file)
-
+            // Validation
             file.acceptVoid(StructValidationVisitor(kwireContext))
+            file.acceptVoid(ConstValidationVisitor(kwireContext))
+            // Generation
             file.acceptVoid(SharedImportTransformer(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))
-
-            val intrinsicContext = KWireIntrinsicContext()
+            // Intrinsics lowering
+            val intrinsicContext = IntrinsicContext()
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
         }

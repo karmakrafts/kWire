@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.transformer
+package dev.karmakrafts.kwire
 
-internal class KWireIntrinsicContext
+/**
+ * Marker annotation to indicate runtime types and functions used by
+ * the KWire compiler in generated code.
+ * This is to warn about changing a runtime function without
+ * adjusting its compiler counterpart, possibly causing code generation
+ * errors otherwise.
+ */
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.TYPEALIAS, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
+internal annotation class KWireCompilerApi

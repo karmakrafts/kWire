@@ -18,11 +18,11 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.kwire.compiler.util.BuiltinMemoryLayout
-import dev.karmakrafts.kwire.compiler.util.MemoryLayout
-import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.util.StructMemoryLayout
-import dev.karmakrafts.kwire.compiler.util.serialize
+import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.serialize
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -52,7 +52,7 @@ class MemoryLayoutTest {
             resetAssertions()
             result irMatches {
                 val context = KWirePluginContext(pluginContext, element, element.files.first())
-                val layout = context.computeMemoryLayout(type.typeGetter(context))
+                val layout = context.getOrComputeMemoryLayout(type.typeGetter(context))
                 val data = layout.serialize()
                 val deserializedLayout = MemoryLayout.deserialize(data)
                 deserializedLayout::class shouldBe BuiltinMemoryLayout::class
@@ -69,9 +69,9 @@ class MemoryLayoutTest {
         source("""
             import dev.karmakrafts.kwire.ctype.Struct
             class Foo(
-                val x: Byte,
-                val y: Short,
-                val z: Int
+                val x: Byte = 0,
+                val y: Short = 0,
+                val z: Int = 0
             ) : Struct
         """.trimIndent())
         // @formatter:on
@@ -79,7 +79,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.computeMemoryLayout(struct.defaultType)
+            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
 
             val data = layout.serialize()
 
@@ -98,12 +98,12 @@ class MemoryLayoutTest {
         // @formatter:off
         source("""
             import dev.karmakrafts.kwire.ctype.Struct
-            class Baz(val x: Int) : Struct
-            class Bar(val x: Baz) : Struct
+            class Baz(val x: Int = 0) : Struct
+            class Bar(val x: Baz = Baz()) : Struct
             class Foo(
-                val x: Byte,
-                val y: Short,
-                val z: Bar
+                val x: Byte = 0,
+                val y: Short = 0,
+                val z: Bar = Bar()
             ) : Struct
         """.trimIndent())
         // @formatter:on
@@ -111,7 +111,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.computeMemoryLayout(struct.defaultType)
+            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
 
             val data = layout.serialize()
 
@@ -142,7 +142,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.computeMemoryLayout(struct.defaultType)
+            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
             layout shouldBe ReferenceMemoryLayout
 
             val data = layout.serialize()

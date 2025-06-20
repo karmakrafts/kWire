@@ -14,49 +14,19 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE") @file:OptIn(ExperimentalStdlibApi::class)
+@file:Suppress("NOTHING_TO_INLINE")
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
 import dev.karmakrafts.kwire.memory.sizeOf
 import kotlin.jvm.JvmInline
 
-internal expect val pointerSize: Int
-
-sealed interface Pointed
-
-sealed interface Address {
-    companion object {
-        val SIZE_BYTES: Int get() = pointerSize
-    }
-
-    val rawAddress: NUInt
-}
-
-inline fun <R : Pointed> Address.reinterpret(): Ptr<R> = Ptr(rawAddress)
-inline fun <N : Number> Address.reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
-inline fun Address.reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
-
-inline fun Address.align(alignment: NUInt): VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
-
-inline fun Address.asNUInt(): NUInt = rawAddress
-inline fun Address.asNInt(): NInt = rawAddress.value
-inline fun Address.asUInt(): UInt = rawAddress.uintValue
-inline fun Address.asInt(): Int = rawAddress.value.intValue
-inline fun Address.asULong(): ULong = rawAddress.ulongValue
-inline fun Address.asLong(): Long = rawAddress.value.longValue
-
-inline operator fun Address.plus(other: NUInt): VoidPtr = VoidPtr(rawAddress + other)
-inline operator fun Address.plus(other: Int): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
-inline operator fun Address.plus(other: Long): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
-
-inline operator fun Address.minus(other: NUInt): VoidPtr = VoidPtr(rawAddress - other)
-inline operator fun Address.minus(other: Int): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
-inline operator fun Address.minus(other: Long): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
-
+@KWireCompilerApi
+@OptIn(ExperimentalStdlibApi::class)
 @JvmInline
 value class Ptr<T : Pointed> @PublishedApi internal constructor(
     override val rawAddress: NUInt
@@ -70,15 +40,16 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
     inline fun <N : Number> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
+    inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
     inline fun align(alignment: NUInt): Ptr<T> = Ptr(Memory.align(rawAddress, alignment))
 
     inline fun asNUInt(): NUInt = rawAddress
     inline fun asNInt(): NInt = rawAddress.value
-    inline fun asUInt(): UInt = rawAddress.uintValue
-    inline fun asInt(): Int = rawAddress.value.intValue
-    inline fun asULong(): ULong = rawAddress.ulongValue
-    inline fun asLong(): Long = rawAddress.value.longValue
+    inline fun asUInt(): UInt = rawAddress.toUInt()
+    inline fun asInt(): Int = rawAddress.value.toInt()
+    inline fun asULong(): ULong = rawAddress.toULong()
+    inline fun asLong(): Long = rawAddress.value.toLong()
 
     inline operator fun plus(other: NUInt): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other))
     inline operator fun plus(other: Int): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other.toNUInt()))
@@ -109,6 +80,7 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
         is Ptr<*> -> rawAddress == other.rawAddress
         is NumPtr<*> -> rawAddress == other.rawAddress
         is VoidPtr -> rawAddress == other.rawAddress
+        is FunPtr<*> -> rawAddress == other.rawAddress
         else -> false
     }
 

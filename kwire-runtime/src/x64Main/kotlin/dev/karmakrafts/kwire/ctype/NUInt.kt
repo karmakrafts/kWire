@@ -18,32 +18,65 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+// Ignore @JvmInline warning due to @OptionalExpectation
+@KWireCompilerApi
+actual value class NUInt @PublishedApi internal constructor(
+    @PublishedApi internal val value: NInt
+) : Comparable<NUInt> {
+    actual override fun toString(): String = value.toString()
+    actual override operator fun compareTo(other: NUInt): Int = value.compareTo(other.value)
+
+    actual inline fun toByte(): Byte = value.toByte()
+    actual inline fun toShort(): Short = value.toShort()
+    actual inline fun toInt(): Int = value.toInt()
+    actual inline fun toLong(): Long = value
+    actual inline fun toFloat(): Float = value.toFloat()
+    actual inline fun toDouble(): Double = value.toDouble()
+
+    actual inline fun toUByte(): UByte = value.toUByte()
+    actual inline fun toUShort(): UShort = value.toUShort()
+    actual inline fun toUInt(): UInt = value.toUInt()
+    actual inline fun toULong(): ULong = value.toULong()
+
+    actual inline operator fun plus(other: NUInt): NUInt = (value.toULong() + other.value.toULong()).toNUInt()
+    actual inline operator fun minus(other: NUInt): NUInt = (value.toULong() - other.value.toULong()).toNUInt()
+    actual inline operator fun times(other: NUInt): NUInt = (value.toULong() * other.value.toULong()).toNUInt()
+    actual inline operator fun div(other: NUInt): NUInt = (value.toULong() / other.value.toULong()).toNUInt()
+    actual inline operator fun rem(other: NUInt): NUInt = (value.toULong() % other.value.toULong()).toNUInt()
+
+    actual inline operator fun inc(): NUInt = value.toULong().inc().toNUInt()
+    actual inline operator fun dec(): NUInt = value.toULong().dec().toNUInt()
+
+    actual inline infix fun shl(bitCount: Int): NUInt = (value.toULong() shl bitCount).toNUInt()
+    actual inline infix fun shr(bitCount: Int): NUInt = (value.toULong() shr bitCount).toNUInt()
+    actual inline infix fun and(other: NUInt): NUInt = (value.toULong() and other.value.toULong()).toNUInt()
+    actual inline infix fun or(other: NUInt): NUInt = (value.toULong() or other.value.toULong()).toNUInt()
+    actual inline infix fun xor(other: NUInt): NUInt = (value.toULong() xor other.value.toULong()).toNUInt()
+    actual inline fun inv(): NUInt = value.toULong().inv().toNUInt()
+}
+
+@KWireCompilerApi
+actual inline fun UByte.toNUInt(): NUInt = NUInt(toLong())
+
+@KWireCompilerApi
+actual inline fun UShort.toNUInt(): NUInt = NUInt(toLong())
+
+@KWireCompilerApi
 actual inline fun UInt.toNUInt(): NUInt = NUInt(toLong())
-actual inline fun Int.toNUInt(): NUInt = NUInt(toLong())
+
+@KWireCompilerApi
 actual inline fun ULong.toNUInt(): NUInt = NUInt(toLong())
-actual inline fun Long.toNUInt(): NUInt = NUInt(this)
-actual inline fun NFloat.toNUInt(): NUInt = NUInt(toLong())
 
-actual inline val NUInt.uintValue: UInt
-    get() = value.intValue.toUInt()
+@KWireCompilerApi
+actual inline fun NInt.toUnsigned(): NUInt = NUInt(toLong())
 
-actual inline val NUInt.ulongValue: ULong
-    get() = value.longValue.toULong()
+@KWireCompilerApi
+actual inline fun NFloat.toUnsigned(): NUInt = NUInt(toLong())
 
-actual inline operator fun NUInt.compareTo(other: NUInt): Int = value.compareTo(other.value)
+@KWireCompilerApi
+actual inline fun NUInt.toNInt(): NInt = value
 
-actual inline operator fun NUInt.plus(other: NUInt): NUInt = NUInt((ulongValue + other.ulongValue).toLong())
-actual inline operator fun NUInt.minus(other: NUInt): NUInt = NUInt((ulongValue - other.ulongValue).toLong())
-actual inline operator fun NUInt.times(other: NUInt): NUInt = NUInt((ulongValue * other.ulongValue).toLong())
-actual inline operator fun NUInt.div(other: NUInt): NUInt = NUInt((ulongValue / other.ulongValue).toLong())
-actual inline operator fun NUInt.rem(other: NUInt): NUInt = NUInt((ulongValue % other.ulongValue).toLong())
-
-actual inline operator fun NUInt.inc(): NUInt = this + 1U.toNUInt()
-actual inline operator fun NUInt.dec(): NUInt = this - 1U.toNUInt()
-
-actual inline infix fun NUInt.and(other: NUInt): NUInt = NUInt((ulongValue and other.ulongValue).toLong())
-actual inline infix fun NUInt.or(other: NUInt): NUInt = NUInt((ulongValue or other.ulongValue).toLong())
-actual inline infix fun NUInt.xor(other: NUInt): NUInt = NUInt((ulongValue xor other.ulongValue).toLong())
-actual inline infix fun NUInt.shl(count: Int): NUInt = NUInt((ulongValue shl count).toLong())
-actual inline infix fun NUInt.shr(count: Int): NUInt = NUInt((ulongValue shr count).toLong())
-actual inline fun NUInt.inv(): NUInt = NUInt(ulongValue.inv().toLong())
+@KWireCompilerApi
+actual inline fun NUInt.toNFloat(): NFloat = value.toDouble()

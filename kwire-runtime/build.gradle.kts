@@ -1,15 +1,3 @@
-import dev.karmakrafts.conventions.GitLabPackage
-import dev.karmakrafts.conventions.configureJava
-import dev.karmakrafts.conventions.dependsOn
-import dev.karmakrafts.conventions.getBinaryBaseName
-import dev.karmakrafts.conventions.getBinaryTaskSuffix
-import dev.karmakrafts.conventions.gitlab
-import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import java.time.ZonedDateTime
-
 /*
  * Copyright 2025 Karma Krafts & associates
  *
@@ -26,10 +14,18 @@ import java.time.ZonedDateTime
  * limitations under the License.
  */
 
+import dev.karmakrafts.conventions.GitLabPackage
+import dev.karmakrafts.conventions.configureJava
+import dev.karmakrafts.conventions.dependsOn
+import dev.karmakrafts.conventions.getBinaryBaseName
+import dev.karmakrafts.conventions.getBinaryTaskSuffix
+import dev.karmakrafts.conventions.gitlab
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import java.time.ZonedDateTime
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
-    alias(libs.plugins.rakii)
     alias(libs.plugins.dokka)
     signing
     `maven-publish`
@@ -89,7 +85,6 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
-                implementation(libs.rakii.runtime)
             }
         }
 

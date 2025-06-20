@@ -27,11 +27,7 @@ import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.PtrArray
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.doubleArrayValue
-import dev.karmakrafts.kwire.ctype.doubleValue
 import dev.karmakrafts.kwire.ctype.floatArrayValue
-import dev.karmakrafts.kwire.ctype.floatValue
-import dev.karmakrafts.kwire.ctype.intValue
-import dev.karmakrafts.kwire.ctype.longValue
 import dev.karmakrafts.kwire.ctype.toMemorySegment
 import dev.karmakrafts.kwire.ctype.toNFloat
 import dev.karmakrafts.kwire.ctype.toNInt
@@ -315,10 +311,10 @@ private object PanamaMemory : Memory {
     override fun writeNInt(address: Address, value: NInt) {
         val segment = address.toMemorySegment(Address.SIZE_BYTES)
         return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
-            segment.set(ValueLayout.JAVA_INT_UNALIGNED, 0L, value.intValue)
+            segment.set(ValueLayout.JAVA_INT_UNALIGNED, 0L, value.toInt())
         }
         else {
-            segment.set(ValueLayout.JAVA_LONG_UNALIGNED, 0L, value.longValue)
+            segment.set(ValueLayout.JAVA_LONG_UNALIGNED, 0L, value)
         }
     }
 
@@ -337,10 +333,10 @@ private object PanamaMemory : Memory {
     override fun writeNFloat(address: Address, value: NFloat) {
         val segment = address.toMemorySegment(Address.SIZE_BYTES)
         return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
-            segment.set(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L, value.floatValue)
+            segment.set(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L, value.toFloat())
         }
         else {
-            segment.set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L, value.doubleValue)
+            segment.set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L, value)
         }
     }
 

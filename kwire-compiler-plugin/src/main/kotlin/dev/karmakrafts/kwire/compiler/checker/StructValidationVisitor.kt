@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.transformer
+package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
-import dev.karmakrafts.kwire.compiler.util.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.isStruct
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
@@ -41,7 +41,7 @@ internal class StructValidationVisitor(
 
     private fun isValidStructFieldType(type: IrType): Boolean {
         // At the moment, we accept any field type except kotlin reference objects
-        return context.computeMemoryLayout(type) != ReferenceMemoryLayout
+        return context.getOrComputeMemoryLayout(type) != ReferenceMemoryLayout
     }
 
     // Enforce compatible field types and visibility
@@ -72,8 +72,7 @@ internal class StructValidationVisitor(
         val visibility = constructor.visibility
         if (visibility != DescriptorVisibilities.PUBLIC && visibility != DescriptorVisibilities.INTERNAL) {
             reportError(
-                "Unsupported struct constructor visibility $visibility, must be public or internal",
-                declaration
+                "Unsupported struct constructor visibility $visibility, must be public or internal", declaration
             )
         }
     }

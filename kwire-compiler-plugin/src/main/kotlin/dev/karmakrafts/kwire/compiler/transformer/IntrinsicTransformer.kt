@@ -25,17 +25,17 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
-internal abstract class KWireIntrinsicTransformer( // @formatter:off
+internal abstract class IntrinsicTransformer( // @formatter:off
     protected val context: KWirePluginContext,
     private val types: Set<KWireIntrinsicType>
-) : IrTransformer<KWireIntrinsicContext>(), MessageCollectorExtensions by context { // @formatter:on
+) : IrTransformer<IntrinsicContext>(), MessageCollectorExtensions by context { // @formatter:on
     abstract fun visitIntrinsic( // @formatter:off
         expression: IrCall,
-        data: KWireIntrinsicContext,
+        data: IntrinsicContext,
         type: KWireIntrinsicType
     ): IrElement // @formatter:on
 
-    override fun visitCall(expression: IrCall, data: KWireIntrinsicContext): IrElement {
+    override fun visitCall(expression: IrCall, data: IntrinsicContext): IrElement {
         // Transform using depth-first search strategy
         val transformedCall = super.visitCall(expression, data)
         if (transformedCall is IrCall) {

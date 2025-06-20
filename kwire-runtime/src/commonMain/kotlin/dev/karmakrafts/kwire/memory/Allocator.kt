@@ -19,10 +19,12 @@
 package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NumPtr
+import dev.karmakrafts.kwire.ctype.Pointed
+import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.times
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory.Companion.defaultAlignment
 
@@ -52,7 +54,31 @@ interface Allocator {
      * @param address The pointer to the memory block to free
      */
     fun free(address: Address)
+
+    /**
+     * Allocates a block of memory of the specified size and fills it with the specified byte value.
+     *
+     * @param value The byte value to fill the memory with
+     * @param size The size of the memory block to allocate in bytes
+     * @param alignment The alignment of the memory block (defaults to the platform's default alignment)
+     * @return A pointer to the allocated and initialized memory block
+     */
+    fun splat(value: Byte, size: NUInt, alignment: NUInt = defaultAlignment): VoidPtr =
+        Memory.allocate(size, alignment).apply {
+            Memory.set(this, value, size)
+        }
 }
+
+inline fun <reified N : Number> Allocator.allocateNum(): NumPtr<N> =
+    allocate(sizeOf<N>(), alignOf<N>()).reinterpretNum()
+
+inline fun <reified N : Number> Allocator.allocateNumArray(count: NUInt): NumPtr<N> =
+    allocate(sizeOf<N>() * count, alignOf<N>()).reinterpretNum()
+
+inline fun <reified T : Pointed> Allocator.allocate(): Ptr<T> = allocate(sizeOf<T>(), alignOf<T>()).reinterpret()
+
+inline fun <reified T : Pointed> Allocator.allocateArray(count: NUInt): Ptr<T> =
+    allocate(sizeOf<T>() * count, alignOf<T>()).reinterpret()
 
 // Single values (mostly used by generated code)
 
@@ -89,6 +115,12 @@ inline fun Allocator.float(value: Float): NumPtr<Float> {
 inline fun Allocator.double(value: Double): NumPtr<Double> {
     val address = allocate(Double.SIZE_BYTES.toNUInt(), Double.SIZE_BYTES.toNUInt())
     Memory.writeDouble(address, value)
+    return address.reinterpretNum()
+}
+
+inline fun Allocator.nFloat(value: NFloat): NumPtr<NFloat> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writeNFloat(address, value)
     return address.reinterpretNum()
 }
 

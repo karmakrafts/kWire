@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire
+package dev.karmakrafts.kwire.ctype
 
-/**
- * A marker annotation for functions which may or may not be
- * transformed by the kWire compiler plugin.
- */
-@Retention(AnnotationRetention.BINARY)
-annotation class IntrinsicCallCandidate
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+@KWireCompilerApi
+sealed interface Pointed

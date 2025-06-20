@@ -33,6 +33,8 @@ internal object KWireNames {
         val toNInt: Name = Name.identifier("toNInt")
         val toNUInt: Name = Name.identifier("toNUInt")
         val toNFloat: Name = Name.identifier("toNFloat")
+        val get: Name = Name.identifier("get")
+        val putAll: Name = Name.identifier("putAll")
     }
 
     object Kotlin {
@@ -104,15 +106,11 @@ internal object KWireNames {
     }
 
     val packageName: FqName = FqName("dev.karmakrafts.kwire")
-    val memoryPackageName: FqName = FqName("dev.karmakrafts.kwire.memory")
-    val ctypePackageName: FqName = FqName("dev.karmakrafts.kwire.ctype")
+    val memoryPackageName: FqName = FqName("${packageName.asString()}.memory")
+    val ctypePackageName: FqName = FqName("${packageName.asString()}.ctype")
+    val ffiPackageName: FqName = FqName("${packageName.asString()}.ffi")
 
-    val sizeOf: CallableId = CallableId(memoryPackageName, Functions.sizeOf)
-    val alignOf: CallableId = CallableId(memoryPackageName, Functions.alignOf)
-
-    val toNInt: CallableId = CallableId(ctypePackageName, Functions.toNInt)
-    val toNUInt: CallableId = CallableId(ctypePackageName, Functions.toNUInt)
-    val toNFloat: CallableId = CallableId(ctypePackageName, Functions.toNFloat)
+    // ------------------------------ dev.karmakrafts.kwire
 
     object KWireIntrinsic {
         val name: Name = Name.identifier("KWireIntrinsic")
@@ -125,6 +123,30 @@ internal object KWireNames {
         }
     }
 
+    object Marshal {
+        val name: Name = Name.identifier("Marshal")
+        val id: ClassId = ClassId(packageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object SharedImport {
+        val name: Name = Name.identifier("SharedImport")
+        val id: ClassId = ClassId(packageName, name)
+    }
+
+    // ------------------------------ dev.karmakrafts.kwire.ctype
+
+    object CTypePkg {
+        val toNInt: CallableId = CallableId(ctypePackageName, Functions.toNInt)
+        val toNUInt: CallableId = CallableId(ctypePackageName, Functions.toNUInt)
+        val toNFloat: CallableId = CallableId(ctypePackageName, Functions.toNFloat)
+    }
+
+    object Const {
+        val name: Name = Name.identifier("Const")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
     object Address {
         val name: Name = Name.identifier("Address")
         val id: ClassId = ClassId(ctypePackageName, name)
@@ -135,18 +157,6 @@ internal object KWireNames {
             val id: ClassId = ClassId(ctypePackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
             val SIZE_BYTES: CallableId = CallableId(ctypePackageName, name, Functions.SIZE_BYTES)
-        }
-    }
-
-    object Memory {
-        val name: Name = Name.identifier("Memory")
-        val id: ClassId = ClassId(memoryPackageName, name)
-        val fqName: FqName = id.asSingleFqName()
-
-        object Companion {
-            val name: FqName = FqName("Memory.Companion")
-            val id: ClassId = ClassId(memoryPackageName, name, false)
-            val fqName: FqName = id.asSingleFqName()
         }
     }
 
@@ -186,6 +196,12 @@ internal object KWireNames {
         val fqName: FqName = id.asSingleFqName()
     }
 
+    object FunPtr {
+        val name: Name = Name.identifier("FunPtr")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
     object VoidPtr {
         val name: Name = Name.identifier("VoidPtr")
         val id: ClassId = ClassId(ctypePackageName, name)
@@ -209,14 +225,68 @@ internal object KWireNames {
         val fqName: FqName = id.asSingleFqName()
     }
 
-    object Marshal {
-        val name: Name = Name.identifier("Marshal")
-        val id: ClassId = ClassId(packageName, name)
+    // ------------------------------ dev.karmakrafts.kwire.memory
+
+    object MemoryPkg {
+        val sizeOf: CallableId = CallableId(memoryPackageName, Functions.sizeOf)
+        val alignOf: CallableId = CallableId(memoryPackageName, Functions.alignOf)
+    }
+
+    object Memory {
+        val name: Name = Name.identifier("Memory")
+        val id: ClassId = ClassId(memoryPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+
+        object Companion {
+            val name: FqName = FqName("Memory.Companion")
+            val id: ClassId = ClassId(memoryPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+        }
+    }
+
+    // ------------------------------ dev.karmakrafts.kwire.ffi
+
+    object FFI {
+        val name: Name = Name.identifier("FFI")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+
+        object Companion {
+            val name: FqName = FqName("FFI.Companion")
+            val id: ClassId = ClassId(ffiPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+        }
+    }
+
+    object FFIType {
+        val name: Name = Name.identifier("FFIType")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+
+        object Companion {
+            val name: FqName = FqName("FFIType.Companion")
+            val id: ClassId = ClassId(ffiPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+        }
+    }
+
+    object FFIDescriptor {
+        val name: Name = Name.identifier("FFIDescriptor")
+        val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
     }
 
-    object SharedImport {
-        val name: Name = Name.identifier("SharedImport")
-        val id: ClassId = ClassId(packageName, name)
+    object FFIArgBuffer {
+        val name: Name = Name.identifier("FFIArgBuffer")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+        val putAll: CallableId = CallableId(id, Functions.putAll)
+
+        object Companion {
+            val name: FqName = FqName("FFIArgBuffer.Companion")
+            val id: ClassId = ClassId(ffiPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+            val get: CallableId = CallableId(ffiPackageName, name, Functions.get)
+        }
     }
 }

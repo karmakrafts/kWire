@@ -18,7 +18,6 @@
 
 package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.IntrinsicCallCandidate
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
@@ -30,7 +29,7 @@ import dev.karmakrafts.kwire.ctype.NUInt
  * It provides methods for calling the function with different return types, delegating to the
  * corresponding methods in the [FFI] companion object.
  *
- * FFIFunction objects are typically created by the [dev.karmakrafts.kwire.SharedLibrary] class when finding or getting
+ * FFIFunction objects are typically created by the [dev.karmakrafts.kwire.ffi.SharedLibrary] class when finding or getting
  * functions from a native library.
  *
  * @property name The name of the function
@@ -47,7 +46,6 @@ data class FFIFunction( // @formatter:off
      *
      * @param args A lambda with receiver for specifying function arguments
      */
-    @IntrinsicCallCandidate
     inline fun call(noinline args: FFIArgSpec = {}) = FFI.call(address, descriptor, args)
 
     /**
@@ -56,7 +54,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The byte value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callByte(noinline args: FFIArgSpec = {}): Byte = FFI.callByte(address, descriptor, args)
 
     /**
@@ -65,7 +62,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The short value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callShort(noinline args: FFIArgSpec = {}): Short = FFI.callShort(address, descriptor, args)
 
     /**
@@ -74,7 +70,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The int value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callInt(noinline args: FFIArgSpec = {}): Int = FFI.callInt(address, descriptor, args)
 
     /**
@@ -83,7 +78,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The long value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callLong(noinline args: FFIArgSpec = {}): Long = FFI.callLong(address, descriptor, args)
 
     /**
@@ -92,7 +86,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The native integer value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callNInt(noinline args: FFIArgSpec = {}): NInt = FFI.callNInt(address, descriptor, args)
 
     /**
@@ -101,7 +94,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The unsigned byte value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callUByte(noinline args: FFIArgSpec = {}): UByte = FFI.callUByte(address, descriptor, args)
 
     /**
@@ -110,7 +102,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The unsigned short value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callUShort(noinline args: FFIArgSpec = {}): UShort = FFI.callUShort(address, descriptor, args)
 
     /**
@@ -119,7 +110,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The unsigned int value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callUInt(noinline args: FFIArgSpec = {}): UInt = FFI.callUInt(address, descriptor, args)
 
     /**
@@ -128,7 +118,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The unsigned long value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callULong(noinline args: FFIArgSpec = {}): ULong = FFI.callULong(address, descriptor, args)
 
     /**
@@ -137,7 +126,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The native unsigned integer value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callNUInt(noinline args: FFIArgSpec = {}): NUInt = FFI.callNUInt(address, descriptor, args)
 
     /**
@@ -146,7 +134,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The float value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callFloat(noinline args: FFIArgSpec = {}): Float = FFI.callFloat(address, descriptor, args)
 
     /**
@@ -155,7 +142,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The double value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callDouble(noinline args: FFIArgSpec = {}): Double = FFI.callDouble(address, descriptor, args)
 
     /**
@@ -164,7 +150,6 @@ data class FFIFunction( // @formatter:off
      * @param args A lambda with receiver for specifying function arguments
      * @return The pointer value returned by the native function
      */
-    @IntrinsicCallCandidate
     inline fun callPointer(noinline args: FFIArgSpec = {}): Address = FFI.callPointer(address, descriptor, args)
 
     /**
@@ -180,7 +165,6 @@ data class FFIFunction( // @formatter:off
      * @throws IllegalStateException if the specified return type is not supported
      */
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    @IntrinsicCallCandidate
     inline fun <reified R : Any> call(noinline args: FFIArgSpec = {}): R = when (R::class) {
         Byte::class -> callByte(args)
         Short::class -> callShort(args)
@@ -210,7 +194,6 @@ data class FFIFunction( // @formatter:off
      * @return The value returned by the native function, cast to type R
      * @throws IllegalStateException if the specified return type is not supported
      */
-    @IntrinsicCallCandidate
     inline fun <reified R : Any> callFast(noinline args: FFIArgSpec = {}): R = when (R::class) {
         Byte::class -> callByte(args)
         Short::class -> callShort(args)

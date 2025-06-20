@@ -21,12 +21,15 @@ import dev.karmakrafts.iridium.CompilerTestScope
 import dev.karmakrafts.iridium.pipeline.addJvmClasspathRootByType
 import dev.karmakrafts.iridium.pipeline.defaultPipelineSpec
 import dev.karmakrafts.kwire.Marshal
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.jvmTarget
 
 @CompilerTestDsl
 internal fun CompilerTestScope.kwirePipeline(moduleName: String = "test") {
     pipeline {
         defaultPipelineSpec(moduleName)
         config {
+            jvmTarget = JvmTarget.JVM_21
             addJvmClasspathRootByType<Marshal<*>>()
         }
     }

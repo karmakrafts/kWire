@@ -19,11 +19,14 @@ package dev.karmakrafts.kwire.compiler.util
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.types.starProjectedType
@@ -32,6 +35,7 @@ import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
+import org.jetbrains.kotlin.ir.util.isTypeParameter
 
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
     val inType = type.type
@@ -69,10 +73,28 @@ internal fun IrType.isNumPtr(): Boolean = getClass()?.isNumPtr() == true
 internal fun IrClass.isPtr(): Boolean = isClassWithFqName(KWireNames.Ptr.fqName)
 internal fun IrType.isPtr(): Boolean = getClass()?.isPtr() == true
 
+internal fun IrClass.isFunPtr(): Boolean = isClassWithFqName(KWireNames.FunPtr.fqName)
+internal fun IrType.isFunPtr(): Boolean = getClass()?.isFunPtr() == true
+
 internal fun IrClass.isVoidPtr(): Boolean = isClassWithFqName(KWireNames.VoidPtr.fqName)
 internal fun IrType.isVoidPtr(): Boolean = getClass()?.isVoidPtr() == true
 
 internal fun IrType.getPointedType(): IrType? {
     if (this !is IrSimpleType) return null
     return arguments.first().typeOrNull
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrType.resolveFromReceiver(call: IrCall): IrType? {
+    if (!isTypeParameter()) return this
+    val typeParam = (classifierOrNull as? IrTypeParameterSymbol)?.owner ?: return null
+
+    fun tryResolve(parentType: IrType): IrType? {
+        if (parentType !is IrSimpleType) return null
+        val dispatchClass = parentType.getClass() ?: return null
+        val classTypeParam = dispatchClass.typeParameters.find { it == typeParam } ?: return null
+        return parentType.arguments[classTypeParam.index].typeOrNull
+    }
+    // First attempt to resolve via dispatcher reseiver, then extension receiver
+    return call.dispatchReceiver?.type?.let(::tryResolve) ?: call.extensionReceiver?.type?.let(::tryResolve)
 }
