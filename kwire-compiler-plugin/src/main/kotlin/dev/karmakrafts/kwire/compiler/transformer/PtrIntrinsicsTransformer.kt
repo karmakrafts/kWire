@@ -31,7 +31,9 @@ import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.util.target
 
 internal class PtrIntrinsicsTransformer(
@@ -116,15 +118,28 @@ internal class PtrIntrinsicsTransformer(
     private fun emitInvoke(call: IrCall): IrExpression {
         val function = call.target
         val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
+
         val argsParam = params.first { it.name.asString() == "args" }
         val argsValue = call.arguments[argsParam]!!
         check(argsValue is IrVararg) { "Function pointer invocation requires variadic arguments" }
-        val argBuffer = context.ffi.extractArgumentsIntoBuffer(argsValue)
+        val (argBuffer, _) = context.ffi.extractArgumentsIntoBuffer(argsValue)
         if (argBuffer == null) {
-            reportError("Could not extract pointer invocation arguments", call)
+            reportError("Could not extract function pointer invocation arguments", call)
             return call
         }
-        return call
+
+        val (returnTypeArg, functionTypeArg) = call.typeArguments
+        val returnType = returnTypeArg!!.typeOrFail
+        val functionType = functionTypeArg!!.typeOrFail as? IrSimpleType
+        if (functionType == null) {
+            reportError("Could not determine underlying function type of pointer invocation", call)
+            return call
+        }
+        val paramTypes =
+            functionType.arguments.dropLast(1) // First n - 1 type args are parameter arguments for FunctionN
+        val descriptor = context.ffi.getDescriptor(returnType, paramTypes.map { it.typeOrFail })
+
+        return context.ffi.call(returnType, call.extensionReceiver!!, descriptor, argBuffer)
     }
 
     override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {

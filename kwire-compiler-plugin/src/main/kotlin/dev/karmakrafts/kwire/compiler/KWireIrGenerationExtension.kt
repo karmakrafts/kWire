@@ -18,6 +18,8 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.checker.ConstValidationVisitor
 import dev.karmakrafts.kwire.compiler.checker.StructValidationVisitor
+import dev.karmakrafts.kwire.compiler.optimizer.JvmInvokeOptimizer
+import dev.karmakrafts.kwire.compiler.optimizer.NativeInvokeOptimizer
 import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
@@ -27,6 +29,8 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.platform.konan.NativePlatforms
 
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
@@ -42,6 +46,15 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             val intrinsicContext = IntrinsicContext(kwireContext)
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
+            // Optimization passes
+            when(pluginContext.platform) {
+                in JvmPlatforms.allJvmPlatforms -> {
+                    file.transform(JvmInvokeOptimizer(), kwireContext)
+                }
+                in NativePlatforms.allNativePlatforms -> {
+                    file.transform(NativeInvokeOptimizer(), kwireContext)
+                }
+            }
         }
     }
 }

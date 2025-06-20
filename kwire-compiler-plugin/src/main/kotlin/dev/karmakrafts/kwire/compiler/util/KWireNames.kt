@@ -40,14 +40,18 @@ internal object KWireNames {
         val allocate: Name = Name.identifier("allocate")
         val reallocate: Name = Name.identifier("reallocate")
         val free: Name = Name.identifier("free")
+        val of: Name = Name.identifier("of")
+        val listOf: Name = Name.identifier("listOf")
     }
 
     object Kotlin {
         val packageName: FqName = FqName("kotlin")
         val mathPackageName: FqName = FqName("kotlin.math")
+        val collectionsPackageName: FqName = FqName("kotlin.collections")
 
         val min: CallableId = CallableId(mathPackageName, Functions.min)
         val max: CallableId = CallableId(mathPackageName, Functions.max)
+        val listOf: CallableId = CallableId(collectionsPackageName, Functions.listOf)
 
         object Byte {
             val name: Name = Name.identifier("Byte")
@@ -297,6 +301,13 @@ internal object KWireNames {
         val name: Name = Name.identifier("FFIDescriptor")
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
+
+        object Companion {
+            val name: FqName = FqName("FFIDescriptor.Companion")
+            val id: ClassId = ClassId(ffiPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+            val of: CallableId = CallableId(ffiPackageName, name, Functions.of)
+        }
     }
 
     object FFIArgBuffer {

@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.isVararg
 
 internal class FFI(
     private val context: KWirePluginContext
@@ -42,6 +43,15 @@ internal class FFI(
     val ffiTypeType: IrClassSymbol = context.referenceClass(KWireNames.FFIType.id)!!
 
     val ffiDescriptorType: IrClassSymbol = context.referenceClass(KWireNames.FFIDescriptor.id)!!
+    val ffiDescriptorCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFIDescriptor.Companion.id)!!
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    val ffiDescriptorOf: IrSimpleFunctionSymbol =
+        context.referenceFunctions(KWireNames.FFIDescriptor.Companion.of).first { symbol ->
+            val params = symbol.owner.parameters.filter { it.kind == IrParameterKind.Regular }
+            !params.last().isVararg
+        }
+
     val ffiDescriptorConstructor: IrConstructorSymbol =
         context.referenceConstructors(KWireNames.FFIDescriptor.id).first()
 
@@ -50,6 +60,23 @@ internal class FFI(
     val ffiArgBufferCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFIArgBuffer.Companion.id)!!
     val ffiArgBufferGet: IrSimpleFunctionSymbol =
         context.referenceFunctions(KWireNames.FFIArgBuffer.Companion.get).first()
+
+    fun getDescriptor(returnType: IrExpression, parameterTypes: List<IrExpression>): IrExpression {
+        return ffiDescriptorOf.call(
+            dispatchReceiver = ffiDescriptorCompanionType.getObjectInstance(), valueArguments = mapOf(
+                "returnType" to returnType,
+                "parameterTypes" to context.createListOf(
+                    type = ffiTypeType.defaultType, values = parameterTypes
+                )
+            )
+        )
+    }
+
+    fun getDescriptor(returnType: IrType, parameterTypes: List<IrType>): IrExpression {
+        return getDescriptor(
+            returnType = returnType.getFFIType(context)!!(context),
+            parameterTypes = parameterTypes.map { it.getFFIType(context)!!(context) })
+    }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun call(type: IrType, address: IrExpression, descriptor: IrExpression, argBuffer: IrExpression): IrCall {
@@ -92,7 +119,7 @@ internal class FFI(
         ) // @formatter:on
     }
 
-    fun extractArgumentsIntoBuffer(args: IrVararg): IrExpression? {
+    fun extractArgumentsIntoBuffer(args: IrVararg): Pair<IrExpression?, Boolean> {
         val buffer = getArgBuffer()
         val argElements = args.elements
         // For dynamic invocations, we need to unbox all args at runtime first, go through putAll
@@ -100,16 +127,16 @@ internal class FFI(
             for (argElement in argElements) when (argElement) {
                 is IrSpreadElement -> putArguments(buffer, argElement.expression)
                 is IrExpression -> putArgument(buffer, argElement)
-                else -> return null
+                else -> return null to false
             }
-            return buffer
+            return buffer to false
         }
         // For direct invocations we can expand all arguments at compile time
         for (argElement in argElements) {
-            if (argElement !is IrExpression) return null
+            if (argElement !is IrExpression) return null to false
             putArgument(buffer, argElement)
         }
-        return buffer
+        return buffer to true
     }
 
 

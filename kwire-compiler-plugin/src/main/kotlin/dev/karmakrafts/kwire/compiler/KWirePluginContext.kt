@@ -38,10 +38,13 @@ import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantArrayImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
@@ -56,13 +59,21 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal class KWirePluginContext(
     val pluginContext: IrPluginContext, val irModule: IrModuleFragment, override val irFile: IrFile
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions {
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    val listOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Kotlin.listOf).first { symbol ->
+        val parameters = symbol.owner.parameters.filter { it.kind == IrParameterKind.Regular }
+        parameters.first().isVararg
+    }
+
     val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.alignOf).first()
 
@@ -223,4 +234,19 @@ internal class KWirePluginContext(
     fun emitPointerSize(): IrExpression = addressSizeBytes.owner.getter!!.call(
         dispatchReceiver = addressCompanionType.getObjectInstance()
     )
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    internal fun createListOf( // @formatter:off
+        type: IrType,
+        values: List<IrExpression>
+    ): IrCall = listOf.call(
+        typeArguments = mapOf("T" to type),
+        valueArguments = mapOf("elements" to IrVarargImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = irBuiltIns.arrayClass.typeWith(type),
+            varargElementType = type,
+            elements = values
+        ))
+    ) // @formatter:on
 }
