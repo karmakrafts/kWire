@@ -23,6 +23,6 @@ import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
 internal class JvmInvokeOptimizer : IrTransformer<KWirePluginContext>() {
     override fun visitCall(expression: IrCall, data: KWirePluginContext): IrElement {
-        return expression
+        return super.visitCall(expression, data)
     }
 }

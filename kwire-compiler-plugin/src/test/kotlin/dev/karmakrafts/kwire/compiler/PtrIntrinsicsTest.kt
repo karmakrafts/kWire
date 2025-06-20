@@ -18,10 +18,11 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.iridium.util.renderIrTree
 import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
 import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -43,14 +44,19 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             fun test() {
-                val ptr = nullptr<FunPtr<(Int) -> Unit>>()
-                ptr(42)
+                val ptr = nullptr<FunPtr<(Int, Float) -> Double>>()
+                val foo = ptr(42, 2F)
             }
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            println(element.renderIrTree(Int.MAX_VALUE))
+            getChild<IrVariable> { it.name.asString() == "foo" } matches {
+                getChild<IrCall> { it.target.name.asString() == "callDouble" } matches {
+                    containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                    containsChild<IrCall> { it.target.name.asString() == "putFloat" }
+                }
+            }
         }
     }
 
@@ -63,15 +69,20 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             fun test() {
-                val args = arrayOf<Any>(42)
-                val ptr = nullptr<FunPtr<(Int) -> Unit>>()
-                ptr(*args)
+                val args = arrayOf<Any>(42, 2F)
+                val ptr = nullptr<FunPtr<(Int, Float, Int) -> Double>>()
+                val foo = ptr(*args, 10)
             }
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-
+            getChild<IrVariable> { it.name.asString() == "foo" } matches {
+                getChild<IrCall> { it.target.name.asString() == "callDouble" } matches {
+                    containsChild<IrCall> { it.target.name.asString() == "putAll" }
+                    containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                }
+            }
         }
     }
 
@@ -236,7 +247,9 @@ class PtrIntrinsicsTest {
         default {
             compiler shouldNotReport { error() }
         }
-        for (type in primitiveTypes) {
+        for (typeIndex in primitiveTypes.indices) {
+            val type = primitiveTypes[typeIndex]
+            val resolvedType = resolvedPrimitiveTypes[typeIndex]
             resetAssertions()
             // @formatter:off
             source("""
@@ -253,7 +266,9 @@ class PtrIntrinsicsTest {
             """.trimIndent())
             // @formatter:on
             result irMatches {
-
+                getChild<IrFunction> { it.name.asString() == "test" } matches {
+                    containsChild<IrCall> { it.target.name.asString() == "write$resolvedType" }
+                }
             }
             evaluate()
         }

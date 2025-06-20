@@ -20,23 +20,41 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.toComposite
+import org.jetbrains.kotlin.GeneratedDeclarationKey
+import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.name.Name
+
+internal data object FFIGenerationKey : GeneratedDeclarationKey()
 
 internal class FFI(
     private val context: KWirePluginContext
 ) {
+    companion object {
+        private val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(FFIGenerationKey)
+    }
+
     val ffiType: IrClassSymbol = context.referenceClass(KWireNames.FFI.id)!!
     val ffiCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFI.Companion.id)!!
 
@@ -62,14 +80,19 @@ internal class FFI(
         context.referenceFunctions(KWireNames.FFIArgBuffer.Companion.get).first()
 
     fun getDescriptor(returnType: IrExpression, parameterTypes: List<IrExpression>): IrExpression {
-        return ffiDescriptorOf.call(
-            dispatchReceiver = ffiDescriptorCompanionType.getObjectInstance(), valueArguments = mapOf(
+        return ffiDescriptorOf.call( // @formatter:off
+            dispatchReceiver = ffiDescriptorCompanionType.getObjectInstance(),
+            valueArguments = mapOf(
                 "returnType" to returnType,
-                "parameterTypes" to context.createListOf(
-                    type = ffiTypeType.defaultType, values = parameterTypes
+                "parameterTypes" to IrVarargImpl(
+                    startOffset = SYNTHETIC_OFFSET,
+                    endOffset = SYNTHETIC_OFFSET,
+                    type = context.irBuiltIns.arrayClass.typeWith(ffiTypeType.defaultType),
+                    varargElementType = ffiTypeType.defaultType,
+                    elements = parameterTypes
                 )
             )
-        )
+        ) // @formatter:on
     }
 
     fun getDescriptor(returnType: IrType, parameterTypes: List<IrType>): IrExpression {
@@ -120,23 +143,50 @@ internal class FFI(
     }
 
     fun extractArgumentsIntoBuffer(args: IrVararg): Pair<IrExpression?, Boolean> {
-        val buffer = getArgBuffer()
+        val bufferVariable = IrVariableImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            origin = declOrigin,
+            symbol = IrVariableSymbolImpl(),
+            name = Name.special("<__arg_buffer_${args.hashCode()}__>"),
+            type = ffiArgBufferType.defaultType,
+            isVar = false,
+            isConst = false,
+            isLateinit = false
+        ).apply {
+            initializer = getArgBuffer()
+        }
+
+        fun loadBuffer(): IrGetValue = IrGetValueImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = ffiArgBufferType.defaultType,
+            symbol = bufferVariable.symbol,
+            origin = null
+        )
+
         val argElements = args.elements
         // For dynamic invocations, we need to unbox all args at runtime first, go through putAll
+        val statements = ArrayList<IrStatement>()
+        statements += bufferVariable
         if (argElements.any { it is IrSpreadElement }) {
-            for (argElement in argElements) when (argElement) {
-                is IrSpreadElement -> putArguments(buffer, argElement.expression)
-                is IrExpression -> putArgument(buffer, argElement)
-                else -> return null to false
+            for (argElement in argElements) {
+                statements += when (argElement) {
+                    is IrSpreadElement -> putArguments(loadBuffer(), argElement.expression)
+                    is IrExpression -> putArgument(loadBuffer(), argElement)
+                    else -> return null to false
+                }
             }
-            return buffer to false
+            statements += loadBuffer()
+            return statements.toComposite(ffiArgBufferType.defaultType) to false
         }
         // For direct invocations we can expand all arguments at compile time
         for (argElement in argElements) {
             if (argElement !is IrExpression) return null to false
-            putArgument(buffer, argElement)
+            statements += putArgument(loadBuffer(), argElement)
         }
-        return buffer to true
+        statements += loadBuffer()
+        return statements.toComposite(ffiArgBufferType.defaultType) to true
     }
 
 
