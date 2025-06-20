@@ -39,12 +39,14 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.dump
@@ -382,6 +385,18 @@ internal inline fun <T> T.getEnumValue(
     symbol = type.getEnumConstant(this.mapper())
 )
 
-internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompositeImpl(
-    startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = type, origin = null, statements = this
+internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompositeImpl( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = type,
+    origin = null,
+    statements = this
+) // @formatter:on
+
+internal fun List<IrVarargElement>.toVararg(context: KWirePluginContext, type: IrType): IrVararg = IrVarargImpl(
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = context.irBuiltIns.arrayClass.typeWith(type),
+    varargElementType = type,
+    elements = this
 )
