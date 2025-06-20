@@ -18,7 +18,6 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.iridium.util.renderIrTree
 import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -50,7 +49,7 @@ class PtrIntrinsicsTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            println(element.renderIrTree(Int.MAX_VALUE))
+
         }
     }
 
@@ -71,7 +70,7 @@ class PtrIntrinsicsTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            println(element.renderIrTree(Int.MAX_VALUE))
+
         }
     }
 

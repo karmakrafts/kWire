@@ -69,7 +69,8 @@ internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkH
  */
 @ConsistentCopyVisibility
 data class ImportedFunctionProvider @PublishedApi internal constructor(
-    @PublishedApi internal val library: SharedLibrary, @PublishedApi internal val descriptor: FFIDescriptor
+    @PublishedApi internal val library: SharedLibrary,
+    @PublishedApi internal val descriptor: FFIDescriptor
 ) {
     /**
      * Gets a function from the library with the name of the delegated property.

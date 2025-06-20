@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 internal class MemoryStack(
     override val context: KWirePluginContext
 ) : Allocator {
+    val memoryStackType: IrClassSymbol = context.referenceClass(KWireNames.MemoryStack.id)!!
     val memoryStackCompanionType: IrClassSymbol = context.referenceClass(KWireNames.MemoryStack.Companion.id)!!
     val memoryStackGet: IrSimpleFunctionSymbol =
         context.referenceFunctions(KWireNames.MemoryStack.Companion.get).first()

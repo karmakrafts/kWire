@@ -39,7 +39,7 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             file.acceptVoid(SharedImportTransformer(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))
             // Intrinsics lowering
-            val intrinsicContext = IntrinsicContext()
+            val intrinsicContext = IntrinsicContext(kwireContext)
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
         }

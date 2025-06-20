@@ -21,6 +21,8 @@ import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
@@ -34,6 +36,13 @@ internal abstract class IntrinsicTransformer( // @formatter:off
         data: IntrinsicContext,
         type: KWireIntrinsicType
     ): IrElement // @formatter:on
+
+    override fun visitFunction(declaration: IrFunction, data: IntrinsicContext): IrStatement {
+        val allocationScope = data.pushAllocationScope(declaration)
+        val transformedFunction = super.visitFunction(declaration, data)
+        data.popAllocationScope(allocationScope)
+        return transformedFunction
+    }
 
     override fun visitCall(expression: IrCall, data: IntrinsicContext): IrElement {
         // Transform using depth-first search strategy
