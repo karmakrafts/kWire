@@ -19,7 +19,7 @@ package dev.karmakrafts.kwire.ffi
 import java.lang.invoke.MethodHandle
 
 /**
- * Converts this [dev.karmakrafts.kwire.ffi.FFIFunction] to a Java [MethodHandle].
+ * Converts this [FFIFunction] to a Java [MethodHandle].
  *
  * This extension function creates a method handle that can be used to invoke the native function
  * directly using Java's Foreign Function Interface. The method handle is created using the function's

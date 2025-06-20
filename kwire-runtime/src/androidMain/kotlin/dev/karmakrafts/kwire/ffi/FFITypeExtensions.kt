@@ -17,8 +17,8 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.ctype.Address
-import java.lang.foreign.MemoryLayout
-import java.lang.foreign.ValueLayout
+import com.v7878.foreign.MemoryLayout
+import com.v7878.foreign.ValueLayout
 
 /**
  * Determines the appropriate [ValueLayout] for pointer types based on the provided parameters.
@@ -38,7 +38,7 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
 }
 
 /**
- * Converts this [dev.karmakrafts.kwire.ffi.FFIType] to a Java [MemoryLayout].
+ * Converts this [FFIType] to a Java [MemoryLayout].
  *
  * This extension function maps each FFI type to its corresponding Java memory layout.
  * For array types (dimensions > 0), it always returns a pointer layout, as arrays are passed by reference.

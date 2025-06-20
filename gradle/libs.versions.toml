@@ -19,6 +19,7 @@ stately = "2.1.0"
 kotlinPoet = "2.2.0"
 libffi = "3.4.8-5"
 lwjgl = "3.3.6"
+panamaPort = "v0.0.7-preview"
 
 [libraries]
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
@@ -34,6 +35,7 @@ iridium = { module = "dev.karmakrafts.iridium:iridium", version.ref = "iridium" 
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
 lwjgl = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
 lwjgl-llvm = { module = "org.lwjgl:lwjgl-llvm", version.ref = "lwjgl" }
+panamaPort = { module = "com.github.vova7878.PanamaPort:AndroidPanama", version.ref = "panamaPort" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradle" }

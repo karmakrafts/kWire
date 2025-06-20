@@ -22,7 +22,7 @@ import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.MemoryLayout
 
 /**
- * Converts the parameter types of this [dev.karmakrafts.kwire.ffi.FFIDescriptor] to an array of [MemoryLayout]s.
+ * Converts the parameter types of this [FFIDescriptor] to an array of [MemoryLayout]s.
  *
  * This extension function maps each parameter type of this descriptor to its corresponding
  * memory layout and returns them as an array.

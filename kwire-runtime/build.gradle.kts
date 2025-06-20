@@ -121,7 +121,12 @@ kotlin {
 
         val jvmAndAndroidMain by creating { dependsOn(commonMain) }
         jvmMain { dependsOn(jvmAndAndroidMain) }
-        androidMain { dependsOn(jvmAndAndroidMain) }
+        androidMain {
+            dependsOn(jvmAndAndroidMain)
+            dependencies {
+                implementation(libs.panamaPort)
+            }
+        }
 
         val posixMain by creating { dependsOn(nativeMain) }
         linuxMain { dependsOn(posixMain) }
