@@ -21,61 +21,66 @@ import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import kotlin.jvm.JvmInline
 
+@RequiresOptIn("The API you are trying to use requires great care, otherwise undefined behaviour may be invoked")
+@Retention(AnnotationRetention.BINARY)
+annotation class DelicatePinningApi
+
 expect class Pinned<T : Any> {
     val value: T
 }
 
-@PublishedApi
-internal expect fun <T : Any> pinnedFrom(value: T): Pinned<T>
+@DelicatePinningApi
+expect fun <T : Any> pinnedFrom(value: T): Pinned<T>
 
-@PublishedApi
-internal expect fun <T : Any> T.pin(): Pinned<T>
+@DelicatePinningApi
+expect fun <T : Any> T.pin(): Pinned<T>
 
-@PublishedApi
-internal expect fun unpin(pinned: Pinned<out Any>)
+@DelicatePinningApi
+expect fun unpin(pinned: Pinned<out Any>)
 
-@PublishedApi
-internal expect fun Pinned<out Any>.acquireStableAddress(): VoidPtr
+@DelicatePinningApi
+expect fun Pinned<out Any>.acquireStableAddress(): VoidPtr
 
-@PublishedApi
-internal expect inline fun <reified T : Any> Address.fromStableAddress(): T
+@DelicatePinningApi
+expect inline fun <reified T : Any> Address.fromStableAddress(): T
 
-@PublishedApi
-internal expect fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte>
+@DelicatePinningApi
+expect fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte>
 
-@PublishedApi
-internal expect fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short>
+@DelicatePinningApi
+expect fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short>
 
-@PublishedApi
-internal expect fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int>
+@DelicatePinningApi
+expect fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int>
 
-@PublishedApi
-internal expect fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long>
+@DelicatePinningApi
+expect fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long>
 
-@PublishedApi
-internal expect fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float>
+@DelicatePinningApi
+expect fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float>
 
-@PublishedApi
-internal expect fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double>
+@DelicatePinningApi
+expect fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double>
 
-@PublishedApi
-internal expect fun NumPtr<Byte>.releasePinnedByteAddress(pinned: Pinned<ByteArray>)
+@DelicatePinningApi
+expect fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>)
 
-@PublishedApi
-internal expect fun NumPtr<Short>.releasePinnedShortAddress(pinned: Pinned<ShortArray>)
+@DelicatePinningApi
+expect fun Pinned<ShortArray>.releasePinnedShortAddress(address: NumPtr<Short>)
 
-@PublishedApi
-internal expect fun NumPtr<Int>.releasePinnedIntAddress(pinned: Pinned<IntArray>)
+@DelicatePinningApi
+expect fun Pinned<IntArray>.releasePinnedIntAddress(address: NumPtr<Int>)
 
-@PublishedApi
-internal expect fun NumPtr<Long>.releasePinnedLongAddress(pinned: Pinned<LongArray>)
+@DelicatePinningApi
+expect fun Pinned<LongArray>.releasePinnedLongAddress(address: NumPtr<Long>)
 
-@PublishedApi
-internal expect fun NumPtr<Float>.releasePinnedFloatAddress(pinned: Pinned<FloatArray>)
+@DelicatePinningApi
+expect fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>)
 
-@PublishedApi
-internal expect fun NumPtr<Double>.releasePinnedDoubleAddress(pinned: Pinned<DoubleArray>)
+@DelicatePinningApi
+expect fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>)
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
     val pinTack = pin()
     return try {
@@ -86,10 +91,11 @@ inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 @JvmInline
 value class StableRef<T : Any>(private val pinTack: Pinned<T>) {
     companion object {
-        fun <T : Any> of(value: T): StableRef<T> = StableRef(value.pin())
+        fun <T : Any> create(value: T): StableRef<T> = StableRef(value.pin())
 
         inline fun <reified T : Any> from(address: Address): StableRef<T> =
             StableRef(pinnedFrom(address.fromStableAddress()))
@@ -99,6 +105,7 @@ value class StableRef<T : Any>(private val pinTack: Pinned<T>) {
     fun dispose() = unpin(pinTack)
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireByteAddress()
@@ -106,11 +113,12 @@ inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedByteAddress(pinTack)
+        pinTack.releasePinnedByteAddress(address)
         unpin(pinTack)
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireShortAddress()
@@ -118,11 +126,12 @@ inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedShortAddress(pinTack)
+        pinTack.releasePinnedShortAddress(address)
         unpin(pinTack)
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireIntAddress()
@@ -130,11 +139,12 @@ inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedIntAddress(pinTack)
+        pinTack.releasePinnedIntAddress(address)
         unpin(pinTack)
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireLongAddress()
@@ -142,11 +152,12 @@ inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedLongAddress(pinTack)
+        pinTack.releasePinnedLongAddress(address)
         unpin(pinTack)
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireFloatAddress()
@@ -154,11 +165,12 @@ inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedFloatAddress(pinTack)
+        pinTack.releasePinnedFloatAddress(address)
         unpin(pinTack)
     }
 }
 
+@OptIn(DelicatePinningApi::class)
 inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
     val pinTack = pin()
     val address = pinTack.acquireDoubleAddress()
@@ -166,7 +178,7 @@ inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
         block(address)
     }
     finally {
-        address.releasePinnedDoubleAddress(pinTack)
+        pinTack.releasePinnedDoubleAddress(address)
         unpin(pinTack)
     }
 }

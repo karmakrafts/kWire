@@ -38,63 +38,63 @@ actual class Pinned<T : Any>(
     actual val value: T get() = delegate.get()
 }
 
-@PublishedApi
-internal actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = Pinned(value.kxPin())
+@DelicatePinningApi
+actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = Pinned(value.kxPin())
 
-@PublishedApi
-internal actual fun <T : Any> T.pin(): Pinned<T> = Pinned(kxPin())
+@DelicatePinningApi
+actual fun <T : Any> T.pin(): Pinned<T> = Pinned(kxPin())
 
-@PublishedApi
-internal actual fun unpin(pinned: Pinned<out Any>) = pinned.delegate.unpin()
+@DelicatePinningApi
+actual fun unpin(pinned: Pinned<out Any>) = pinned.delegate.unpin()
 
-@PublishedApi
-internal actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr =
+@DelicatePinningApi
+actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr =
     KXStableRef.create(value).asCPointer().rawValue.toLong().asVoidPtr()
 
-@PublishedApi
-internal actual inline fun <reified T : Any> Address.fromStableAddress(): T =
+@DelicatePinningApi
+actual inline fun <reified T : Any> Address.fromStableAddress(): T =
     rawAddress.toLong().toCPointer<COpaque>()!!.asStableRef<T>().get()
 
 // @formatter:off
-@PublishedApi
-internal actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> =
+@DelicatePinningApi
+actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short> =
+@DelicatePinningApi
+actual fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int> =
+@DelicatePinningApi
+actual fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long> =
+@DelicatePinningApi
+actual fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float> =
+@DelicatePinningApi
+actual fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> =
+@DelicatePinningApi
+actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
-@PublishedApi
-internal actual fun NumPtr<Byte>.releasePinnedByteAddress(pinned: Pinned<ByteArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>) = Unit
 
-@PublishedApi
-internal actual fun NumPtr<Short>.releasePinnedShortAddress(pinned: Pinned<ShortArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<ShortArray>.releasePinnedShortAddress(address: NumPtr<Short>) = Unit
 
-@PublishedApi
-internal actual fun NumPtr<Int>.releasePinnedIntAddress(pinned: Pinned<IntArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<IntArray>.releasePinnedIntAddress(address: NumPtr<Int>) = Unit
 
-@PublishedApi
-internal actual fun NumPtr<Long>.releasePinnedLongAddress(pinned: Pinned<LongArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<LongArray>.releasePinnedLongAddress(address: NumPtr<Long>) = Unit
 
-@PublishedApi
-internal actual fun NumPtr<Float>.releasePinnedFloatAddress(pinned: Pinned<FloatArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>) = Unit
 
-@PublishedApi
-internal actual fun NumPtr<Double>.releasePinnedDoubleAddress(pinned: Pinned<DoubleArray>) = Unit
+@DelicatePinningApi
+actual fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>) = Unit
 // @formatter:on

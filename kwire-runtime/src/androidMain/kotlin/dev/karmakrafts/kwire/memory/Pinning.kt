@@ -22,53 +22,53 @@ import dev.karmakrafts.kwire.ctype.VoidPtr
 
 actual class Pinned<T : Any>(actual val value: T)
 
-@PublishedApi
-internal actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = TODO()
+@DelicatePinningApi
+actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = TODO()
 
-@PublishedApi
-internal actual fun <T : Any> T.pin(): Pinned<T> = TODO()
+@DelicatePinningApi
+actual fun <T : Any> T.pin(): Pinned<T> = TODO()
 
-@PublishedApi
-internal actual fun unpin(pinned: Pinned<out Any>): Unit = TODO()
+@DelicatePinningApi
+actual fun unpin(pinned: Pinned<out Any>): Unit = TODO()
 
-@PublishedApi
-internal actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr = TODO()
+@DelicatePinningApi
+actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr = TODO()
 
-@PublishedApi
-internal actual inline fun <reified T : Any> Address.fromStableAddress(): T = TODO()
+@DelicatePinningApi
+actual inline fun <reified T : Any> Address.fromStableAddress(): T = TODO()
 
-@PublishedApi
-internal actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> = TODO()
+@DelicatePinningApi
+actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> = TODO()
 
-@PublishedApi
-internal actual fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short> = TODO()
+@DelicatePinningApi
+actual fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short> = TODO()
 
-@PublishedApi
-internal actual fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int> = TODO()
+@DelicatePinningApi
+actual fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int> = TODO()
 
-@PublishedApi
-internal actual fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long> = TODO()
+@DelicatePinningApi
+actual fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long> = TODO()
 
-@PublishedApi
-internal actual fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float> = TODO()
+@DelicatePinningApi
+actual fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float> = TODO()
 
-@PublishedApi
-internal actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> = TODO()
+@DelicatePinningApi
+actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Byte>.releasePinnedByteAddress(pinned: Pinned<ByteArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>): Unit = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Short>.releasePinnedShortAddress(pinned: Pinned<ShortArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<ShortArray>.releasePinnedShortAddress(address: NumPtr<Short>): Unit = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Int>.releasePinnedIntAddress(pinned: Pinned<IntArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<IntArray>.releasePinnedIntAddress(address: NumPtr<Int>): Unit = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Long>.releasePinnedLongAddress(pinned: Pinned<LongArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<LongArray>.releasePinnedLongAddress(address: NumPtr<Long>): Unit = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Float>.releasePinnedFloatAddress(pinned: Pinned<FloatArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>): Unit = TODO()
 
-@PublishedApi
-internal actual fun NumPtr<Double>.releasePinnedDoubleAddress(pinned: Pinned<DoubleArray>): Unit = TODO()
+@DelicatePinningApi
+actual fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>): Unit = TODO()

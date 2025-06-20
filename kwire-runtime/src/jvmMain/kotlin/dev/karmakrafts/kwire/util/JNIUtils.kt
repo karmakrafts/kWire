@@ -34,4 +34,40 @@ internal object JNIUtils {
 
     @JvmStatic
     external fun derefObject(address: Long): Any
+
+    @JvmStatic
+    external fun getByteArrayAddress(array: ByteArray): Long
+
+    @JvmStatic
+    external fun getShortArrayAddress(array: ShortArray): Long
+
+    @JvmStatic
+    external fun getIntArrayAddress(array: IntArray): Long
+
+    @JvmStatic
+    external fun getLongArrayAddress(array: LongArray): Long
+
+    @JvmStatic
+    external fun getFloatArrayAddress(array: FloatArray): Long
+
+    @JvmStatic
+    external fun getDoubleArrayAddress(array: DoubleArray): Long
+
+    @JvmStatic
+    external fun releaseByteArrayAddress(array: ByteArray, address: Long)
+
+    @JvmStatic
+    external fun releaseShortArrayAddress(array: ShortArray, address: Long)
+
+    @JvmStatic
+    external fun releaseIntArrayAddress(array: IntArray, address: Long)
+
+    @JvmStatic
+    external fun releaseLongArrayAddress(array: LongArray, address: Long)
+
+    @JvmStatic
+    external fun releaseFloatArrayAddress(array: FloatArray, address: Long)
+
+    @JvmStatic
+    external fun releaseDoubleArrayAddress(array: DoubleArray, address: Long)
 }
