@@ -16,9 +16,9 @@
 
 package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.ctype.Address
 import com.v7878.foreign.MemoryLayout
 import com.v7878.foreign.ValueLayout
+import dev.karmakrafts.kwire.ctype.Address
 
 /**
  * Determines the appropriate [ValueLayout] for pointer types based on the provided parameters.

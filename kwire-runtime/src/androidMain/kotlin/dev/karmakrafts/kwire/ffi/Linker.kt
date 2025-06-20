@@ -18,11 +18,11 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import com.v7878.foreign.Arena
+import com.v7878.foreign.SymbolLookup
 import dev.karmakrafts.kwire.Platform
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.toNUInt
-import com.v7878.foreign.Arena
-import com.v7878.foreign.SymbolLookup
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div

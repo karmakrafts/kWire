@@ -113,12 +113,9 @@ internal object PanamaFFI : FFI {
     }
 
     private fun invokeUpcallStub(
-        cifAddr: MemorySegment,
-        ret: MemorySegment,
-        args: MemorySegment,
-        userData: MemorySegment
+        cifAddr: MemorySegment, ret: MemorySegment, args: MemorySegment, userData: MemorySegment
     ) {
-        val cif = FFICIF.create(cifAddr.address())
+        FFICIF.create(cifAddr.address())
 
     }
 
@@ -127,10 +124,7 @@ internal object PanamaFFI : FFI {
         val handle = MethodHandles.lookup().unreflect(method)
         handle.bindTo(this) // Bind the function to this instance so it is properly callable
         val descriptor = FunctionDescriptor.ofVoid(
-            ValueLayout.ADDRESS,
-            ValueLayout.ADDRESS,
-            ValueLayout.ADDRESS,
-            ValueLayout.ADDRESS
+            ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS
         )
         JvmLinker.nativeLinker().upcallStub(handle, descriptor, Arena.global())
     }

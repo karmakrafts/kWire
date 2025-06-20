@@ -60,11 +60,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
-import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrFunctionAccessExpression.putArguments( // @formatter:off
@@ -75,7 +71,7 @@ private fun IrFunctionAccessExpression.putArguments( // @formatter:off
     for ((name, type) in typeArguments) {
         var parameter = function.typeParameters.find { it.name.asString() == name }
         // For constructor calls, alternatively attempt to resolve type parameter from class
-        if(parameter == null && this is IrConstructorCall) {
+        if (parameter == null && this is IrConstructorCall) {
             parameter = this.type.getClass()?.typeParameters?.find { it.name.asString() == name }
         }
         check(parameter != null) { "No type parameter named $name found in ${function.dump()}" }
@@ -366,9 +362,6 @@ internal fun IrConstructorCall.getAnnotationValues(): Map<String, Any?> {
     return values
 }
 
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.getCompanionObjects(): List<IrClass> = declarations.filterIsInstanceAnd<IrClass> { it.isCompanion }
-
 internal fun IrClassSymbol.getObjectInstance(): IrGetObjectValueImpl = IrGetObjectValueImpl(
     startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = defaultType, symbol = this@getObjectInstance
 )
@@ -389,23 +382,6 @@ internal inline fun <T> T.getEnumValue(
     symbol = type.getEnumConstant(this.mapper())
 )
 
-internal inline fun <reified T : IrElement> IrElement.findElement(crossinline predicate: (T) -> Boolean): T? {
-    var result: T? = null
-    acceptVoid(object : IrVisitorVoid() {
-        override fun visitElement(element: IrElement) {
-            if (result != null) return
-            element.acceptChildrenVoid(this)
-            if (element !is T || !predicate(element)) return
-            result = element
-        }
-    })
-    return result
-}
-
 internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompositeImpl(
-    startOffset = SYNTHETIC_OFFSET,
-    endOffset = SYNTHETIC_OFFSET,
-    type = type,
-    origin = null,
-    statements = this
+    startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = type, origin = null, statements = this
 )

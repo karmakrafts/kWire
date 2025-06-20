@@ -18,6 +18,9 @@
 
 package dev.karmakrafts.kwire.memory
 
+import com.v7878.foreign.AddressLayout
+import com.v7878.foreign.MemorySegment
+import com.v7878.foreign.ValueLayout
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NFloatArray
@@ -36,9 +39,6 @@ import dev.karmakrafts.kwire.ctype.toPtr
 import dev.karmakrafts.kwire.ffi.FFIType
 import dev.karmakrafts.kwire.ffi.SharedLibrary
 import dev.karmakrafts.kwire.ffi.toMethodHandle
-import com.v7878.foreign.AddressLayout
-import com.v7878.foreign.MemorySegment
-import com.v7878.foreign.ValueLayout
 import java.lang.invoke.MethodHandle
 
 private object PanamaMemory : Memory {

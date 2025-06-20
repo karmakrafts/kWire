@@ -24,8 +24,6 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
-import org.jetbrains.kotlin.ir.expressions.IrStatementOriginImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTryImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
@@ -44,7 +42,6 @@ internal data class AllocationScope( // @formatter:off
     companion object {
         private val variableName: Name = Name.special("<__stack_frame__>")
         private val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(AllocationScopeKey)
-        private val statementOrigin: IrStatementOrigin = IrStatementOriginImpl("AllocationScope")
     }
 
     private val _stack: Lazy<IrVariable> = lazy {
