@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
+import dev.karmakrafts.iridium.util.renderIrTree
 import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -32,6 +33,47 @@ class PtrIntrinsicsTest {
     val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
     val resolvedPrimitiveTypes: Array<String> =
         arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "Long", "Double")
+
+    @Test
+    fun `Invoke function pointer using direct invocation`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.invoke
+            fun test() {
+                val ptr = nullptr<FunPtr<(Int) -> Unit>>()
+                ptr(42)
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            println(element.renderIrTree(Int.MAX_VALUE))
+        }
+    }
+
+    @Test
+    fun `Invoke function pointer using dynamic invocation`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.invoke
+            fun test() {
+                val args = arrayOf<Any>(42)
+                val ptr = nullptr<FunPtr<(Int) -> Unit>>()
+                ptr(*args)
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            println(element.renderIrTree(Int.MAX_VALUE))
+        }
+    }
 
     @Test
     fun `Obtain nullptr of void`() = runCompilerTest {

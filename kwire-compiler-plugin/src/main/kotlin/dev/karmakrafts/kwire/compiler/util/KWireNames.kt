@@ -291,12 +291,6 @@ internal object KWireNames {
         val name: Name = Name.identifier("FFIType")
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
-
-        object Companion {
-            val name: FqName = FqName("FFIType.Companion")
-            val id: ClassId = ClassId(ffiPackageName, name, false)
-            val fqName: FqName = id.asSingleFqName()
-        }
     }
 
     object FFIDescriptor {

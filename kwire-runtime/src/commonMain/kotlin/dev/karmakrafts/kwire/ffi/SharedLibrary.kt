@@ -290,7 +290,7 @@ class SharedLibrary internal constructor(
      * @throws IllegalArgumentException if the function was not found in the library
      */
     inline operator fun get(name: String, returnType: FFIType, vararg parameterTypes: FFIType): FFIFunction {
-        return getFunction(name, FFIDescriptor(returnType, *parameterTypes))
+        return getFunction(name, FFIDescriptor.of(returnType, *parameterTypes))
     }
 
     /**
@@ -314,7 +314,7 @@ class SharedLibrary internal constructor(
      * @return An [ImportedFunctionProvider] that can be used with property delegation
      */
     inline fun importing(returnType: FFIType, vararg parameterTypes: FFIType): ImportedFunctionProvider =
-        ImportedFunctionProvider(this, FFIDescriptor(returnType, *parameterTypes))
+        ImportedFunctionProvider(this, FFIDescriptor.of(returnType, *parameterTypes))
 
     /**
      * Registers this library to be closed when the application exits.

@@ -24,6 +24,7 @@ import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Internal function to get the platform-specific implementation of the FFI interface.
@@ -42,6 +43,7 @@ internal expect fun getPlatformFFI(): FFI
  * with various return types. It serves as the primary mechanism for interacting with
  * native code from Kotlin.
  */
+@OptIn(ExperimentalTypeInference::class)
 @KWireCompilerApi
 interface FFI {
     /**
@@ -52,6 +54,39 @@ interface FFI {
      */
     @KWireCompilerApi
     companion object : FFI by getPlatformFFI()
+
+    @KWireCompilerApi
+    fun createUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Unit): VoidPtr
+
+    @KWireCompilerApi
+    fun createByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Byte): VoidPtr
+
+    @KWireCompilerApi
+    fun createShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Short): VoidPtr
+
+    @KWireCompilerApi
+    fun createIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Int): VoidPtr
+
+    @KWireCompilerApi
+    fun createLongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Long): VoidPtr
+
+    @KWireCompilerApi
+    fun createUByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UByte): VoidPtr
+
+    @KWireCompilerApi
+    fun createUShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UShort): VoidPtr
+
+    @KWireCompilerApi
+    fun createUIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UInt): VoidPtr
+
+    @KWireCompilerApi
+    fun createULongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> ULong): VoidPtr
+
+    @KWireCompilerApi
+    fun createFloatUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Float): VoidPtr
+
+    @KWireCompilerApi
+    fun createDoubleUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Double): VoidPtr
 
     /**
      * Calls a native function at the specified address with void return type.

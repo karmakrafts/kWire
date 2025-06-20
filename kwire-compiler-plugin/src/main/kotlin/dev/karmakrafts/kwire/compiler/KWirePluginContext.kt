@@ -22,7 +22,6 @@ import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.serialize
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.NativeType

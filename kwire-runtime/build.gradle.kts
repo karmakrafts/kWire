@@ -120,7 +120,14 @@ kotlin {
         watchosSimulatorArm64Main { dependsOn(x64Main) }
 
         val jvmAndAndroidMain by creating { dependsOn(commonMain) }
-        jvmMain { dependsOn(jvmAndAndroidMain) }
+
+        jvmMain {
+            dependsOn(jvmAndAndroidMain)
+            dependencies {
+                implementation(libs.lwjgl)
+            }
+        }
+
         androidMain {
             dependsOn(jvmAndAndroidMain)
             dependencies {

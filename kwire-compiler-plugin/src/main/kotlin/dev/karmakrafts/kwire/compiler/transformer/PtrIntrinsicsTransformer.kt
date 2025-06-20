@@ -52,7 +52,7 @@ internal class PtrIntrinsicsTransformer(
     ): IrExpression { // @formatter:on
         val pointedType = type.getPointedType()
         if (pointedType == null) {
-            reportError("Could not determine pointed type for NumPtr", call)
+            reportError("Could not determine pointed type for pointer", call)
             return call
         }
         return emitter(constNUInt(context, 0UL), pointedType)

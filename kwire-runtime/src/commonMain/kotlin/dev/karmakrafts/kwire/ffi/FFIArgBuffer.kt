@@ -87,6 +87,8 @@ interface FFIArgBuffer {
      */
     val types: List<FFIType>
 
+    fun rewind()
+
     /**
      * Get the address of an argument at the given index.
      *
@@ -325,12 +327,52 @@ interface FFIArgBuffer {
      */
     @KWireCompilerApi
     fun putPointers(values: PtrArray<*>)
+
+    @KWireCompilerApi
+    fun getByte(): Byte
+
+    @KWireCompilerApi
+    fun getShort(): Short
+
+    @KWireCompilerApi
+    fun getInt(): Int
+
+    @KWireCompilerApi
+    fun getLong(): Long
+
+    @KWireCompilerApi
+    fun getNInt(): NInt
+
+    @KWireCompilerApi
+    fun getUByte(): UByte
+
+    @KWireCompilerApi
+    fun getUShort(): UShort
+
+    @KWireCompilerApi
+    fun getUInt(): UInt
+
+    @KWireCompilerApi
+    fun getULong(): ULong
+
+    @KWireCompilerApi
+    fun getNUInt(): NUInt
+
+    @KWireCompilerApi
+    fun getFloat(): Float
+
+    @KWireCompilerApi
+    fun getDouble(): Double
+
+    @KWireCompilerApi
+    fun getPointer(): VoidPtr
 }
 
 @PublishedApi
 internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuffer {
     override val address: VoidPtr = Memory.allocate(FFIArgBuffer.DEFAULT_SIZE.toNUInt())
     private var offset: NUInt = 0U.toNUInt()
+    private var index: Int = 0
     override val types: ArrayList<FFIType> = ArrayList()
 
     init {
@@ -344,10 +386,16 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
         val oldOffset = offset
         offset = newOffset
         types += type
+        ++index
         return oldOffset
     }
 
-    private inline fun nextAddress(type: FFIType, count: Int = 1): VoidPtr = address + nextOffset(type, count)
+    private inline fun nextWriteAddress(type: FFIType, count: Int = 1): VoidPtr = address + nextOffset(type, count)
+    private inline fun nextReadAddress(): VoidPtr = getAddress(index++)
+
+    override fun rewind() {
+        index = 0
+    }
 
     override fun getAddress(index: Int): VoidPtr {
         return address + types.take(index).sumOf { it.size }
@@ -384,41 +432,58 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor() : FFIArgBuf
         }
     }
 
-    override fun putByte(value: Byte) = Memory.writeByte(nextAddress(FFIType.BYTE), value)
-    override fun putShort(value: Short) = Memory.writeShort(nextAddress(FFIType.SHORT), value)
-    override fun putInt(value: Int) = Memory.writeInt(nextAddress(FFIType.INT), value)
-    override fun putLong(value: Long) = Memory.writeLong(nextAddress(FFIType.LONG), value)
-    override fun putNInt(value: NInt) = Memory.writeNInt(nextAddress(FFIType.NINT), value)
+    override fun putByte(value: Byte) = Memory.writeByte(nextWriteAddress(FFIType.BYTE), value)
+    override fun putShort(value: Short) = Memory.writeShort(nextWriteAddress(FFIType.SHORT), value)
+    override fun putInt(value: Int) = Memory.writeInt(nextWriteAddress(FFIType.INT), value)
+    override fun putLong(value: Long) = Memory.writeLong(nextWriteAddress(FFIType.LONG), value)
+    override fun putNInt(value: NInt) = Memory.writeNInt(nextWriteAddress(FFIType.NINT), value)
 
-    override fun putUByte(value: UByte) = Memory.writeUByte(nextAddress(FFIType.UBYTE), value)
-    override fun putUShort(value: UShort) = Memory.writeUShort(nextAddress(FFIType.USHORT), value)
-    override fun putUInt(value: UInt) = Memory.writeUInt(nextAddress(FFIType.UINT), value)
-    override fun putULong(value: ULong) = Memory.writeULong(nextAddress(FFIType.ULONG), value)
-    override fun putNUInt(value: NUInt) = Memory.writeNUInt(nextAddress(FFIType.NUINT), value)
+    override fun putUByte(value: UByte) = Memory.writeUByte(nextWriteAddress(FFIType.UBYTE), value)
+    override fun putUShort(value: UShort) = Memory.writeUShort(nextWriteAddress(FFIType.USHORT), value)
+    override fun putUInt(value: UInt) = Memory.writeUInt(nextWriteAddress(FFIType.UINT), value)
+    override fun putULong(value: ULong) = Memory.writeULong(nextWriteAddress(FFIType.ULONG), value)
+    override fun putNUInt(value: NUInt) = Memory.writeNUInt(nextWriteAddress(FFIType.NUINT), value)
 
-    override fun putPointer(value: Address) = Memory.writePointer(nextAddress(FFIType.PTR), value)
+    override fun putPointer(value: Address) = Memory.writePointer(nextWriteAddress(FFIType.PTR), value)
 
-    override fun putFloat(value: Float) = Memory.writeFloat(nextAddress(FFIType.FLOAT), value)
-    override fun putDouble(value: Double) = Memory.writeDouble(nextAddress(FFIType.DOUBLE), value)
-    override fun putNFloat(value: NFloat) = Memory.writeNFloat(nextAddress(FFIType.NFLOAT), value)
+    override fun putFloat(value: Float) = Memory.writeFloat(nextWriteAddress(FFIType.FLOAT), value)
+    override fun putDouble(value: Double) = Memory.writeDouble(nextWriteAddress(FFIType.DOUBLE), value)
+    override fun putNFloat(value: NFloat) = Memory.writeNFloat(nextWriteAddress(FFIType.NFLOAT), value)
 
-    override fun putBytes(values: ByteArray) = Memory.writeBytes(nextAddress(FFIType.BYTE, values.size), values)
-    override fun putShorts(values: ShortArray) = Memory.writeShorts(nextAddress(FFIType.SHORT, values.size), values)
-    override fun putInts(values: IntArray) = Memory.writeInts(nextAddress(FFIType.INT, values.size), values)
-    override fun putLongs(values: LongArray) = Memory.writeLongs(nextAddress(FFIType.LONG, values.size), values)
-    override fun putNInts(values: NIntArray) = Memory.writeNInts(nextAddress(FFIType.NINT, values.size), values)
+    override fun putBytes(values: ByteArray) = Memory.writeBytes(nextWriteAddress(FFIType.BYTE, values.size), values)
+    override fun putShorts(values: ShortArray) = Memory.writeShorts(nextWriteAddress(FFIType.SHORT, values.size), values)
+    override fun putInts(values: IntArray) = Memory.writeInts(nextWriteAddress(FFIType.INT, values.size), values)
+    override fun putLongs(values: LongArray) = Memory.writeLongs(nextWriteAddress(FFIType.LONG, values.size), values)
+    override fun putNInts(values: NIntArray) = Memory.writeNInts(nextWriteAddress(FFIType.NINT, values.size), values)
 
-    override fun putUBytes(values: UByteArray) = Memory.writeUBytes(nextAddress(FFIType.UBYTE, values.size), values)
-    override fun putUShorts(values: UShortArray) = Memory.writeUShorts(nextAddress(FFIType.USHORT, values.size), values)
-    override fun putUInts(values: UIntArray) = Memory.writeUInts(nextAddress(FFIType.UINT, values.size), values)
-    override fun putULongs(values: ULongArray) = Memory.writeULongs(nextAddress(FFIType.ULONG, values.size), values)
-    override fun putNUInts(values: NUIntArray) = Memory.writeNUInts(nextAddress(FFIType.NUINT, values.size), values)
+    override fun putUBytes(values: UByteArray) = Memory.writeUBytes(nextWriteAddress(FFIType.UBYTE, values.size), values)
+    override fun putUShorts(values: UShortArray) = Memory.writeUShorts(nextWriteAddress(FFIType.USHORT, values.size), values)
+    override fun putUInts(values: UIntArray) = Memory.writeUInts(nextWriteAddress(FFIType.UINT, values.size), values)
+    override fun putULongs(values: ULongArray) = Memory.writeULongs(nextWriteAddress(FFIType.ULONG, values.size), values)
+    override fun putNUInts(values: NUIntArray) = Memory.writeNUInts(nextWriteAddress(FFIType.NUINT, values.size), values)
 
-    override fun putFloats(values: FloatArray) = Memory.writeFloats(nextAddress(FFIType.FLOAT, values.size), values)
-    override fun putDoubles(values: DoubleArray) = Memory.writeDoubles(nextAddress(FFIType.DOUBLE, values.size), values)
-    override fun putNFloats(values: NFloatArray) = Memory.writeNFloats(nextAddress(FFIType.NFLOAT, values.size), values)
+    override fun putFloats(values: FloatArray) = Memory.writeFloats(nextWriteAddress(FFIType.FLOAT, values.size), values)
+    override fun putDoubles(values: DoubleArray) = Memory.writeDoubles(nextWriteAddress(FFIType.DOUBLE, values.size), values)
+    override fun putNFloats(values: NFloatArray) = Memory.writeNFloats(nextWriteAddress(FFIType.NFLOAT, values.size), values)
 
-    override fun putPointers(values: PtrArray<*>) = Memory.writePointers(nextAddress(FFIType.PTR, values.size), values)
+    override fun putPointers(values: PtrArray<*>) = Memory.writePointers(nextWriteAddress(FFIType.PTR, values.size), values)
+
+    override fun getByte(): Byte = Memory.readByte(nextReadAddress())
+    override fun getShort(): Short = Memory.readShort(nextReadAddress())
+    override fun getInt(): Int = Memory.readInt(nextReadAddress())
+    override fun getLong(): Long = Memory.readLong(nextReadAddress())
+    override fun getNInt(): NInt = Memory.readNInt(nextReadAddress())
+
+    override fun getUByte(): UByte = Memory.readUByte(nextReadAddress())
+    override fun getUShort(): UShort = Memory.readUShort(nextReadAddress())
+    override fun getUInt(): UInt = Memory.readUInt(nextReadAddress())
+    override fun getULong(): ULong = Memory.readULong(nextReadAddress())
+    override fun getNUInt(): NUInt = Memory.readNUInt(nextReadAddress())
+
+    override fun getFloat(): Float = Memory.readFloat(nextReadAddress())
+    override fun getDouble(): Double = Memory.readDouble(nextReadAddress())
+
+    override fun getPointer(): VoidPtr = Memory.readPointer(nextReadAddress())
 
     @PublishedApi
     internal fun clear(): FFIArgBufferImpl {

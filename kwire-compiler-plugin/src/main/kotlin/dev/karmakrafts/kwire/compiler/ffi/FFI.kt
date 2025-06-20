@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.properties
 
 internal class FFI(
     private val context: KWirePluginContext
@@ -41,7 +40,6 @@ internal class FFI(
     val ffiCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFI.Companion.id)!!
 
     val ffiTypeType: IrClassSymbol = context.referenceClass(KWireNames.FFIType.id)!!
-    val ffiTypeCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFIType.Companion.id)!!
 
     val ffiDescriptorType: IrClassSymbol = context.referenceClass(KWireNames.FFIDescriptor.id)!!
     val ffiDescriptorConstructor: IrConstructorSymbol =

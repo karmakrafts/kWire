@@ -17,13 +17,11 @@
 package dev.karmakrafts.kwire.compiler.ffi
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.call
-import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.util.properties
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal enum class FFIType(
@@ -47,13 +45,8 @@ internal enum class FFIType(
     PTR     ({ addressType.defaultType });
     // @formatter:on
 
-    // @formatter:off
-    internal operator fun invoke(context: KWirePluginContext): IrExpression = context.ffi.ffiTypeCompanionType
-        .owner.properties
-        .first { it.name.asString() == name }
-        .getter!!
-        .call(dispatchReceiver = context.ffi.ffiTypeCompanionType.getObjectInstance())
-    // @formatter:on
+    internal operator fun invoke(context: KWirePluginContext): IrExpression =
+        getEnumValue(context.ffi.ffiTypeType) { name }
 
     internal fun getType(context: KWirePluginContext): IrType = context.typeGetter()
 }

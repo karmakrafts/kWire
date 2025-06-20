@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
@@ -32,16 +33,30 @@ import dev.karmakrafts.kwire.KWireCompilerApi
  * @property returnType The return type of the function, defaults to [FFIType.VOID]
  * @property parameterTypes List of parameter types for the function, defaults to an empty list
  */
+@ConsistentCopyVisibility
 @KWireCompilerApi
-data class FFIDescriptor( // @formatter:off
+data class FFIDescriptor private constructor( // @formatter:off
     val returnType: FFIType = FFIType.VOID,
     val parameterTypes: List<FFIType> = emptyList()
 ) { // @formatter:on
-    /**
-     * Constructs a descriptor with a return type and variable number of parameter types.
-     *
-     * @param returnType The return type of the function
-     * @param parameterTypes Variable number of parameter types for the function
-     */
-    constructor(returnType: FFIType, vararg parameterTypes: FFIType) : this(returnType, parameterTypes.toList())
+    companion object {
+        private val cache: ConcurrentMutableMap<Int, FFIDescriptor> = ConcurrentMutableMap()
+
+        private fun getCacheKey(returnType: FFIType, parameterTypes: List<FFIType>): Int {
+            var hash = returnType.hashCode()
+            hash = 31 * hash + parameterTypes.hashCode()
+            return hash
+        }
+
+        @KWireCompilerApi
+        fun of(returnType: FFIType, parameterTypes: List<FFIType>): FFIDescriptor {
+            return cache.getOrPut(getCacheKey(returnType, parameterTypes)) {
+                FFIDescriptor(returnType, parameterTypes)
+            }
+        }
+
+        fun of(returnType: FFIType, vararg parameterTypes: FFIType): FFIDescriptor {
+            return of(returnType, parameterTypes.asList())
+        }
+    }
 }

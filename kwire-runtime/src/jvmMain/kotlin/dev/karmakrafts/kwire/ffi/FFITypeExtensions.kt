@@ -51,7 +51,6 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
  * - PTR -> ADDRESS when useSegments is true, otherwise JAVA_INT or JAVA_LONG depending on the platform's pointer size
  * - FLOAT -> JAVA_FLOAT
  * - DOUBLE -> JAVA_DOUBLE
- * - Array types (dimensions > 0) -> Same as PTR, using the specified useSegments parameter
  *
  * @param useSegments When true, pointer types (PTR) and array types will use ValueLayout.ADDRESS. When false,
  *                    they will use JAVA_INT or JAVA_LONG based on the platform's pointer size.
@@ -61,7 +60,6 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
  * @throws IllegalStateException if this FFI type has no valid memory layout.
  */
 fun FFIType.getMemoryLayout(useSegments: Boolean = false): MemoryLayout {
-    if (dimensions > 0) return getPointerLayout(useSegments)
     return when (this) {
         FFIType.BYTE, FFIType.UBYTE -> ValueLayout.JAVA_BYTE
         FFIType.SHORT, FFIType.USHORT -> ValueLayout.JAVA_SHORT

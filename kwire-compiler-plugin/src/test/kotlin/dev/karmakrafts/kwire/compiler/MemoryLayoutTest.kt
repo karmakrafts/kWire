@@ -22,7 +22,6 @@ import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.serialize
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType

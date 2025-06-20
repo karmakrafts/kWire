@@ -48,6 +48,6 @@ internal sealed interface MemoryLayout {
 
     fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
-}
 
-internal fun MemoryLayout.serialize(): ByteArray = serializer.encodeToByteArray(this)
+    fun serialize(): ByteArray = serializer.encodeToByteArray(this)
+}

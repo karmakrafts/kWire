@@ -6,7 +6,7 @@ androidCompileSDK = "35"
 androidMinimalSDK = "28"
 
 kwire = "1.1.0"
-iridium = "1.5.1" # https://github.com/karmakrafts/Iridium/tags
+iridium = "1.5.2" # https://github.com/karmakrafts/Iridium/tags
 kotlin = "2.1.21"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.8.1"
