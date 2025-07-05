@@ -254,9 +254,9 @@ fun TaskContainer.registerCopyAndroidJniLibraryTasks(
 }
 
 tasks {
-    registerCopyJvmJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
-    val libffiCopyTasks = registerCopyAndroidJniLibraryTasks("libffi", libffiPackage, libffiJvmBinaries)
-    val platformCopyTasks = registerCopyAndroidJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
+    val jvmPlatformCopyTasks = registerCopyJvmJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
+    val androidLibffiCopyTasks = registerCopyAndroidJniLibraryTasks("libffi", libffiPackage, libffiJvmBinaries)
+    val androidPlatformCopyTasks = registerCopyAndroidJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
     System.getProperty("publishDocs.root")?.let { docsDir ->
         register("publishDocs", Copy::class) {
             dependsOn(dokkaJar)
@@ -265,14 +265,17 @@ tasks {
             into("$docsDir/${project.name}")
         }
     }
+    val jvmProcessResources by getting {
+        dependsOn(jvmPlatformCopyTasks)
+    }
     afterEvaluate {
         val mergeReleaseJniLibFolders by getting {
-            dependsOn(libffiCopyTasks)
-            dependsOn(platformCopyTasks)
+            dependsOn(androidLibffiCopyTasks)
+            dependsOn(androidPlatformCopyTasks)
         }
         val mergeDebugJniLibFolders by getting {
-            dependsOn(libffiCopyTasks)
-            dependsOn(platformCopyTasks)
+            dependsOn(androidLibffiCopyTasks)
+            dependsOn(androidPlatformCopyTasks)
         }
     }
 }
