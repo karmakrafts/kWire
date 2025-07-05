@@ -26,7 +26,7 @@ shared libraries from Kotlin common code.
   missing standard APIs
 
 * On native targets, kWire uses a custom implementation built in Kotlin/Native and using
-  [libffi](https://github.com/libffi/libffi) for dispatching calls at runtime in an efficient manner, giving very comparable
+  [libffi](https://github.com/libffi/libffi) for dispatching calls at runtime in an efficient manner, giving very acceptable
   performance to builtin C-function calls in Kotlin/Native
 
 ### Compiler RT
