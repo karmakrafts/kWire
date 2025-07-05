@@ -389,6 +389,43 @@ class PtrIntrinsicsTest {
     }
 
     @Test
+    fun `Dereference primitive pointer with index`() = setupCompilerTest {
+        kwireTransformerPipeline()
+        default {
+            compiler shouldNotReport { error() }
+        }
+        for (typeIndex in primitiveTypes.indices) {
+            val type = primitiveTypes[typeIndex]
+            val resolvedType = resolvedPrimitiveTypes[typeIndex]
+            resetAssertions()
+            // @formatter:off
+            source("""
+                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.nullptr
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                val test: $type = nullptr<NumPtr<$type>>()[2]
+            """.trimIndent())
+            // @formatter:on
+            result irMatches {
+                getChild<IrProperty> { it.name.asString() == "test" } matches {
+                    val field = getChild<IrField>()
+                    val initializer = field.initializer?.expression
+                    initializer shouldNotBe null
+                    initializer!!::class shouldBe IrCallImpl::class
+
+                    val call = initializer as IrCall
+                    val callee = call.target
+                    callee.name.asString() shouldBe "read$resolvedType"
+                }
+            }
+            evaluate()
+        }
+    }
+
+    @Test
     fun `Write to primitive pointer`() = setupCompilerTest {
         kwireTransformerPipeline()
         default {
@@ -409,6 +446,39 @@ class PtrIntrinsicsTest {
                 val value: NumPtr<$type> = nullptr<NumPtr<$type>>()
                 fun test() {
                     value.set(0.to$type())
+                }
+            """.trimIndent())
+            // @formatter:on
+            result irMatches {
+                getChild<IrFunction> { it.name.asString() == "test" } matches {
+                    containsChild<IrCall> { it.target.name.asString() == "write$resolvedType" }
+                }
+            }
+            evaluate()
+        }
+    }
+
+    @Test
+    fun `Write to primitive pointer with index`() = setupCompilerTest {
+        kwireTransformerPipeline()
+        default {
+            compiler shouldNotReport { error() }
+        }
+        for (typeIndex in primitiveTypes.indices) {
+            val type = primitiveTypes[typeIndex]
+            val resolvedType = resolvedPrimitiveTypes[typeIndex]
+            resetAssertions()
+            // @formatter:off
+            source("""
+                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.nullptr
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                val value: NumPtr<$type> = nullptr<NumPtr<$type>>()
+                fun test() {
+                    value[2] = 0.to$type()
                 }
             """.trimIndent())
             // @formatter:on
