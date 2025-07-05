@@ -21,10 +21,10 @@ compilerOpts.android_arm32 = -Ibuild/libffi/androidArm32/include
 libraryPaths.android_arm32 = build/libffi/androidArm32/lib
 
 # macOS
-compilerOpts.osx_x64 = -Ibuild/libffi/macosX64/include
-libraryPaths.osx_x64 = build/libffi/macosX64/lib
-compilerOpts.osx_arm64 = -Ibuild/libffi/macosArm64/include
-libraryPaths.osx_arm64 = build/libffi/macosArm64/lib
+compilerOpts.macos_x64 = -Ibuild/libffi/macosX64/include
+libraryPaths.macos_x64 = build/libffi/macosX64/lib
+compilerOpts.macos_arm64 = -Ibuild/libffi/macosArm64/include
+libraryPaths.macos_arm64 = build/libffi/macosArm64/lib
 
 # iOS
 compilerOpts.ios_x64 = -Ibuild/libffi/iosX64Simulator/include
