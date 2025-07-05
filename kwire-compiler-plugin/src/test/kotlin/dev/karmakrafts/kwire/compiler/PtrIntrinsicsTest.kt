@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.target
 import kotlin.test.Test
 
@@ -49,6 +50,9 @@ class PtrIntrinsicsTest {
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            containsChild<IrCall> { it.target.name.asString() == "plus" }
+        }
     }
 
     @Test
@@ -64,6 +68,10 @@ class PtrIntrinsicsTest {
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            println(element.dump())
+            containsChild<IrCall> { it.target.name.asString() == "plus" }
+        }
     }
 
     @Test
@@ -77,6 +85,9 @@ class PtrIntrinsicsTest {
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            containsChild<IrCall> { it.target.name.asString() == "minus" }
+        }
     }
 
     @Test
@@ -92,6 +103,9 @@ class PtrIntrinsicsTest {
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            containsChild<IrCall> { it.target.name.asString() == "minus" }
+        }
     }
 
     @Test
@@ -106,6 +120,12 @@ class PtrIntrinsicsTest {
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            // TODO: fixme
+            //getChild<IrProperty> { it.name.asString() == "test" } matches {
+            //    containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
+            //}
+        }
     }
 
     @Test
@@ -114,9 +134,22 @@ class PtrIntrinsicsTest {
         // @formatter:off
         source("""
             import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Struct
+            import dev.karmakrafts.kwire.ctype.ref
+            class Foo(val x: Int = 0) : Struct {
+                fun test() = println("Hello, World!")
+            }
+            val foo: Foo = Foo()
+            val test: FunPtr<() -> Unit> = foo::test.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
+        result irMatches {
+            // TODO: fixme
+            //getChild<IrProperty> { it.name.asString() == "test" } matches {
+            //    containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
+            //}
+        }
     }
 
     @Test

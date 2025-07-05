@@ -47,8 +47,10 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNumber
 import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.ir.util.render
@@ -73,7 +75,7 @@ internal class PtrIntrinsicsTransformer(
         type: IrType,
         value: IrExpression
     ): IrExpression {
-        val isOpaque = type.isVoidPtr() || type.isAddress(context)
+        val isOpaque = type.isVoidPtr()
         val pointedType = if(isOpaque) context.irBuiltIns.unitType else type.getPointedType()
         if (pointedType == null) {
             reportError("Could not determine pointed type for pointer", errorExpr)
@@ -273,12 +275,19 @@ internal class PtrIntrinsicsTransformer(
     private inline fun emitPointerArithmeticOp(
         call: IrCall, op: IrExpression.(IrExpression) -> IrExpression
     ): IrExpression {
-        val pointerType = call.type
-        val pointedType = pointerType.getPointedType()
+        // Reify pointer type from class type parameter
+        var pointerType: IrType? = call.type
+        val pointedType = pointerType?.getPointedType()?.resolveFromReceiver(call)
         if (pointedType == null) {
             reportError("Could not determine pointed type for pointer arithmetic intrinsic", call)
             return call
         }
+        pointerType = pointerType.getClass()?.typeWith(pointedType)
+        if(pointerType == null) {
+            reportError("Could not reify pointer type for pointer arithmetic intrinsic", call)
+            return call
+        }
+
         val layout = pointedType.computeMemoryLayout(context)
         if (layout is ReferenceMemoryLayout) {
             reportError("Cannot perform pointer arithmetic operation on pointer to reference type", call)
