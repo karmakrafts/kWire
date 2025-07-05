@@ -265,13 +265,15 @@ tasks {
             into("$docsDir/${project.name}")
         }
     }
-    named("mergeReleaseJniLibFolders") {
-        dependsOn(libffiCopyTasks)
-        dependsOn(platformCopyTasks)
-    }
-    named("mergeDebugJniLibFolders") {
-        dependsOn(libffiCopyTasks)
-        dependsOn(platformCopyTasks)
+    afterEvaluate {
+        val mergeReleaseJniLibFolders by getting {
+            dependsOn(libffiCopyTasks)
+            dependsOn(platformCopyTasks)
+        }
+        val mergeDebugJniLibFolders by getting {
+            dependsOn(libffiCopyTasks)
+            dependsOn(platformCopyTasks)
+        }
     }
 }
 

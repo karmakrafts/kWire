@@ -71,7 +71,7 @@ internal object NativeLoader {
         check(config.version == NativeLoaderConfig.VERSION) {
             "Mismatched NativeLoader config version: expected ${NativeLoaderConfig.VERSION} but got ${config.version}"
         }
-        val currentArch = System.getProperty("os.arch")
+        val currentArch = System.getProperty("os.arch") ?: error("os.arch is not set, cannot determine architecture")
         val platformConfig = config.platforms[SystemInfo.getCurrentPlatform()]!!
         for ((compoundArch, archConfig) in platformConfig.architectures) {
             val architectures = compoundArch.split(",") // We can match multiple architectures
