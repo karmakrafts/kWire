@@ -94,6 +94,11 @@ value class NUIntArray @PublishedApi internal constructor(
      */
     inline fun asNIntArray(): NIntArray = value
 
+    /**
+     * Converts this [NUIntArray] to an [Array] of [NUInt] values.
+     *
+     * @return A new [Array] containing all elements from this array.
+     */
     inline fun toTypedArray(): Array<NUInt> = Array(size, ::get)
 }
 
@@ -118,4 +123,9 @@ inline fun nUIntArray(size: Int, crossinline initializer: (Int) -> NUInt): NUInt
     })
 }
 
+/**
+ * Converts an [Array] of [NUInt] values to an [NUIntArray].
+ *
+ * @return A new [NUIntArray] containing all elements from this array.
+ */
 inline fun Array<NUInt>.toNUIntArray(): NUIntArray = nUIntArray(size, ::get)

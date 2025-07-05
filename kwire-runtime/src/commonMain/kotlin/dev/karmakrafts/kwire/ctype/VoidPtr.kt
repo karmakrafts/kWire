@@ -22,6 +22,13 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.memory.Memory
 import kotlin.jvm.JvmInline
 
+/**
+ * Represents an untyped (void) pointer to a memory location in the C type system.
+ *
+ * This class provides a way to work with void pointers in the KWire FFI system.
+ * It implements the [Address] interface and provides methods for pointer arithmetic,
+ * type conversion, and reinterpretation to other pointer types.
+ */
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
@@ -29,36 +36,180 @@ value class VoidPtr @PublishedApi internal constructor(
     override val rawAddress: NUInt
 ) : Address {
     companion object {
+        /**
+         * A null void pointer (address 0).
+         */
         val nullptr: VoidPtr = VoidPtr(0U.toNUInt())
     }
 
+    /**
+     * Reinterprets this void pointer as a pointer to a specific type.
+     *
+     * @param R The type that this pointer will point to
+     * @return A typed pointer to the same address
+     */
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
+
+    /**
+     * Reinterprets this void pointer as a pointer to a numeric type.
+     *
+     * @param N The numeric type that this pointer will point to
+     * @return A numeric pointer to the same address
+     */
     inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+
+    /**
+     * Reinterprets this void pointer as another void pointer.
+     *
+     * @return A void pointer to the same address
+     */
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
+
+    /**
+     * Reinterprets this void pointer as a function pointer.
+     *
+     * @param F The function type that this pointer will point to
+     * @return A function pointer to the same address
+     */
     inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
+    /**
+     * Aligns this pointer to the specified alignment.
+     *
+     * @param alignment The alignment boundary in bytes
+     * @return A void pointer to the aligned address
+     */
     inline fun align(alignment: NUInt): VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
 
+    /**
+     * Converts this pointer to a native unsigned integer.
+     *
+     * @return The pointer address as a native unsigned integer
+     */
     inline fun asNUInt(): NUInt = rawAddress
+
+    /**
+     * Converts this pointer to a native signed integer.
+     *
+     * @return The pointer address as a native signed integer
+     */
     inline fun asNInt(): NInt = rawAddress.value
+
+    /**
+     * Converts this pointer to an unsigned integer.
+     *
+     * @return The pointer address as an unsigned integer
+     */
     inline fun asUInt(): UInt = rawAddress.toUInt()
+
+    /**
+     * Converts this pointer to a signed integer.
+     *
+     * @return The pointer address as a signed integer
+     */
     inline fun asInt(): Int = rawAddress.value.toInt()
+
+    /**
+     * Converts this pointer to an unsigned long.
+     *
+     * @return The pointer address as an unsigned long
+     */
     inline fun asULong(): ULong = rawAddress.toULong()
+
+    /**
+     * Converts this pointer to a signed long.
+     *
+     * @return The pointer address as a signed long
+     */
     inline fun asLong(): Long = rawAddress.value.toLong()
 
+    /**
+     * Adds a native unsigned integer offset to this pointer.
+     *
+     * @param other The offset to add in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun plus(other: NUInt): VoidPtr = VoidPtr(rawAddress + other)
+
+    /**
+     * Adds an integer offset to this pointer.
+     *
+     * @param other The offset to add in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun plus(other: Int): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+
+    /**
+     * Adds a long offset to this pointer.
+     *
+     * @param other The offset to add in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun plus(other: Long): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
 
+    /**
+     * Subtracts a native unsigned integer offset from this pointer.
+     *
+     * @param other The offset to subtract in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun minus(other: NUInt): VoidPtr = VoidPtr(rawAddress - other)
+
+    /**
+     * Subtracts an integer offset from this pointer.
+     *
+     * @param other The offset to subtract in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun minus(other: Int): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+
+    /**
+     * Subtracts a long offset from this pointer.
+     *
+     * @param other The offset to subtract in bytes
+     * @return A void pointer to the resulting address
+     */
     inline operator fun minus(other: Long): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
 
+    /**
+     * Returns a string representation of this pointer.
+     *
+     * @return A hexadecimal string representation of the pointer address
+     */
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }
 
+/**
+ * Converts a native unsigned integer to a void pointer.
+ *
+ * @return A void pointer with the address represented by this native unsigned integer
+ */
 inline fun NUInt.asVoidPtr(): VoidPtr = VoidPtr(this)
+
+/**
+ * Converts an unsigned long to a void pointer.
+ *
+ * @return A void pointer with the address represented by this unsigned long
+ */
 inline fun ULong.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
+
+/**
+ * Converts a signed long to a void pointer.
+ *
+ * @return A void pointer with the address represented by this signed long
+ */
 inline fun Long.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
+
+/**
+ * Converts an unsigned integer to a void pointer.
+ *
+ * @return A void pointer with the address represented by this unsigned integer
+ */
 inline fun UInt.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())
+
+/**
+ * Converts a signed integer to a void pointer.
+ *
+ * @return A void pointer with the address represented by this signed integer
+ */
 inline fun Int.asVoidPtr(): VoidPtr = VoidPtr(toNUInt())

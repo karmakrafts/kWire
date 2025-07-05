@@ -125,8 +125,24 @@ expect inline operator fun NFloatArray.minus(other: NFloatArray): NFloatArray
  */
 expect inline fun NFloatArray.asSequence(): Sequence<NFloat>
 
+/**
+ * Creates a new [NFloatArray] containing the specified [values].
+ *
+ * @param values The values to include in the array.
+ * @return A new [NFloatArray] containing the specified values.
+ */
 inline fun nFloatArrayOf(vararg values: NFloat): NFloatArray = nFloatArray(values.size, values::get)
 
+/**
+ * Converts this [NFloatArray] to an [Array] of [NFloat] values.
+ *
+ * @return A new [Array] containing the same values as this [NFloatArray].
+ */
 inline fun NFloatArray.toTypedArray(): Array<NFloat> = Array(size, ::get)
 
+/**
+ * Converts this [Array] of [NFloat] values to an [NFloatArray].
+ *
+ * @return A new [NFloatArray] containing the same values as this [Array].
+ */
 inline fun Array<NFloat>.toNFloatArray(): NFloatArray = nFloatArray(size, ::get)

@@ -132,8 +132,24 @@ expect inline fun NIntArray.asSequence(): Sequence<NInt>
  */
 inline fun NIntArray.asNUIntArray(): NUIntArray = NUIntArray(this)
 
+/**
+ * Creates a new [NIntArray] containing the specified [values].
+ *
+ * @param values The values to include in the array.
+ * @return A new [NIntArray] containing the specified values.
+ */
 inline fun nIntArrayOf(vararg values: NInt): NIntArray = nIntArray(values.size, values::get)
 
+/**
+ * Converts this [NIntArray] to an [Array] of [NInt] values.
+ *
+ * @return A new [Array] containing the same values as this [NIntArray].
+ */
 inline fun NIntArray.toTypedArray(): Array<NInt> = Array(size, ::get)
 
+/**
+ * Converts this [Array] of [NInt] values to an [NIntArray].
+ *
+ * @return A new [NIntArray] containing the same values as this [Array].
+ */
 inline fun Array<NInt>.toNIntArray(): NIntArray = nIntArray(size, ::get)

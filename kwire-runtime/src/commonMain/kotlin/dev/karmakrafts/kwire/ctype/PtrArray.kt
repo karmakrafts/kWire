@@ -22,23 +22,66 @@ import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import kotlin.jvm.JvmInline
 
+/**
+ * Represents an array of pointers in the C type system.
+ *
+ * This class provides a type-safe way to work with arrays of pointers in the KWire FFI system.
+ * It wraps a [NUIntArray] to store the raw addresses of the pointers.
+ *
+ * @param P The type of address that the pointers in this array represent
+ */
 @JvmInline
 value class PtrArray<P : Address> @PublishedApi internal constructor(
+    /**
+     * The underlying array of native unsigned integers that store the raw addresses.
+     */
     val value: NUIntArray
 ) {
+    /**
+     * Creates a new pointer array with the specified size and initializer function.
+     *
+     * @param size The size of the array to create
+     * @param initializer A function that returns a pointer for each index
+     */
     constructor(size: Int, initializer: (Int) -> P) : this(nUIntArray(size) { initializer(it).rawAddress })
+
+    /**
+     * Creates a new empty pointer array with the specified size.
+     *
+     * @param size The size of the array to create
+     */
     constructor(size: Int) : this(nUIntArray(size))
 
+    /**
+     * The number of elements in this pointer array.
+     */
     inline val size: Int
         get() = value.size
 
-    // Implemented in compiler because class-level generics cannot be reified
+    /**
+     * Gets the pointer at the specified index in this array.
+     *
+     * @param index The index of the element to retrieve
+     * @return The pointer at the specified index
+     */
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_ARRAY_GET)
     operator fun get(index: Int): P = throw KWirePluginNotAppliedException()
 
-    // Implemented in compiler because class-level generics cannot be reified
+    /**
+     * Sets the pointer at the specified index in this array.
+     *
+     * @param index The index of the element to set
+     * @param value The pointer value to set at the specified index
+     */
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_ARRAY_SET)
     operator fun set(index: Int, value: P): Unit = throw KWirePluginNotAppliedException()
 }
 
+/**
+ * Creates a pointer array containing the specified pointers.
+ *
+ * @param P The type of address that the pointers in this array represent
+ * @param pointers The pointers to include in the array
+ * @return A new pointer array containing the specified pointers
+ */
 inline fun <P : Address> ptrArrayOf(vararg pointers: P): PtrArray<P> = PtrArray(pointers.size) { pointers[it] }

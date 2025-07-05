@@ -30,21 +30,37 @@ annotation class Const
 
 // Calling convention modifiers applicable to FunPtr<*> types
 
+/**
+ * A type marker annotation to indicate a function pointer
+ * uses the cdecl calling convention.
+ */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
 annotation class CDecl
 
+/**
+ * A type marker annotation to indicate a function pointer
+ * uses the thiscall calling convention.
+ */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
 annotation class ThisCall
 
+/**
+ * A type marker annotation to indicate a function pointer
+ * uses the stdcall calling convention.
+ */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
 annotation class StdCall
 
+/**
+ * A type marker annotation to indicate a function pointer
+ * uses the fastcall calling convention.
+ */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
