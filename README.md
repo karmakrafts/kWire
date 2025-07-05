@@ -29,13 +29,6 @@ shared libraries from Kotlin common code.
   [libffi](https://github.com/libffi/libffi) for dispatching calls at runtime in an efficient manner, giving very acceptable
   performance to builtin C-function calls in Kotlin/Native
 
-### Compiler RT
-
-The kWire compiler runtime (compiler-rt) provides a set of annotations which allows  
-the platform specific compile-time optimization of calls made to native code.  
-This is possible through special IR processing provided by the compiler plugin.
-
-
 ### Compiler Plugin
 
 The compiler plugin is the actual meat of the compiler runtime.  
