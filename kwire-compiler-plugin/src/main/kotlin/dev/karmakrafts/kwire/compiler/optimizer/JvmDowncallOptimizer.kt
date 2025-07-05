@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
-internal class JvmInvokeOptimizer : IrTransformer<KWirePluginContext>() {
+internal class JvmDowncallOptimizer : IrTransformer<KWirePluginContext>() {
     override fun visitCall(expression: IrCall, data: KWirePluginContext): IrElement {
         val transformedCall = super.visitCall(expression, data)
         if (transformedCall is IrCall) {

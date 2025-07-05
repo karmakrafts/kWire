@@ -235,7 +235,8 @@ fun TaskContainer.registerCopyJvmJniLibraryTasks(
 @OptIn(ExperimentalPathApi::class)
 fun TaskContainer.registerCopyAndroidJniLibraryTasks(
     taskPrefix: String, pkg: GitLabPackage, binaryNames: Map<String, String>
-) {
+): List<TaskProvider<Copy>> {
+    val tasks = ArrayList<TaskProvider<Copy>>()
     for ((name, suffix, jniTarget) in androidPlatforms) {
         val platformArtifact = pkg["build-$name-release.zip", suffix]
         val copyTask = register<Copy>("copy${taskPrefix.capitalized()}JniLibraries${suffix.capitalized()}") {
@@ -247,13 +248,15 @@ fun TaskContainer.registerCopyAndroidJniLibraryTasks(
         }
         named("prepareKotlinIdeaImport") { dependsOn(copyTask) }
         named("assemble") { dependsOn(copyTask) }
+        tasks += copyTask
     }
+    return tasks
 }
 
 tasks {
     registerCopyJvmJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
-    registerCopyAndroidJniLibraryTasks("libffi", libffiPackage, libffiJvmBinaries)
-    registerCopyAndroidJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
+    val libffiCopyTasks = registerCopyAndroidJniLibraryTasks("libffi", libffiPackage, libffiJvmBinaries)
+    val platformCopyTasks = registerCopyAndroidJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
     System.getProperty("publishDocs.root")?.let { docsDir ->
         register("publishDocs", Copy::class) {
             dependsOn(dokkaJar)
@@ -261,6 +264,14 @@ tasks {
             from(zipTree(dokkaJar.get().outputs.files.first()))
             into("$docsDir/${project.name}")
         }
+    }
+    named("mergeReleaseJniLibFolders") {
+        dependsOn(libffiCopyTasks)
+        dependsOn(platformCopyTasks)
+    }
+    named("mergeDebugJniLibFolders") {
+        dependsOn(libffiCopyTasks)
+        dependsOn(platformCopyTasks)
     }
 }
 

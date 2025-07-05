@@ -19,8 +19,8 @@ package dev.karmakrafts.kwire.compiler
 import dev.karmakrafts.kwire.compiler.checker.FunPtrChecker
 import dev.karmakrafts.kwire.compiler.checker.NumPtrChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
-import dev.karmakrafts.kwire.compiler.optimizer.JvmInvokeOptimizer
-import dev.karmakrafts.kwire.compiler.optimizer.NativeInvokeOptimizer
+import dev.karmakrafts.kwire.compiler.optimizer.JvmDowncallOptimizer
+import dev.karmakrafts.kwire.compiler.optimizer.NativeDowncallOptimizer
 import dev.karmakrafts.kwire.compiler.transformer.AllocatorIntrinsicTransformer
 import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
@@ -54,11 +54,11 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             // Optimization passes
             when (pluginContext.platform) {
                 in JvmPlatforms.allJvmPlatforms -> {
-                    file.transform(JvmInvokeOptimizer(), kwireContext)
+                    file.transform(JvmDowncallOptimizer(), kwireContext)
                 }
 
                 in NativePlatforms.allNativePlatforms -> {
-                    file.transform(NativeInvokeOptimizer(), kwireContext)
+                    file.transform(NativeDowncallOptimizer(), kwireContext)
                 }
             }
         }
