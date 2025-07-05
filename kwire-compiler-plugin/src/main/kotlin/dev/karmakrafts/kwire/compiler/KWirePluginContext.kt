@@ -22,21 +22,16 @@ import dev.karmakrafts.kwire.compiler.memory.Memory
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.computeStructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.getBuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
-import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.call
-import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
-import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
-import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.isStruct
 import dev.karmakrafts.kwire.compiler.util.new
 import dev.karmakrafts.kwire.compiler.util.toVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.builtins.PrimitiveType
-import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -51,12 +46,8 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.getPrimitiveType
-import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
-import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal class KWirePluginContext( // @formatter:off
@@ -151,48 +142,13 @@ internal class KWirePluginContext( // @formatter:off
     fun getOrComputeMemoryLayout(type: IrType): MemoryLayout = memoryLayoutCache.getOrPut(type) {
         // Handle Unit/void type
         if (type.isUnit()) return@getOrPut BuiltinMemoryLayout.VOID
-        // Handle signed integer types and IEEE-754 types
-        val primitiveType = type.getPrimitiveType()
-        if (primitiveType != null) return@getOrPut when (primitiveType) {
-            PrimitiveType.BYTE -> BuiltinMemoryLayout.BYTE
-            PrimitiveType.SHORT -> BuiltinMemoryLayout.SHORT
-            PrimitiveType.INT -> BuiltinMemoryLayout.INT
-            PrimitiveType.LONG -> BuiltinMemoryLayout.LONG
-            PrimitiveType.FLOAT -> BuiltinMemoryLayout.FLOAT
-            PrimitiveType.DOUBLE -> BuiltinMemoryLayout.DOUBLE
-            else -> error("Unsupported primitive type $primitiveType")
-        }
-        // Handle unsigned integer types
-        val unsignedType = type.getUnsignedType()
-        if (unsignedType != null) return@getOrPut when (unsignedType) {
-            UnsignedType.UBYTE -> BuiltinMemoryLayout.UBYTE
-            UnsignedType.USHORT -> BuiltinMemoryLayout.USHORT
-            UnsignedType.UINT -> BuiltinMemoryLayout.UINT
-            UnsignedType.ULONG -> BuiltinMemoryLayout.ULONG
-        }
-        // Handle native builtin types
-        val nativeType = type.getNativeType()
-        if (nativeType != null) return@getOrPut when (nativeType) {
-            NativeType.NINT -> BuiltinMemoryLayout.NINT
-            NativeType.NUINT -> BuiltinMemoryLayout.NUINT
-            NativeType.NFLOAT -> BuiltinMemoryLayout.NFLOAT
-            NativeType.PTR -> BuiltinMemoryLayout.ADDRESS
-        }
+        // Handle builtin/primitive types
+        val builtinLayout = type.getBuiltinMemoryLayout()
+        if (builtinLayout != null) return builtinLayout
         // Handle reference objects
         if (!type.isStruct(this)) return ReferenceMemoryLayout.of(type)
         // Handle user defined types
-        val clazz = type.getClass() ?: return@getOrPut BuiltinMemoryLayout.VOID
-        if (clazz.hasStructLayoutData()) {
-            // If this struct already has layout data attached, deserialize it
-            return@getOrPut MemoryLayout.deserialize(clazz.getStructLayoutData()!!)
-        }
-        val fields = ArrayList<MemoryLayout>()
-        for (property in clazz.properties) {
-            val propertyType = property.backingField?.type
-            check(propertyType != null) { "Struct field must have a backing field" }
-            fields += getOrComputeMemoryLayout(propertyType)
-        }
-        if (fields.isEmpty()) BuiltinMemoryLayout.VOID else StructMemoryLayout.of(type, fields)
+        return type.computeStructMemoryLayout(this) ?: BuiltinMemoryLayout.VOID
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)

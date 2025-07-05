@@ -17,17 +17,23 @@
 package dev.karmakrafts.kwire.compiler.memory
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constInt
+import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.jetbrains.kotlin.builtins.PrimitiveType
+import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.getPrimitiveType
+import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.util.functions
 
 // This code gets its own object because of initialization order. See KT-74926
@@ -197,4 +203,35 @@ internal enum class BuiltinMemoryLayout(
 
     override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression =
         writeEmitter(context, address, value)
+}
+
+internal fun IrType.getBuiltinMemoryLayout(): BuiltinMemoryLayout? {
+// Handle signed integer types and IEEE-754 types
+    val primitiveType = type.getPrimitiveType()
+    if (primitiveType != null) return when (primitiveType) {
+        PrimitiveType.BYTE -> BuiltinMemoryLayout.BYTE
+        PrimitiveType.SHORT -> BuiltinMemoryLayout.SHORT
+        PrimitiveType.INT -> BuiltinMemoryLayout.INT
+        PrimitiveType.LONG -> BuiltinMemoryLayout.LONG
+        PrimitiveType.FLOAT -> BuiltinMemoryLayout.FLOAT
+        PrimitiveType.DOUBLE -> BuiltinMemoryLayout.DOUBLE
+        else -> error("Unsupported primitive type $primitiveType")
+    }
+    // Handle unsigned integer types
+    val unsignedType = type.getUnsignedType()
+    if (unsignedType != null) return when (unsignedType) {
+        UnsignedType.UBYTE -> BuiltinMemoryLayout.UBYTE
+        UnsignedType.USHORT -> BuiltinMemoryLayout.USHORT
+        UnsignedType.UINT -> BuiltinMemoryLayout.UINT
+        UnsignedType.ULONG -> BuiltinMemoryLayout.ULONG
+    }
+    // Handle native builtin types
+    val nativeType = type.getNativeType()
+    if (nativeType != null) return when (nativeType) {
+        NativeType.NINT -> BuiltinMemoryLayout.NINT
+        NativeType.NUINT -> BuiltinMemoryLayout.NUINT
+        NativeType.NFLOAT -> BuiltinMemoryLayout.NFLOAT
+        NativeType.PTR -> BuiltinMemoryLayout.ADDRESS
+    }
+    return null
 }

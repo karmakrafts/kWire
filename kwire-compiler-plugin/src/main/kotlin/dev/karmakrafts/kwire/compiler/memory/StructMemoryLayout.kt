@@ -18,14 +18,18 @@ package dev.karmakrafts.kwire.compiler.memory
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.constInt
+import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
+import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.max
 import dev.karmakrafts.kwire.compiler.util.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.classId
+import org.jetbrains.kotlin.ir.util.properties
 
 @SerialName("struct")
 @Serializable
@@ -97,4 +101,20 @@ constructor(
             expr
         }
     }
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrType.computeStructMemoryLayout(context: KWirePluginContext): StructMemoryLayout? {
+    val clazz = type.getClass() ?: return null
+    if (clazz.hasStructLayoutData()) {
+        // If this struct already has layout data attached, deserialize it
+        return MemoryLayout.deserialize(clazz.getStructLayoutData()!!) as? StructMemoryLayout
+    }
+    val fields = ArrayList<MemoryLayout>()
+    for (property in clazz.properties) {
+        val propertyType = property.backingField?.type
+        check(propertyType != null) { "Struct field must have a backing field" }
+        fields += context.getOrComputeMemoryLayout(propertyType)
+    }
+    return StructMemoryLayout.of(this, fields)
 }
