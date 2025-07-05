@@ -59,7 +59,16 @@ value class FunPtr<F : Function<*>> @PublishedApi internal constructor(
 operator fun <R, F : Function<R>> FunPtr<F>.invoke(vararg args: Any?): R = throw KWirePluginNotAppliedException()
 
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
-fun <F : Function<*>> F.ref(): FunPtr<F> = throw KWirePluginNotAppliedException()
+fun <F : Function<*>> F.ref(): @CDecl FunPtr<F> = throw KWirePluginNotAppliedException()
+
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
+fun <F : Function<*>> F.refThisCall(): @ThisCall FunPtr<F> = throw KWirePluginNotAppliedException()
+
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
+fun <F : Function<*>> F.refStdCall(): @StdCall FunPtr<F> = throw KWirePluginNotAppliedException()
+
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
+fun <F : Function<*>> F.refFastCall(): @FastCall FunPtr<F> = throw KWirePluginNotAppliedException()
 
 inline fun <F : Function<*>> NUInt.asFunPtr(): FunPtr<F> = FunPtr(this)
 inline fun <F : Function<*>> ULong.asFunPtr(): FunPtr<F> = FunPtr(toNUInt())

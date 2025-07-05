@@ -146,7 +146,16 @@ internal class PtrIntrinsicsTransformer(
             returnType = function.returnType,
             parameterTypes = parameters.map { it.type }
         )
-        val callingConvention = CallingConvention.CDECL
+        val callingConvention = when(call.target.name.asString()) {
+            "ref" -> CallingConvention.CDECL
+            "refThisCall" -> CallingConvention.THISCALL
+            "refStdCall" -> CallingConvention.STDCALL
+            "refFastCall" -> CallingConvention.FASTCALL
+            else -> {
+                reportError("Could not determine function reference calling convention", call)
+                return call
+            }
+        }
         val stubFunction = context.irFactory.createSimpleFunction(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
