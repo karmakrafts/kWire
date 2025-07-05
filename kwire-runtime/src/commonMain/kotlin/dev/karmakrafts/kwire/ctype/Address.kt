@@ -29,7 +29,11 @@ sealed interface Address : Pointed {
         val SIZE_BYTES: Int get() = pointerSize
     }
 
+    @KWireCompilerApi
     val rawAddress: NUInt
+
+    fun isNull(): Boolean = rawAddress == 0U.toNUInt()
+    fun isNotNull(): Boolean = rawAddress != 0U.toNUInt()
 }
 
 inline fun <R : Pointed> Address.reinterpret(): Ptr<R> = Ptr(rawAddress)

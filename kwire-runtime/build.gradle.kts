@@ -20,6 +20,7 @@ import dev.karmakrafts.conventions.dependsOn
 import dev.karmakrafts.conventions.getBinaryBaseName
 import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
+import dev.karmakrafts.conventions.setProjectInfo
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
@@ -261,4 +262,11 @@ tasks {
             into(docsDir)
         }
     }
+}
+
+publishing {
+    publications.withType<MavenPublication> {
+        artifact(dokkaJar)
+    }
+    setProjectInfo("kWire Runtime", "Native interop as a first class feature for Kotlin/Multiplatform")
 }

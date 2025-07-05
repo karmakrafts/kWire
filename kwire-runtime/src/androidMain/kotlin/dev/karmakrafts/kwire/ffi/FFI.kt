@@ -37,11 +37,15 @@ import dev.karmakrafts.kwire.ctype.toNInt
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.ctype.toPtr
 import dev.karmakrafts.kwire.memory.Memory
+import dev.karmakrafts.kwire.memory.MemoryStack
 import dev.karmakrafts.kwire.memory.StableRef
+import dev.karmakrafts.kwire.memory.pointer
+import dev.karmakrafts.kwire.memory.pointers
+import dev.karmakrafts.kwire.util.AndroidNativePlatform
+import dev.karmakrafts.kwire.util.getFFIError
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import kotlin.experimental.ExperimentalTypeInference
-import kotlin.use
 import com.v7878.foreign.Linker as JvmLinker
 
 private data class UpcallStub( // @formatter:off
@@ -109,7 +113,7 @@ internal object PanamaFFI : FFI {
         val trampoline = StableRef.from<(FFIArgBuffer) -> Unit>(userData.toPtr()).value
         val argBuffer = FFIArgBuffer.acquire()
         trampoline(argBuffer)
-        val returnType = FFICIF.create(cif.address()).rtype().toFFI()
+        val returnType = AndroidNativePlatform.getFFICIFReturnType(cif.address()).asVoidPtr().toFFI()
         argBuffer.rewindToLast() // Rewind to last to copy result back to target
         Memory.copy(argBuffer.currentAddress, ret.toPtr(), returnType.size.toNUInt()) // Copy return value to target
         argBuffer.release()
@@ -125,7 +129,7 @@ internal object PanamaFFI : FFI {
             ValueLayout.ADDRESS, // args
             ValueLayout.ADDRESS  // userData
         )
-        Linker.nativeLinker().upcallStub(handle, descriptor, Arena.global())
+        JvmLinker.nativeLinker().upcallStub(handle, descriptor, Arena.global())
     }
 
     override fun createUpcallStub( // @formatter:off
@@ -134,40 +138,41 @@ internal object PanamaFFI : FFI {
         function: (FFIArgBuffer) -> Unit
     ): VoidPtr { // @formatter:on
         return upcallStubs.getOrPut(function) {
-            LWJGLMemoryStack.stackPush().use { stackFrame ->
-                val cif = FFICIF.create()
+            MemoryStack.withStackFrame { stackFrame ->
+                val cif = LibFFI.ffi_cif_alloc()
+
                 val returnType = descriptor.returnType.toLibFFI()
                 val parameterTypes = descriptor.parameterTypes.map { it.toLibFFI() }.toTypedArray()
 
-                var result = org.lwjgl.system.libffi.LibFFI.ffi_prep_cif( // @formatter:off
+                var result = LibFFI.ffi_prep_cif( // @formatter:off
                     cif,
                     callingConvention.toLibFFI(),
+                    parameterTypes.size,
                     returnType,
                     stackFrame.pointers(*parameterTypes)
                 ) // @formatter:on
-                check(result == org.lwjgl.system.libffi.LibFFI.FFI_OK) {
+                check(result == LibFFI.FFI_OK) {
                     "Could not initialize CIF for upcall stub closure: ${getFFIError(result)}"
                 }
 
-                val codeAddressBuffer = stackFrame.mallocPointer(1)
-                val closure =
-                    org.lwjgl.system.libffi.LibFFI.ffi_closure_alloc(FFIClosure.SIZEOF.toLong(), codeAddressBuffer)
-                check(closure != null) { "Could not allocate upcall stub closure memory: ${getFFIError(result)}" }
-                val codeAddress = codeAddressBuffer.get()
+                val codeAddressBuffer = stackFrame.pointer(VoidPtr.nullptr)
+                val closure = LibFFI.ffi_closure_alloc(codeAddressBuffer)
+                check(closure.isNotNull()) { "Could not allocate upcall stub closure memory: ${getFFIError(result)}" }
+                val codeAddress = Memory.readPointer(codeAddressBuffer)
                 val trampolineRef = StableRef.create(function)
 
-                result = org.lwjgl.system.libffi.LibFFI.ffi_prep_closure_loc( // @formatter:off
+                result = LibFFI.ffi_prep_closure_loc( // @formatter:off
                     closure,
                     cif,
-                    invokeUpcallStubAddress.address(),
-                    trampolineRef.address.asLong(),
+                    invokeUpcallStubAddress.toPtr(),
+                    trampolineRef.address,
                     codeAddress
                 ) // @formatter:on
-                check(result == org.lwjgl.system.libffi.LibFFI.FFI_OK) {
+                check(result == LibFFI.FFI_OK) {
                     "Could not prepare FFI closure for upcall stub: ${getFFIError(result)}"
                 }
 
-                UpcallStub(cif, closure, codeAddress.asVoidPtr(), trampolineRef)
+                UpcallStub(cif, closure, codeAddress, trampolineRef)
             }
         }.address
     }

@@ -15,11 +15,12 @@
  */
 
 import dev.karmakrafts.conventions.GitLabCI
+import dev.karmakrafts.conventions.apache2License
+import dev.karmakrafts.conventions.authenticatedSonatype
 import dev.karmakrafts.conventions.defaultDependencyLocking
-import dev.karmakrafts.conventions.setProjectInfo
-import java.net.URI
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
+import dev.karmakrafts.conventions.setRepository
+import dev.karmakrafts.conventions.signPublications
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.dokka) apply false
@@ -46,35 +47,18 @@ subprojects {
     if (GitLabCI.isCI) defaultDependencyLocking()
 
     publishing {
-        setProjectInfo(
-            rootProject.name, "Shared library access and FFI for Kotlin Multiplatform"
-        )
+        apache2License()
+        setRepository("github.com", "karmakrafts/kwire")
         with(GitLabCI) { karmaKraftsDefaults() }
     }
 
-    @OptIn(ExperimentalEncodingApi::class) signing {
-        System.getenv("SIGNING_KEY_ID")?.let { keyId ->
-            useInMemoryPgpKeys( // @formatter:off
-                keyId,
-                System.getenv("SIGNING_PRIVATE_KEY")?.let { encodedKey ->
-                    Base64.decode(encodedKey).decodeToString()
-                },
-                System.getenv("SIGNING_PASSWORD")
-            ) // @formatter:on
-        }
-        sign(publishing.publications)
+    signing {
+        signPublications()
     }
 }
 
 nexusPublishing {
-    repositories {
-        System.getenv("OSSRH_USERNAME")?.let { userName ->
-            sonatype {
-                nexusUrl = URI.create("https://central.sonatype.com/publish/staging/maven2")
-                snapshotRepositoryUrl = URI.create("https://central.sonatype.com/repository/maven-snapshots")
-                username = userName
-                password = System.getenv("OSSRH_PASSWORD")
-            }
-        }
-    }
+    authenticatedSonatype()
+    connectTimeout = Duration.ofSeconds(30)
+    clientTimeout = Duration.ofMinutes(60)
 }

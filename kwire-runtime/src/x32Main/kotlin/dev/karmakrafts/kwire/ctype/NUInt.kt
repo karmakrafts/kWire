@@ -22,7 +22,7 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 
 // Ignore @JvmInline warning due to @OptionalExpectation
 @KWireCompilerApi
-actual value class NUInt @PublishedApi internal constructor(
+    actual value class NUInt @PublishedApi internal constructor(
     @PublishedApi internal val value: NInt
 ) : Comparable<NUInt> {
     actual override fun toString(): String = value.toString()

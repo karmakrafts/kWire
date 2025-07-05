@@ -15,6 +15,8 @@
  */
 
 import dev.karmakrafts.conventions.configureJava
+import dev.karmakrafts.conventions.setProjectInfo
+import java.time.ZonedDateTime
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
@@ -22,6 +24,7 @@ import kotlin.io.path.writeText
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.dokka)
     `java-gradle-plugin`
     `maven-publish`
 }
@@ -72,4 +75,26 @@ gradlePlugin {
             tags.addAll("kotlin", "native", "interop", "codegen")
         }
     }
+}
+
+dokka {
+    moduleName = project.name
+    pluginsConfiguration {
+        html {
+            footerMessage = "(c) ${ZonedDateTime.now().year} Karma Krafts & associates"
+        }
+    }
+}
+
+val dokkaJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaGeneratePublicationHtml)
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
+}
+
+publishing {
+    publications.withType<MavenPublication> {
+        artifact(dokkaJar)
+    }
+    setProjectInfo("kWire Gradle Plugin", "Gradle plugin for the kWire interop library for Kotlin/Multiplatform")
 }

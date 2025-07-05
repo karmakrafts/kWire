@@ -18,7 +18,16 @@ package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.KWireCompilerApi
 
+@PublishedApi
+internal expect fun isCallingConventionSupported(convention: CallingConvention): Boolean
+
 @KWireCompilerApi
 enum class CallingConvention {
-    CDECL, THISCALL, STDCALL, FASTCALL
+    CDECL,
+    THISCALL,
+    STDCALL,
+    FASTCALL;
+
+    inline val isSupported: Boolean
+        get() = isCallingConventionSupported(this)
 }

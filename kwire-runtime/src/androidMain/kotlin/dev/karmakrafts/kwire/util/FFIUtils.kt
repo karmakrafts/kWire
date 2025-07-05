@@ -16,23 +16,11 @@
 
 package dev.karmakrafts.kwire.util
 
-@PublishedApi
-internal object AndroidNativePlatform {
-    init {
-        NativeLoader.ensureLoaded() // Ensure natives are loaded before we access any functions
-    }
+import dev.karmakrafts.kwire.ffi.LibFFI
 
-    // Android-specific functions
-
-    @JvmStatic
-    external fun getFFICIFSize(): Long
-
-    @JvmStatic
-    external fun getFFIClosureSize(): Long
-
-    @JvmStatic
-    external fun getFFICIFReturnType(cif: Long): Long
-
-    @JvmStatic
-    external fun getFFIDefaultABI(): Int
+internal fun getFFIError(error: Int): String = when (error) {
+    LibFFI.FFI_BAD_ABI -> "Bad ABI"
+    LibFFI.FFI_BAD_ARGTYPE -> "Bad argument type"
+    LibFFI.FFI_BAD_TYPEDEF -> "Bad type definition"
+    else -> "Unknown error ($error)"
 }

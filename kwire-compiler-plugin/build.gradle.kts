@@ -1,4 +1,6 @@
 import dev.karmakrafts.conventions.configureJava
+import dev.karmakrafts.conventions.setProjectInfo
+import java.time.ZonedDateTime
 
 /*
  * Copyright 2025 Karma Krafts & associates
@@ -20,6 +22,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.dokka)
     `maven-publish`
 }
 
@@ -46,10 +49,27 @@ tasks {
     }
 }
 
+dokka {
+    moduleName = project.name
+    pluginsConfiguration {
+        html {
+            footerMessage = "(c) ${ZonedDateTime.now().year} Karma Krafts & associates"
+        }
+    }
+}
+
+val dokkaJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaGeneratePublicationHtml)
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
+}
+
 publishing {
     publications {
         create<MavenPublication>("compilerPlugin") {
+            artifact(dokkaJar)
             from(components["java"])
         }
     }
+    setProjectInfo("kWire Compiler Plugin", "Compiler plugin for the kWire interop library for Kotlin/Multiplatform")
 }

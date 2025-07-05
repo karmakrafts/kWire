@@ -32,8 +32,9 @@ private object ShutdownHandlerImpl : ShutdownHandler {
 
     init {
         atexit(staticCFunction<Unit> { // @formatter:off
-            // Need FQ reference because closure must be non-capturing
-            closeAll()
+            ShutdownHandlerImpl.apply {
+                closeAll()
+            }
         }) // @formatter:on
     }
 

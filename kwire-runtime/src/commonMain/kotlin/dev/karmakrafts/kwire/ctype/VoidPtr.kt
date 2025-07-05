@@ -28,6 +28,10 @@ import kotlin.jvm.JvmInline
 value class VoidPtr @PublishedApi internal constructor(
     override val rawAddress: NUInt
 ) : Address {
+    companion object {
+        val nullptr: VoidPtr = VoidPtr(0U.toNUInt())
+    }
+
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
     inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)

@@ -14,25 +14,9 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.util
+package dev.karmakrafts.kwire.ffi
 
 @PublishedApi
-internal object AndroidNativePlatform {
-    init {
-        NativeLoader.ensureLoaded() // Ensure natives are loaded before we access any functions
-    }
-
-    // Android-specific functions
-
-    @JvmStatic
-    external fun getFFICIFSize(): Long
-
-    @JvmStatic
-    external fun getFFIClosureSize(): Long
-
-    @JvmStatic
-    external fun getFFICIFReturnType(cif: Long): Long
-
-    @JvmStatic
-    external fun getFFIDefaultABI(): Int
+internal actual fun isCallingConventionSupported(convention: CallingConvention): Boolean {
+    return convention == CallingConvention.CDECL
 }
