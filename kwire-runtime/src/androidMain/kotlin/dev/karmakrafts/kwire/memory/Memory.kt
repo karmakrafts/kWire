@@ -38,7 +38,7 @@ import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.ctype.toPtr
 import dev.karmakrafts.kwire.ffi.FFIType
 import dev.karmakrafts.kwire.ffi.SharedLibrary
-import dev.karmakrafts.kwire.ffi.toMethodHandle
+import dev.karmakrafts.kwire.ffi.getFunction
 import java.lang.invoke.MethodHandle
 
 private object PanamaMemory : Memory {
@@ -46,23 +46,24 @@ private object PanamaMemory : Memory {
 
     // @formatter:off
     private val malloc: MethodHandle =
-        SharedLibrary.cRuntime["malloc", FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("malloc", FFIType.PTR, FFIType.NUINT)
     private val realloc: MethodHandle =
-        SharedLibrary.cRuntime["realloc", FFIType.PTR, FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("realloc", FFIType.PTR, FFIType.PTR, FFIType.NUINT)
     private val free: MethodHandle =
-        SharedLibrary.cRuntime["free", FFIType.VOID, FFIType.PTR].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("free", FFIType.VOID, FFIType.PTR)
     private val memcpy: MethodHandle =
-        SharedLibrary.cRuntime["memcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("memcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR, FFIType.NUINT)
     private val memmove: MethodHandle =
-        SharedLibrary.cRuntime["memmove", FFIType.PTR, FFIType.PTR, FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("memmove", FFIType.PTR, FFIType.PTR, FFIType.PTR, FFIType.NUINT)
     private val memcmp: MethodHandle =
-        SharedLibrary.cRuntime["memcmp", FFIType.INT, FFIType.PTR, FFIType.PTR, FFIType.NUINT].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("memcmp", FFIType.INT, FFIType.PTR, FFIType.PTR, FFIType.NUINT)
+
     private val strlen: MethodHandle =
-        SharedLibrary.cRuntime["strlen", FFIType.NUINT, FFIType.PTR].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("strlen", FFIType.NUINT, FFIType.PTR)
     private val strcpy: MethodHandle =
-        SharedLibrary.cRuntime["strcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("strcpy", FFIType.PTR, FFIType.PTR, FFIType.PTR)
     private val strcmp: MethodHandle =
-        SharedLibrary.cRuntime["strcmp", FFIType.INT, FFIType.PTR, FFIType.PTR].toMethodHandle(true)
+        SharedLibrary.cRuntime.getFunction("strcmp", FFIType.INT, FFIType.PTR, FFIType.PTR)
     // @formatter:on
 
     override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {

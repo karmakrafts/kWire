@@ -20,6 +20,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
@@ -30,7 +31,10 @@ import dev.karmakrafts.kwire.ctype.toMemorySegment
 import dev.karmakrafts.kwire.ctype.toNFloat
 import dev.karmakrafts.kwire.ctype.toNInt
 import dev.karmakrafts.kwire.ctype.toNUInt
+import dev.karmakrafts.kwire.ctype.toPtr
 import dev.karmakrafts.kwire.memory.Memory
+import dev.karmakrafts.kwire.memory.StableRef
+import dev.karmakrafts.kwire.util.getFFIError
 import org.lwjgl.system.libffi.FFICIF
 import org.lwjgl.system.libffi.FFIClosure
 import org.lwjgl.system.libffi.LibFFI
@@ -42,15 +46,18 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import kotlin.experimental.ExperimentalTypeInference
 import org.lwjgl.system.MemoryStack as LWJGLMemoryStack
-import org.lwjgl.system.libffi.FFIType as LibFFIType
 import java.lang.foreign.Linker as JvmLinker
 
-private data class UpcallStub(
-    val cif: FFICIF, val closure: FFIClosure
-) : AutoCloseable {
+private data class UpcallStub( // @formatter:off
+    val cif: FFICIF,
+    val closure: FFIClosure,
+    val address: VoidPtr,
+    val trampolineRef: StableRef<(FFIArgBuffer) -> Unit>
+) : AutoCloseable { // @formatter:on
     override fun close() {
-        closure.close()
+        LibFFI.ffi_closure_free(closure) // TODO: do we still need to close this after?
         cif.close()
+        trampolineRef.dispose()
     }
 }
 
@@ -59,7 +66,7 @@ internal object PanamaFFI : FFI {
     private val upcallStubs: HashMap<Function<*>, UpcallStub> = HashMap()
 
     init {
-        Runtime.getRuntime().addShutdownHook(Thread(::cleanup))
+        ShutdownHandler.register(AutoCloseable(::cleanup))
     }
 
     private fun cleanup() {
@@ -68,7 +75,7 @@ internal object PanamaFFI : FFI {
         }
     }
 
-    fun FFIArgBuffer.toArray(): Array<Any> {
+    private fun FFIArgBuffer.toArray(): Array<Any> {
         var offset = 0.toNUInt()
         return Array(types.size) { index ->
             val type = types[index]
@@ -89,34 +96,27 @@ internal object PanamaFFI : FFI {
         }
     }
 
-    internal fun getHandle(address: Address, descriptor: FFIDescriptor, useSegments: Boolean = false): MethodHandle {
+    internal fun getDowncallHandle(
+        address: Address, descriptor: FFIDescriptor, useSegments: Boolean = false
+    ): MethodHandle {
         return JvmLinker.nativeLinker()
             .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
     }
 
-    private fun FFIType.toLibFFI(): LibFFIType = when (this) {
-        FFIType.VOID -> LibFFI.ffi_type_void
-        FFIType.BYTE -> LibFFI.ffi_type_sint8
-        FFIType.SHORT -> LibFFI.ffi_type_sint16
-        FFIType.INT -> LibFFI.ffi_type_sint32
-        FFIType.LONG -> LibFFI.ffi_type_sint64
-        FFIType.NINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_sint32 else LibFFI.ffi_type_sint64
-        FFIType.UBYTE -> LibFFI.ffi_type_uint8
-        FFIType.USHORT -> LibFFI.ffi_type_uint16
-        FFIType.UINT -> LibFFI.ffi_type_uint32
-        FFIType.ULONG -> LibFFI.ffi_type_uint64
-        FFIType.NUINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_uint64 else LibFFI.ffi_type_uint64
-        FFIType.FLOAT -> LibFFI.ffi_type_float
-        FFIType.DOUBLE -> LibFFI.ffi_type_double
-        FFIType.NFLOAT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_float else LibFFI.ffi_type_double
-        FFIType.PTR -> LibFFI.ffi_type_pointer
-    }
-
-    private fun invokeUpcallStub(
-        cifAddr: MemorySegment, ret: MemorySegment, args: MemorySegment, userData: MemorySegment
-    ) {
-        FFICIF.create(cifAddr.address())
-
+    @Suppress("UNUSED", "UNCHECKED_CAST") // This is invoked through a MethodHandle
+    private fun invokeUpcallStub( // @formatter:off
+        cif: MemorySegment,
+        ret: MemorySegment,
+        args: MemorySegment,
+        userData: MemorySegment
+    ) { // @formatter:on
+        val trampoline = StableRef.from<(FFIArgBuffer) -> Unit>(userData.toPtr()).value
+        val argBuffer = FFIArgBuffer.acquire()
+        trampoline(argBuffer)
+        val returnType = FFICIF.create(cif.address()).rtype().toFFI()
+        argBuffer.rewindToLast() // Rewind to last to copy result back to target
+        Memory.copy(argBuffer.currentAddress, ret.toPtr(), returnType.size.toNUInt()) // Copy return value to target
+        argBuffer.release()
     }
 
     private val invokeUpcallStubAddress: MemorySegment by lazy {
@@ -124,148 +124,205 @@ internal object PanamaFFI : FFI {
         val handle = MethodHandles.lookup().unreflect(method)
         handle.bindTo(this) // Bind the function to this instance so it is properly callable
         val descriptor = FunctionDescriptor.ofVoid(
-            ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS
+            ValueLayout.ADDRESS, // cif
+            ValueLayout.ADDRESS, // ret
+            ValueLayout.ADDRESS, // args
+            ValueLayout.ADDRESS  // userData
         )
         JvmLinker.nativeLinker().upcallStub(handle, descriptor, Arena.global())
     }
 
-    private fun getOrCreateUpcallStub(descriptor: FFIDescriptor, function: Function<*>): UpcallStub {
-        return upcallStubs.getOrPut(function) { // @formatter:off
+    override fun createUpcallStub( // @formatter:off
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        function: (FFIArgBuffer) -> Unit
+    ): VoidPtr { // @formatter:on
+        return upcallStubs.getOrPut(function) {
             LWJGLMemoryStack.stackPush().use { stackFrame ->
                 val cif = FFICIF.create()
                 val returnType = descriptor.returnType.toLibFFI()
                 val parameterTypes = descriptor.parameterTypes.map { it.toLibFFI() }.toTypedArray()
-                check(LibFFI.ffi_prep_cif(cif, LibFFI.FFI_DEFAULT_ABI, returnType, stackFrame.pointers(*parameterTypes)) == LibFFI.FFI_OK) {
-                    "Could not initialize CIF for upcall stub closure"
+
+                var result = LibFFI.ffi_prep_cif( // @formatter:off
+                    cif,
+                    callingConvention.toLibFFI(),
+                    returnType,
+                    stackFrame.pointers(*parameterTypes)
+                ) // @formatter:on
+                check(result == LibFFI.FFI_OK) {
+                    "Could not initialize CIF for upcall stub closure: ${getFFIError(result)}"
                 }
 
-                val codeBuffer = stackFrame.mallocPointer(1)
-                val closure = LibFFI.ffi_closure_alloc(FFIClosure.SIZEOF.toLong(), codeBuffer)
-                check(closure != null) { "Could not allocate upcall stub closure memory" }
-                LibFFI.ffi_prep_closure_loc(closure, cif, invokeUpcallStubAddress.address(), 0L, codeBuffer.get())
+                val codeAddressBuffer = stackFrame.mallocPointer(1)
+                val closure = LibFFI.ffi_closure_alloc(FFIClosure.SIZEOF.toLong(), codeAddressBuffer)
+                check(closure != null) { "Could not allocate upcall stub closure memory: ${getFFIError(result)}" }
+                val codeAddress = codeAddressBuffer.get()
+                val trampolineRef = StableRef.create(function)
 
-                UpcallStub(cif, closure)
+                result = LibFFI.ffi_prep_closure_loc( // @formatter:off
+                    closure,
+                    cif,
+                    invokeUpcallStubAddress.address(),
+                    trampolineRef.address.asLong(),
+                    codeAddress
+                ) // @formatter:on
+                check(result == LibFFI.FFI_OK) {
+                    "Could not prepare FFI closure for upcall stub: ${getFFIError(result)}"
+                }
+
+                UpcallStub(cif, closure, codeAddress.asVoidPtr(), trampolineRef)
             }
-        } // @formatter:on
+        }.address
     }
 
-    override fun createUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Unit): VoidPtr {
-        TODO("Not yet implemented")
+    override fun call( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ) { // @formatter:on
+        getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray())
     }
 
-    override fun createByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Byte): VoidPtr {
-        TODO("Not yet implemented")
+    override fun callByte( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Byte { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Byte
     }
 
-    override fun createShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Short): VoidPtr {
-        TODO("Not yet implemented")
+    override fun callShort( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Short { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Short
     }
 
-    override fun createIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Int): VoidPtr {
-        TODO("Not yet implemented")
+    override fun callInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Int { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int
     }
 
-    override fun createLongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Long): VoidPtr {
-        TODO("Not yet implemented")
+    override fun callLong( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Long { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long
     }
 
-    override fun createUByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UByte): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createUShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UShort): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createUIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UInt): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createULongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> ULong): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createFloatUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Float): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createDoubleUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Double): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun call(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer) {
-        getHandle(address, descriptor).invokeWithArguments(*args.toArray())
-    }
-
-    override fun callByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Byte {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Byte
-    }
-
-    override fun callShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Short {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Short
-    }
-
-    override fun callInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Int {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int
-    }
-
-    override fun callLong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Long {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long
-    }
-
-    override fun callNInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NInt {
+    override fun callNInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NInt { // @formatter:on
         return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNInt()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNInt()
         }
         else {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toNInt()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toNInt()
         }
     }
 
-    override fun callUByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UByte {
-        return (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Byte).toUByte()
+    override fun callUByte( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UByte { // @formatter:on
+        return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Byte).toUByte()
     }
 
-    override fun callUShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UShort {
-        return (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Short).toUShort()
+    override fun callUShort( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UShort { // @formatter:on
+        return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Short).toUShort()
     }
 
-    override fun callUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UInt {
-        return (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toUInt()
+    override fun callUInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UInt { // @formatter:on
+        return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toUInt()
     }
 
-    override fun callULong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): ULong {
-        return (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toULong()
+    override fun callULong( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): ULong { // @formatter:on
+        return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toULong()
     }
 
-    override fun callNUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NUInt {
+    override fun callNUInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NUInt { // @formatter:on
         return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNUInt()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNUInt()
         }
         else {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toNUInt()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).toNUInt()
         }
     }
 
-    override fun callFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Float {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Float
+    override fun callFloat( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Float { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Float
     }
 
-    override fun callDouble(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Double {
-        return getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Double
+    override fun callDouble( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Double { // @formatter:on
+        return getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Double
     }
 
-    override fun callNFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NFloat {
+    override fun callNFloat( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NFloat { // @formatter:on
         return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Float).toNFloat()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Float).toNFloat()
         }
         else {
-            (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Double).toNFloat()
+            (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Double).toNFloat()
         }
     }
 
-    override fun callPointer(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): VoidPtr {
-        return (getHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Long).asVoidPtr()
+    override fun callPointer( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): VoidPtr { // @formatter:on
+        return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as MemorySegment).toPtr()
     }
 }
 

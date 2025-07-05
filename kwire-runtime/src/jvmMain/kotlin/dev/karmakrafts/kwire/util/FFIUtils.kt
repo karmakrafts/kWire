@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.optimizer
+package dev.karmakrafts.kwire.util
 
-import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.ir.visitors.IrTransformer
+import org.lwjgl.system.libffi.LibFFI
 
-internal class NativeInvokeOptimizer : IrTransformer<KWirePluginContext>()
+internal fun getFFIError(error: Int): String = when (error) {
+    LibFFI.FFI_BAD_ABI -> "Bad ABI"
+    LibFFI.FFI_BAD_ARGTYPE -> "Bad argument type"
+    LibFFI.FFI_BAD_TYPEDEF -> "Bad type definition"
+    else -> "Unknown error ($error)"
+}

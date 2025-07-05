@@ -25,15 +25,43 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.target
 import kotlin.test.Test
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 class PtrIntrinsicsTest {
     val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
     val resolvedPrimitiveTypes: Array<String> =
         arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "Long", "Double")
+
+    @Test
+    fun `Obtain pointer from top level function`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.ref
+            fun foo(x: Float, y: Float): Int = 42
+            val test: FunPtr<(Float, Float) -> Int> = ::foo.ref()
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
+    fun `Obtain pointer from member function`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
 
     @Test
     fun `Invoke function pointer using direct invocation`() = runCompilerTest {
@@ -52,10 +80,41 @@ class PtrIntrinsicsTest {
         compiler shouldNotReport { error() }
         result irMatches {
             getChild<IrVariable> { it.name.asString() == "foo" } matches {
-                getChild<IrCall> { it.target.name.asString() == "callDouble" } matches {
-                    containsChild<IrCall> { it.target.name.asString() == "putInt" }
-                    containsChild<IrCall> { it.target.name.asString() == "putFloat" }
-                }
+                containsChild<IrCall> { it.target.name.asString() == "callDouble" }
+                containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                containsChild<IrCall> { it.target.name.asString() == "putFloat" }
+                containsChild<IrCall> { it.target.name.asString() == "acquire" }
+                containsChild<IrCall> { it.target.name.asString() == "release" }
+                containsChild<IrGetEnumValue> { it.symbol.owner.name.asString() == "CDECL" }
+            }
+        }
+    }
+
+    @Test
+    fun `Invoke stdcall function pointer using direct invocation`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.invoke
+            import dev.karmakrafts.kwire.ctype.StdCall
+            typealias MyFuncPtr = @StdCall FunPtr<(Int, Float) -> Double>
+            fun test() {          
+                val ptr = nullptr<MyFuncPtr>()
+                val foo = ptr(42, 2F)
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            getChild<IrVariable> { it.name.asString() == "foo" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "callDouble" }
+                containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                containsChild<IrCall> { it.target.name.asString() == "putFloat" }
+                containsChild<IrCall> { it.target.name.asString() == "acquire" }
+                containsChild<IrCall> { it.target.name.asString() == "release" }
+                containsChild<IrGetEnumValue> { it.symbol.owner.name.asString() == "STDCALL" }
             }
         }
     }
@@ -78,10 +137,42 @@ class PtrIntrinsicsTest {
         compiler shouldNotReport { error() }
         result irMatches {
             getChild<IrVariable> { it.name.asString() == "foo" } matches {
-                getChild<IrCall> { it.target.name.asString() == "callDouble" } matches {
-                    containsChild<IrCall> { it.target.name.asString() == "putAll" }
-                    containsChild<IrCall> { it.target.name.asString() == "putInt" }
-                }
+                containsChild<IrCall> { it.target.name.asString() == "callDouble" }
+                containsChild<IrCall> { it.target.name.asString() == "putAll" }
+                containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                containsChild<IrCall> { it.target.name.asString() == "acquire" }
+                containsChild<IrCall> { it.target.name.asString() == "release" }
+                containsChild<IrGetEnumValue> { it.symbol.owner.name.asString() == "CDECL" }
+            }
+        }
+    }
+
+    @Test
+    fun `Invoke stdcall function pointer using dynamic invocation`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.invoke
+            import dev.karmakrafts.kwire.ctype.StdCall
+            typealias MyFuncPtr = @StdCall FunPtr<(Int, Float, Int) -> Double>
+            fun test() {
+                val args = arrayOf<Any>(42, 2F)
+                val ptr = nullptr<MyFuncPtr>()
+                val foo = ptr(*args, 10)
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            getChild<IrVariable> { it.name.asString() == "foo" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "callDouble" }
+                containsChild<IrCall> { it.target.name.asString() == "putAll" }
+                containsChild<IrCall> { it.target.name.asString() == "putInt" }
+                containsChild<IrCall> { it.target.name.asString() == "acquire" }
+                containsChild<IrCall> { it.target.name.asString() == "release" }
+                containsChild<IrGetEnumValue> { it.symbol.owner.name.asString() == "STDCALL" }
             }
         }
     }

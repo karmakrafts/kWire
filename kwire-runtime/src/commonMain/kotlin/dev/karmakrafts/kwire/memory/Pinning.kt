@@ -63,6 +63,9 @@ expect fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float>
 expect fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double>
 
 @DelicatePinningApi
+expect fun Pinned<CharArray>.acquireCharAddress(): NumPtr<Char>
+
+@DelicatePinningApi
 expect fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>)
 
 @DelicatePinningApi
@@ -80,6 +83,9 @@ expect fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>)
 @DelicatePinningApi
 expect fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>)
 
+@DelicatePinningApi
+expect fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>)
+
 @OptIn(DelicatePinningApi::class)
 inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
     val pinTack = pin()
@@ -93,7 +99,9 @@ inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 @JvmInline
-value class StableRef<T : Any>(private val pinTack: Pinned<T>) {
+value class StableRef<T : Any>(
+    @PublishedApi internal val pinTack: Pinned<T>
+) {
     companion object {
         fun <T : Any> create(value: T): StableRef<T> = StableRef(value.pin())
 
@@ -101,7 +109,8 @@ value class StableRef<T : Any>(private val pinTack: Pinned<T>) {
             StableRef(pinnedFrom(address.fromStableAddress()))
     }
 
-    val address: VoidPtr get() = pinTack.acquireStableAddress()
+    inline val value: T get() = pinTack.value
+    inline val address: VoidPtr get() = pinTack.acquireStableAddress()
     fun dispose() = unpin(pinTack)
 }
 
@@ -179,6 +188,19 @@ inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
     }
     finally {
         pinTack.releasePinnedDoubleAddress(address)
+        unpin(pinTack)
+    }
+}
+
+@OptIn(DelicatePinningApi::class)
+inline fun <reified R> CharArray.fixed(block: (NumPtr<Char>) -> R): R {
+    val pinTack = pin()
+    val address = pinTack.acquireCharAddress()
+    return try {
+        block(address)
+    }
+    finally {
+        pinTack.releasePinnedCharAddress(address)
         unpin(pinTack)
     }
 }

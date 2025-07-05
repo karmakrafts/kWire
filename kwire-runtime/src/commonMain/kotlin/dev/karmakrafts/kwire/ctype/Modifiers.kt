@@ -19,11 +19,33 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
- * A marker annotation which, when applied to a value parameter or a type
+ * A marker annotation which, when applied to a type
  * which represents a pointer, omits readbacks from unmanaged memory to
  * the source (variable or field) of the pointer reference.
  */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE)
+@Target(AnnotationTarget.TYPE)
 annotation class Const
+
+// Calling convention modifiers applicable to FunPtr<*> types
+
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE)
+annotation class CDecl
+
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE)
+annotation class ThisCall
+
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE)
+annotation class StdCall
+
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE)
+annotation class FastCall

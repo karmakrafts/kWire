@@ -42,6 +42,8 @@ internal object KWireNames {
         val free: Name = Name.identifier("free")
         val of: Name = Name.identifier("of")
         val listOf: Name = Name.identifier("listOf")
+        val acquire: Name = Name.identifier("acquire")
+        val release: Name = Name.identifier("release")
     }
 
     object Kotlin {
@@ -132,17 +134,6 @@ internal object KWireNames {
         }
     }
 
-    object Marshal {
-        val name: Name = Name.identifier("Marshal")
-        val id: ClassId = ClassId(packageName, name)
-        val fqName: FqName = id.asSingleFqName()
-    }
-
-    object SharedImport {
-        val name: Name = Name.identifier("SharedImport")
-        val id: ClassId = ClassId(packageName, name)
-    }
-
     // ------------------------------ dev.karmakrafts.kwire.ctype
 
     object CTypePkg {
@@ -153,6 +144,26 @@ internal object KWireNames {
 
     object Const {
         val name: Name = Name.identifier("Const")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
+    object CDecl {
+        val name: Name = Name.identifier("CDecl")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
+    object ThisCall {
+        val name: Name = Name.identifier("ThisCall")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
+    object StdCall {
+        val name: Name = Name.identifier("StdCall")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
+    object FastCall {
+        val name: Name = Name.identifier("FastCall")
         val id: ClassId = ClassId(ctypePackageName, name)
     }
 
@@ -279,6 +290,22 @@ internal object KWireNames {
 
     // ------------------------------ dev.karmakrafts.kwire.ffi
 
+    object Marshal {
+        val name: Name = Name.identifier("Marshal")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object SharedImport {
+        val name: Name = Name.identifier("SharedImport")
+        val id: ClassId = ClassId(ffiPackageName, name)
+    }
+
+    object CallingConvention {
+        val name: Name = Name.identifier("CallingConvention")
+        val id: ClassId = ClassId(ffiPackageName, name)
+    }
+
     object FFI {
         val name: Name = Name.identifier("FFI")
         val id: ClassId = ClassId(ffiPackageName, name)
@@ -315,12 +342,13 @@ internal object KWireNames {
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
         val putAll: CallableId = CallableId(id, Functions.putAll)
+        val release: CallableId = CallableId(id, Functions.release)
 
         object Companion {
             val name: FqName = FqName("FFIArgBuffer.Companion")
             val id: ClassId = ClassId(ffiPackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
-            val get: CallableId = CallableId(ffiPackageName, name, Functions.get)
+            val acquire: CallableId = CallableId(ffiPackageName, name, Functions.acquire)
         }
     }
 }

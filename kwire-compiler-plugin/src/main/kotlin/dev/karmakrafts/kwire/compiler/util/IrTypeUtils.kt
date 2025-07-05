@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.compiler.util
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.isTypeParameter
+import org.jetbrains.kotlin.ir.util.target
 
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
     val inType = type.type
@@ -96,5 +98,11 @@ internal fun IrType.resolveFromReceiver(call: IrCall): IrType? {
         return parentType.arguments[classTypeParam.index].typeOrNull
     }
     // First attempt to resolve via dispatcher reseiver, then extension receiver
-    return call.dispatchReceiver?.type?.let(::tryResolve) ?: call.extensionReceiver?.type?.let(::tryResolve)
+    return call.dispatchReceiver?.type?.let(::tryResolve)
+        ?: call.arguments[call.target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]?.type?.let(::tryResolve)
 }
+
+internal fun IrType.isCDecl(): Boolean = hasAnnotation(KWireNames.CDecl.id)
+internal fun IrType.isStdCall(): Boolean = hasAnnotation(KWireNames.StdCall.id)
+internal fun IrType.isThisCall(): Boolean = hasAnnotation(KWireNames.ThisCall.id)
+internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id)

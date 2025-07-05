@@ -19,6 +19,8 @@ typedef double nfloat_t;
 typedef float nfloat_t;
 #endif
 
+// Multi-byte strings
+
 PW_API static inline size_t strlen_with_address(const void* address) {
     return strlen((const char*)address);
 }

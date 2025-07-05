@@ -34,9 +34,10 @@ internal fun IrType.getNativeType(): NativeType? {
         actualType.isClassType(KWireNames.NInt.fqName.toUnsafe(), false) -> NativeType.NINT
         actualType.isClassType(KWireNames.NUInt.fqName.toUnsafe(), false) -> NativeType.NUINT
         actualType.isClassType(KWireNames.NFloat.fqName.toUnsafe(), false) -> NativeType.NFLOAT
-        actualType.isClassType(KWireNames.NumPtr.fqName.toUnsafe(), false)
-            || actualType.isClassType(KWireNames.Ptr.fqName.toUnsafe(), false)
-            || actualType.isClassType(KWireNames.VoidPtr.fqName.toUnsafe(), false) -> NativeType.PTR
+        actualType.isNumPtr()
+            || actualType.isFunPtr()
+            || actualType.isPtr()
+            || actualType.isVoidPtr() -> NativeType.PTR
         else -> null
     } // @formatter:on
 }

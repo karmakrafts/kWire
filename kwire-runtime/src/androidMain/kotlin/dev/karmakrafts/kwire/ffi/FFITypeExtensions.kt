@@ -19,6 +19,8 @@ package dev.karmakrafts.kwire.ffi
 import com.v7878.foreign.MemoryLayout
 import com.v7878.foreign.ValueLayout
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.toHexString
 
 /**
  * Determines the appropriate [ValueLayout] for pointer types based on the provided parameters.
@@ -61,7 +63,6 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
  * @throws IllegalStateException if this FFI type has no valid memory layout.
  */
 fun FFIType.getMemoryLayout(useSegments: Boolean = false): MemoryLayout {
-    if (dimensions > 0) return getPointerLayout(useSegments)
     return when (this) {
         FFIType.BYTE, FFIType.UBYTE -> ValueLayout.JAVA_BYTE
         FFIType.SHORT, FFIType.USHORT -> ValueLayout.JAVA_SHORT
@@ -73,4 +74,38 @@ fun FFIType.getMemoryLayout(useSegments: Boolean = false): MemoryLayout {
         FFIType.DOUBLE -> ValueLayout.JAVA_DOUBLE
         else -> throw IllegalStateException("$this has no valid memory layout")
     }
+}
+
+internal fun FFIType.toLibFFI(): VoidPtr = when (this) {
+    FFIType.VOID -> LibFFI.ffi_type_void
+    FFIType.BYTE -> LibFFI.ffi_type_sint8
+    FFIType.SHORT -> LibFFI.ffi_type_sint16
+    FFIType.INT -> LibFFI.ffi_type_sint32
+    FFIType.LONG -> LibFFI.ffi_type_sint64
+    FFIType.NINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_sint32 else LibFFI.ffi_type_sint64
+    FFIType.UBYTE -> LibFFI.ffi_type_uint8
+    FFIType.USHORT -> LibFFI.ffi_type_uint16
+    FFIType.UINT -> LibFFI.ffi_type_uint32
+    FFIType.ULONG -> LibFFI.ffi_type_uint64
+    FFIType.NUINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_uint64 else LibFFI.ffi_type_uint64
+    FFIType.FLOAT -> LibFFI.ffi_type_float
+    FFIType.DOUBLE -> LibFFI.ffi_type_double
+    FFIType.NFLOAT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_float else LibFFI.ffi_type_double
+    FFIType.PTR -> LibFFI.ffi_type_pointer
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+internal fun Address.toFFI(): FFIType = when (this) {
+    LibFFI.ffi_type_sint8 -> FFIType.BYTE
+    LibFFI.ffi_type_sint16 -> FFIType.SHORT
+    LibFFI.ffi_type_sint32 -> FFIType.INT
+    LibFFI.ffi_type_sint64 -> FFIType.LONG
+    LibFFI.ffi_type_uint8 -> FFIType.UBYTE
+    LibFFI.ffi_type_uint16 -> FFIType.USHORT
+    LibFFI.ffi_type_uint32 -> FFIType.UINT
+    LibFFI.ffi_type_uint64 -> FFIType.ULONG
+    LibFFI.ffi_type_float -> FFIType.FLOAT
+    LibFFI.ffi_type_double -> FFIType.DOUBLE
+    LibFFI.ffi_type_pointer -> FFIType.PTR
+    else -> error("Incompatible FFI type at 0x${rawAddress.toHexString()}")
 }

@@ -22,10 +22,13 @@ import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
+import dev.karmakrafts.kwire.ctype.NUIntArray
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.Pointed
 import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.PtrArray
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.ptrArrayOf
 import dev.karmakrafts.kwire.ctype.toNFloatArray
 import dev.karmakrafts.kwire.ctype.toNIntArray
 import dev.karmakrafts.kwire.ctype.toNUInt
@@ -72,10 +75,10 @@ interface Allocator {
         }
 }
 
-inline fun <reified N : Number> Allocator.allocateNum(): NumPtr<N> =
+inline fun <reified N : Comparable<N>> Allocator.allocateNum(): NumPtr<N> =
     allocate(sizeOf<N>(), alignOf<N>()).reinterpretNum()
 
-inline fun <reified N : Number> Allocator.allocateNumArray(count: NUInt): NumPtr<N> =
+inline fun <reified N : Comparable<N>> Allocator.allocateNumArray(count: NUInt): NumPtr<N> =
     allocate(sizeOf<N>() * count, alignOf<N>()).reinterpretNum()
 
 inline fun <reified T : Pointed> Allocator.allocate(): Ptr<T> = allocate(sizeOf<T>(), alignOf<T>()).reinterpret()
@@ -115,6 +118,40 @@ inline fun Allocator.nInt(value: NInt): NumPtr<NInt> {
     return address.reinterpretNum()
 }
 
+@ExperimentalUnsignedTypes
+inline fun Allocator.uByte(value: UByte): NumPtr<UByte> {
+    val address = allocate(UByte.SIZE_BYTES.toNUInt(), UByte.SIZE_BYTES.toNUInt())
+    Memory.writeUByte(address, value)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uShort(value: UShort): NumPtr<UShort> {
+    val address = allocate(UShort.SIZE_BYTES.toNUInt(), UShort.SIZE_BYTES.toNUInt())
+    Memory.writeUShort(address, value)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uInt(value: UInt): NumPtr<UInt> {
+    val address = allocate(UInt.SIZE_BYTES.toNUInt(), UInt.SIZE_BYTES.toNUInt())
+    Memory.writeUInt(address, value)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uLong(value: ULong): NumPtr<ULong> {
+    val address = allocate(ULong.SIZE_BYTES.toNUInt(), ULong.SIZE_BYTES.toNUInt())
+    Memory.writeULong(address, value)
+    return address.reinterpretNum()
+}
+
+inline fun Allocator.nUInt(value: NUInt): NumPtr<NUInt> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writeNUInt(address, value)
+    return address.reinterpretNum()
+}
+
 inline fun Allocator.float(value: Float): NumPtr<Float> {
     val address = allocate(Float.SIZE_BYTES.toNUInt(), Float.SIZE_BYTES.toNUInt())
     Memory.writeFloat(address, value)
@@ -131,6 +168,12 @@ inline fun Allocator.nFloat(value: NFloat): NumPtr<NFloat> {
     val address = allocate(Address.SIZE_BYTES.toNUInt(), Address.SIZE_BYTES.toNUInt())
     Memory.writeNFloat(address, value)
     return address.reinterpretNum()
+}
+
+inline fun <A : Address> Allocator.pointer(value: A): Ptr<A> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writePointer(address, value)
+    return address.reinterpret()
 }
 
 // Multiple values
@@ -165,6 +208,41 @@ inline fun Allocator.nInts(vararg values: NInt): NumPtr<NInt> {
     return address.reinterpretNum()
 }
 
+@ExperimentalUnsignedTypes
+inline fun Allocator.uBytes(vararg values: UByte): NumPtr<UByte> {
+    val address = allocate(UByte.SIZE_BYTES.toNUInt() * values.size.toNUInt(), UByte.SIZE_BYTES.toNUInt())
+    Memory.writeUBytes(address, values)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uShorts(vararg values: UShort): NumPtr<UShort> {
+    val address = allocate(UShort.SIZE_BYTES.toNUInt() * values.size.toNUInt(), UShort.SIZE_BYTES.toNUInt())
+    Memory.writeUShorts(address, values)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uInts(vararg values: UInt): NumPtr<UInt> {
+    val address = allocate(UInt.SIZE_BYTES.toNUInt() * values.size.toNUInt(), UInt.SIZE_BYTES.toNUInt())
+    Memory.writeUInts(address, values)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.uLongs(vararg values: ULong): NumPtr<ULong> {
+    val address = allocate(ULong.SIZE_BYTES.toNUInt() * values.size.toNUInt(), ULong.SIZE_BYTES.toNUInt())
+    Memory.writeULongs(address, values)
+    return address.reinterpretNum()
+}
+
+@ExperimentalUnsignedTypes
+inline fun Allocator.nUInts(values: NUIntArray): NumPtr<NUInt> {
+    val address = allocate(ULong.SIZE_BYTES.toNUInt() * values.size.toNUInt(), ULong.SIZE_BYTES.toNUInt())
+    Memory.writeNUInts(address, values)
+    return address.reinterpretNum()
+}
+
 inline fun Allocator.floats(vararg values: Float): NumPtr<Float> {
     val address = allocate(Float.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Float.SIZE_BYTES.toNUInt())
     Memory.writeFloats(address, values)
@@ -181,4 +259,16 @@ inline fun Allocator.nFloats(vararg values: NFloat): NumPtr<NFloat> {
     val address = allocate(Address.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Address.SIZE_BYTES.toNUInt())
     Memory.writeNFloats(address, (values as Array<NFloat>).toNFloatArray())
     return address.reinterpretNum()
+}
+
+inline fun <A : Address> Allocator.pointers(vararg values: A): Ptr<A> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writePointers(address, ptrArrayOf(*values))
+    return address.reinterpret()
+}
+
+inline fun <A : Address> Allocator.pointers(values: PtrArray<A>): Ptr<A> {
+    val address = allocate(Address.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Address.SIZE_BYTES.toNUInt())
+    Memory.writePointers(address, values)
+    return address.reinterpret()
 }

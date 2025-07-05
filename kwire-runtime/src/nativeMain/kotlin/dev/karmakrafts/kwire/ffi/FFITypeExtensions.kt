@@ -45,7 +45,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
  */
 @ExperimentalForeignApi
 fun FFIType.getFFITypeAddress(): ffi_type {
-    if (dimensions > 0) return ffi_type_pointer // For arrays, we always pass pointers
     return when (this) {
         FFIType.VOID -> ffi_type_void
         FFIType.BYTE -> ffi_type_sint8
@@ -91,7 +90,6 @@ fun FFIType.getFFITypeAddress(): ffi_type {
  */
 @ExperimentalForeignApi
 fun FFIType.getFFITypeIndex(): Int {
-    if (dimensions > 0) return FFI_TYPE_POINTER
     return when (this) {
         FFIType.VOID -> FFI_TYPE_VOID
         FFIType.BYTE -> FFI_TYPE_SINT8

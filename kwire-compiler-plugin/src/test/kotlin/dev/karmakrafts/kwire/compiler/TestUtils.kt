@@ -20,7 +20,7 @@ import dev.karmakrafts.iridium.CompilerTestDsl
 import dev.karmakrafts.iridium.CompilerTestScope
 import dev.karmakrafts.iridium.pipeline.addJvmClasspathRootByType
 import dev.karmakrafts.iridium.pipeline.defaultPipelineSpec
-import dev.karmakrafts.kwire.Marshal
+import dev.karmakrafts.kwire.ffi.Marshal
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.jvmTarget
 

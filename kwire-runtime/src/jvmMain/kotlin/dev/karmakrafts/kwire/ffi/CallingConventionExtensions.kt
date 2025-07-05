@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.optimizer
+package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.ir.visitors.IrTransformer
+import org.lwjgl.system.libffi.LibFFI
 
-internal class NativeInvokeOptimizer : IrTransformer<KWirePluginContext>()
+internal fun CallingConvention.toLibFFI(): Int = when (this) {
+    CallingConvention.CDECL -> LibFFI.FFI_DEFAULT_ABI
+    CallingConvention.STDCALL -> LibFFI.FFI_STDCALL
+    CallingConvention.THISCALL -> LibFFI.FFI_THISCALL
+    CallingConvention.FASTCALL -> LibFFI.FFI_FASTCALL
+}

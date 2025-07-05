@@ -24,7 +24,6 @@ import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
-import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Internal function to get the platform-specific implementation of the FFI interface.
@@ -43,7 +42,6 @@ internal expect fun getPlatformFFI(): FFI
  * with various return types. It serves as the primary mechanism for interacting with
  * native code from Kotlin.
  */
-@OptIn(ExperimentalTypeInference::class)
 @KWireCompilerApi
 interface FFI {
     /**
@@ -56,37 +54,11 @@ interface FFI {
     companion object : FFI by getPlatformFFI()
 
     @KWireCompilerApi
-    fun createUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Unit): VoidPtr
-
-    @KWireCompilerApi
-    fun createByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Byte): VoidPtr
-
-    @KWireCompilerApi
-    fun createShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Short): VoidPtr
-
-    @KWireCompilerApi
-    fun createIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Int): VoidPtr
-
-    @KWireCompilerApi
-    fun createLongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Long): VoidPtr
-
-    @KWireCompilerApi
-    fun createUByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UByte): VoidPtr
-
-    @KWireCompilerApi
-    fun createUShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UShort): VoidPtr
-
-    @KWireCompilerApi
-    fun createUIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UInt): VoidPtr
-
-    @KWireCompilerApi
-    fun createULongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> ULong): VoidPtr
-
-    @KWireCompilerApi
-    fun createFloatUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Float): VoidPtr
-
-    @KWireCompilerApi
-    fun createDoubleUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Double): VoidPtr
+    fun createUpcallStub(
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        function: (FFIArgBuffer) -> Unit
+    ): VoidPtr
 
     /**
      * Calls a native function at the specified address with void return type.
@@ -96,20 +68,12 @@ interface FFI {
      * @param args A lambda with receiver for specifying function arguments
      */
     @KWireCompilerApi
-    fun call(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer)
-
-    /**
-     * Calls a native function at the specified address with void return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     */
-    fun call(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}) {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        call(address, descriptor, buffer)
-    }
+    fun call(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    )
 
     /**
      * Calls a native function at the specified address with byte return type.
@@ -120,21 +84,12 @@ interface FFI {
      * @return The byte value returned by the native function
      */
     @KWireCompilerApi
-    fun callByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Byte
-
-    /**
-     * Calls a native function at the specified address with byte return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The byte value returned by the native function
-     */
-    fun callByte(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Byte {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callByte(address, descriptor, buffer)
-    }
+    fun callByte(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Byte
 
     /**
      * Calls a native function at the specified address with short return type.
@@ -145,21 +100,12 @@ interface FFI {
      * @return The short value returned by the native function
      */
     @KWireCompilerApi
-    fun callShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Short
-
-    /**
-     * Calls a native function at the specified address with short return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The short value returned by the native function
-     */
-    fun callShort(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Short {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callShort(address, descriptor, buffer)
-    }
+    fun callShort(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Short
 
     /**
      * Calls a native function at the specified address with int return type.
@@ -170,21 +116,12 @@ interface FFI {
      * @return The int value returned by the native function
      */
     @KWireCompilerApi
-    fun callInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Int
-
-    /**
-     * Calls a native function at the specified address with int return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The int value returned by the native function
-     */
-    fun callInt(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Int {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callInt(address, descriptor, buffer)
-    }
+    fun callInt(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Int
 
     /**
      * Calls a native function at the specified address with long return type.
@@ -195,21 +132,12 @@ interface FFI {
      * @return The long value returned by the native function
      */
     @KWireCompilerApi
-    fun callLong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Long
-
-    /**
-     * Calls a native function at the specified address with long return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The long value returned by the native function
-     */
-    fun callLong(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Long {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callLong(address, descriptor, buffer)
-    }
+    fun callLong(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Long
 
     /**
      * Calls a native function at the specified address with native integer return type.
@@ -220,21 +148,12 @@ interface FFI {
      * @return The native integer value returned by the native function
      */
     @KWireCompilerApi
-    fun callNInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NInt
-
-    /**
-     * Calls a native function at the specified address with native integer return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The native integer value returned by the native function
-     */
-    fun callNInt(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): NInt {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callNInt(address, descriptor, buffer)
-    }
+    fun callNInt(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): NInt
 
     /**
      * Calls a native function at the specified address with float return type.
@@ -245,21 +164,12 @@ interface FFI {
      * @return The float value returned by the native function
      */
     @KWireCompilerApi
-    fun callFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Float
-
-    /**
-     * Calls a native function at the specified address with float return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The float value returned by the native function
-     */
-    fun callFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Float {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callFloat(address, descriptor, buffer)
-    }
+    fun callFloat(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Float
 
     /**
      * Calls a native function at the specified address with double return type.
@@ -270,21 +180,12 @@ interface FFI {
      * @return The double value returned by the native function
      */
     @KWireCompilerApi
-    fun callDouble(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Double
-
-    /**
-     * Calls a native function at the specified address with double return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The double value returned by the native function
-     */
-    fun callDouble(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): Double {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callDouble(address, descriptor, buffer)
-    }
+    fun callDouble(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): Double
 
     /**
      * Calls a native function at the specified address with native float return type.
@@ -295,21 +196,12 @@ interface FFI {
      * @return The native float value returned by the native function
      */
     @KWireCompilerApi
-    fun callNFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NFloat
-
-    /**
-     * Calls a native function at the specified address with native float return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The native float value returned by the native function
-     */
-    fun callNFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): NFloat {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callNFloat(address, descriptor, buffer)
-    }
+    fun callNFloat(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): NFloat
 
     /**
      * Calls a native function at the specified address with pointer return type.
@@ -320,21 +212,12 @@ interface FFI {
      * @return The pointer value returned by the native function
      */
     @KWireCompilerApi
-    fun callPointer(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): VoidPtr
-
-    /**
-     * Calls a native function at the specified address with pointer return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The pointer value returned by the native function
-     */
-    fun callPointer(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): VoidPtr {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callPointer(address, descriptor, buffer)
-    }
+    fun callPointer(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): VoidPtr
 
     /**
      * Calls a native function at the specified address with unsigned byte return type.
@@ -345,21 +228,12 @@ interface FFI {
      * @return The unsigned byte value returned by the native function
      */
     @KWireCompilerApi
-    fun callUByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UByte
-
-    /**
-     * Calls a native function at the specified address with unsigned byte return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The unsigned byte value returned by the native function
-     */
-    fun callUByte(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): UByte {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callUByte(address, descriptor, buffer)
-    }
+    fun callUByte(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): UByte
 
     /**
      * Calls a native function at the specified address with unsigned short return type.
@@ -370,21 +244,12 @@ interface FFI {
      * @return The unsigned short value returned by the native function
      */
     @KWireCompilerApi
-    fun callUShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UShort
-
-    /**
-     * Calls a native function at the specified address with unsigned short return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The unsigned short value returned by the native function
-     */
-    fun callUShort(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): UShort {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callUShort(address, descriptor, buffer)
-    }
+    fun callUShort(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): UShort
 
     /**
      * Calls a native function at the specified address with unsigned int return type.
@@ -395,21 +260,12 @@ interface FFI {
      * @return The unsigned int value returned by the native function
      */
     @KWireCompilerApi
-    fun callUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UInt
-
-    /**
-     * Calls a native function at the specified address with unsigned int return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The unsigned int value returned by the native function
-     */
-    fun callUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): UInt {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callUInt(address, descriptor, buffer)
-    }
+    fun callUInt(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): UInt
 
     /**
      * Calls a native function at the specified address with unsigned long return type.
@@ -420,21 +276,12 @@ interface FFI {
      * @return The unsigned long value returned by the native function
      */
     @KWireCompilerApi
-    fun callULong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): ULong
-
-    /**
-     * Calls a native function at the specified address with unsigned long return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The unsigned long value returned by the native function
-     */
-    fun callULong(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): ULong {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callULong(address, descriptor, buffer)
-    }
+    fun callULong(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): ULong
 
     /**
      * Calls a native function at the specified address with unsigned native int return type.
@@ -445,19 +292,323 @@ interface FFI {
      * @return The unsigned native int value returned by the native function
      */
     @KWireCompilerApi
-    fun callNUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NUInt
+    fun callNUInt(
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention = CallingConvention.CDECL,
+        args: FFIArgBuffer
+    ): NUInt
+}
 
-    /**
-     * Calls a native function at the specified address with native unsigned integer return type.
-     *
-     * @param address The memory address of the function to call
-     * @param descriptor The descriptor specifying the function signature
-     * @param args A lambda with receiver for specifying function arguments
-     * @return The native unsigned integer value returned by the native function
-     */
-    fun callNUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgSpec = {}): NUInt {
-        val buffer = FFIArgBuffer.get()
-        buffer.args()
-        return callNUInt(address, descriptor, buffer)
-    }
+/**
+ * Calls a native function at the specified address with void return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ */
+inline fun FFI.call(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+) {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    call(address, descriptor, callingConvention, buffer)
+    buffer.release()
+}
+
+/**
+ * Calls a native function at the specified address with byte return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The byte value returned by the native function
+ */
+inline fun FFI.callByte(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Byte {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callByte(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with short return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The short value returned by the native function
+ */
+inline fun FFI.callShort(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Short {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callShort(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with int return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The int value returned by the native function
+ */
+inline fun FFI.callInt(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Int {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callInt(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with long return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The long value returned by the native function
+ */
+inline fun FFI.callLong(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Long {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callLong(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with native integer return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The native integer value returned by the native function
+ */
+inline fun FFI.callNInt(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): NInt {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callNInt(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with float return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The float value returned by the native function
+ */
+inline fun FFI.callFloat(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Float {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callFloat(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with double return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The double value returned by the native function
+ */
+inline fun FFI.callDouble(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): Double {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callDouble(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with native float return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The native float value returned by the native function
+ */
+inline fun FFI.callNFloat(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): NFloat {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callNFloat(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with pointer return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The pointer value returned by the native function
+ */
+inline fun FFI.callPointer(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): VoidPtr {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callPointer(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with unsigned byte return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned byte value returned by the native function
+ */
+inline fun FFI.callUByte(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): UByte {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callUByte(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with unsigned short return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned short value returned by the native function
+ */
+inline fun FFI.callUShort(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): UShort {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callUShort(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with unsigned int return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned int value returned by the native function
+ */
+inline fun FFI.callUInt(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): UInt {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callUInt(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with unsigned long return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The unsigned long value returned by the native function
+ */
+inline fun FFI.callULong(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): ULong {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callULong(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
+}
+
+/**
+ * Calls a native function at the specified address with native unsigned integer return type.
+ *
+ * @param address The memory address of the function to call
+ * @param descriptor The descriptor specifying the function signature
+ * @param args A lambda with receiver for specifying function arguments
+ * @return The native unsigned integer value returned by the native function
+ */
+inline fun FFI.callNUInt(
+    address: Address,
+    descriptor: FFIDescriptor,
+    callingConvention: CallingConvention = CallingConvention.CDECL,
+    args: FFIArgBuffer.() -> Unit = {}
+): NUInt {
+    val buffer = FFIArgBuffer.acquire()
+    buffer.args()
+    val result = callNUInt(address, descriptor, callingConvention, buffer)
+    buffer.release()
+    return result
 }

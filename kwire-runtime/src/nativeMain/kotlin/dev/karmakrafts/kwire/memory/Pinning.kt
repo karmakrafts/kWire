@@ -81,6 +81,10 @@ actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> =
     delegate.addressOf(0).rawValue.toLong().asNumPtr()
 
 @DelicatePinningApi
+actual fun Pinned<CharArray>.acquireCharAddress(): NumPtr<Char> =
+    delegate.addressOf(0).rawValue.toLong().asNumPtr()
+
+@DelicatePinningApi
 actual fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>) = Unit
 
 @DelicatePinningApi
@@ -97,4 +101,7 @@ actual fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>) 
 
 @DelicatePinningApi
 actual fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>) = Unit
+
+@DelicatePinningApi
+actual fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>) = Unit
 // @formatter:on

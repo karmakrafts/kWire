@@ -25,11 +25,6 @@ import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.minus
 import dev.karmakrafts.kwire.ctype.toNUInt
 
-private data class StackFrame( // @formatter:off
-    val framePointer: VoidPtr,
-    val frameOffset: NUInt
-) // @formatter:on
-
 class MemoryStack private constructor() : Allocator {
     companion object {
         val stackSize: NUInt = 8192U.toNUInt()
@@ -45,15 +40,16 @@ class MemoryStack private constructor() : Allocator {
             }
             return stack
         }
+
+        inline fun <reified R> withStackFrame(block: (MemoryStack) -> R): R {
+            return get().withStackFrame(block)
+        }
     }
 
     private val address: VoidPtr = Memory.allocate(stackSize, stackAlignment)
-    private val frames: ArrayList<StackFrame> = ArrayList()
-    private var framePointer: VoidPtr = address
-    private var frameOffset: NUInt = 0U.toNUInt()
-
-    val stackPointer: VoidPtr
-        get() = framePointer + frameOffset
+    private val frames: ArrayList<VoidPtr> = ArrayList()
+    var frameAddress: VoidPtr = address
+        private set
 
     init {
         ShutdownHandler.register(AutoCloseable(::free))
@@ -61,9 +57,9 @@ class MemoryStack private constructor() : Allocator {
 
     override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {
         val alignedSize = Memory.align(size + headerSize, alignment)
-        val address = stackPointer.align(alignment)
+        val address = frameAddress.align(alignment)
         Memory.writeNUInt(address, size)
-        frameOffset += alignedSize
+        frameAddress += alignedSize
         return address + headerSize
     }
 
@@ -77,17 +73,26 @@ class MemoryStack private constructor() : Allocator {
     override fun free(address: Address) {}
 
     fun push(): MemoryStack {
-        frames.add(StackFrame(framePointer, frameOffset))
+        frames.add(frameAddress)
         return this
     }
 
-    fun pop() {
-        val (ptr, offset) = frames.removeFirst()
-        framePointer = ptr
-        frameOffset = offset
+    fun pop(): MemoryStack {
+        frameAddress = frames.removeFirst()
+        return this
     }
 
     internal fun free() {
         Memory.free(address)
+    }
+
+    inline fun <reified R> withStackFrame(block: (MemoryStack) -> R): R {
+        return try {
+            push()
+            block(this)
+        }
+        finally {
+            pop()
+        }
     }
 }

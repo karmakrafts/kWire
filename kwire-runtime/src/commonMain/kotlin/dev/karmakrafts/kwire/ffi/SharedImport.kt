@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire
+package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.ffi.CallingConvention
+import dev.karmakrafts.kwire.KWireCompilerApi
 
+@KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.FUNCTION)
 annotation class SharedImport(

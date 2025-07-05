@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrComposite
@@ -38,6 +39,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
+import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
@@ -46,11 +48,13 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -63,6 +67,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.FqName
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -132,7 +137,9 @@ internal fun IrSimpleFunctionSymbol.call(
     hasExtensionReceiver = extensionReceiver != null
 ).apply {
     this.dispatchReceiver = dispatchReceiver
-    this.extensionReceiver = extensionReceiver
+    owner.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }?.let {
+        arguments[it] = extensionReceiver
+    }
     putArguments(typeArguments, valueArguments)
 }
 
@@ -282,7 +289,7 @@ internal fun IrElement?.unwrapRawConstValue(): Any? {
             if (receiver != null && receiver is IrConst) {
                 return receiver.unwrapRawConstValue()
             }
-            receiver = extensionReceiver
+            receiver = arguments[target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]
             if (receiver != null && receiver is IrConst) {
                 return receiver.unwrapRawConstValue()
             }
@@ -331,7 +338,7 @@ internal fun IrAnnotationContainer.getRawAnnotationValue(
         .find { it.name.asString() == name }
         ?: return null
     // @formatter:on
-    return annotation.getValueArgument(parameter.indexInOldValueParameters)
+    return annotation.arguments[parameter]
 }
 
 internal inline fun <reified T> IrAnnotationContainer.getAnnotationValue( // @formatter:off
@@ -352,13 +359,12 @@ internal fun IrConstructorCall.getAnnotationValues(): Map<String, Any?> {
     val parameters = constructor.parameters.filter { it.kind == IrParameterKind.Regular }
     if (parameters.isEmpty()) return emptyMap()
     val parameterNames = parameters.map { it.name.asString() }
-    check(parameterNames.size == valueArgumentsCount) { "Missing annotation parameter info" }
     val values = HashMap<String, Any?>()
-    val firstParamIndex = parameters.first().indexInOldValueParameters
+    val firstParamIndex = parameters.first().indexInParameters
     val lastParamIndex = firstParamIndex + parameters.size
     var paramIndex = 0
     for (index in firstParamIndex..<lastParamIndex) {
-        val value = getValueArgument(index)
+        val value = arguments[index]
         values[parameterNames[paramIndex]] = value.unwrapRawConstValue()
         paramIndex++
     }
@@ -400,3 +406,10 @@ internal fun List<IrVarargElement>.toVararg(context: KWirePluginContext, type: I
     varargElementType = type,
     elements = this
 )
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrVariableSymbol.load(): IrGetValue = IrGetValueImpl(
+    startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = owner.type, symbol = this
+)
+
+internal fun IrVariable.load(): IrGetValue = symbol.load()

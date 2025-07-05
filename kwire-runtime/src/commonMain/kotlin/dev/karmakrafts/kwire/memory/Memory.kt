@@ -137,7 +137,7 @@ interface Memory : Allocator {
     fun compare(first: Address, second: Address, size: NUInt): Int
 
     /**
-     * Gets the length of a null-terminated string, similar to C's strlen.
+     * Gets the length of a null-terminated UTF-8 string.
      *
      * @param address The pointer to the null-terminated string
      * @return The length of the string in bytes, not including the null terminator

@@ -89,7 +89,7 @@ private object NativeMemory : Memory {
     }
 
     override fun strlen(address: Address): NUInt {
-        return strlen_with_address(address.toCPointer()).toInt().toNUInt()
+        return strlen_with_address(address.toCPointer()).toNUInt()
     }
 
     override fun strcpy(source: Address, dest: Address) {

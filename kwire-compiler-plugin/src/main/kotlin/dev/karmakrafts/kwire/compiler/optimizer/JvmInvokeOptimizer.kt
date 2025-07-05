@@ -17,12 +17,22 @@
 package dev.karmakrafts.kwire.compiler.optimizer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
 internal class JvmInvokeOptimizer : IrTransformer<KWirePluginContext>() {
     override fun visitCall(expression: IrCall, data: KWirePluginContext): IrElement {
-        return super.visitCall(expression, data)
+        val transformedCall = super.visitCall(expression, data)
+        if (transformedCall is IrCall) {
+            val function = transformedCall.target
+            val intrinsicType = function.getIntrinsicType() ?: return transformedCall
+            if (intrinsicType != KWireIntrinsicType.PTR_INVOKE) return transformedCall
+
+        }
+        return transformedCall
     }
 }

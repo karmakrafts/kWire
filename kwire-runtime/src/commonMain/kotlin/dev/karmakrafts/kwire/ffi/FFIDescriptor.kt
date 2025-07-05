@@ -22,22 +22,14 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 /**
  * Descriptor for a foreign function interface (FFI) function signature.
  *
- * This class describes the signature of a native function, including its return type
- * and parameter types. It is used when calling native functions through the FFI system
- * to specify the expected types of the function's return value and parameters.
- *
- * FFIDescriptor objects are typically used by the [FFIFunction] class to define the
- * signature of a native function, which is essential for proper type marshalling
- * when calling the function.
- *
  * @property returnType The return type of the function, defaults to [FFIType.VOID]
  * @property parameterTypes List of parameter types for the function, defaults to an empty list
  */
 @ConsistentCopyVisibility
 @KWireCompilerApi
 data class FFIDescriptor private constructor( // @formatter:off
-    val returnType: FFIType = FFIType.VOID,
-    val parameterTypes: List<FFIType> = emptyList()
+    val returnType: FFIType,
+    val parameterTypes: List<FFIType>
 ) { // @formatter:on
     companion object {
         private val cache: ConcurrentMutableMap<Int, FFIDescriptor> = ConcurrentMutableMap()
@@ -48,13 +40,13 @@ data class FFIDescriptor private constructor( // @formatter:off
             return hash
         }
 
-        @KWireCompilerApi
         fun of(returnType: FFIType, parameterTypes: List<FFIType>): FFIDescriptor {
             return cache.getOrPut(getCacheKey(returnType, parameterTypes)) {
                 FFIDescriptor(returnType, parameterTypes)
             }
         }
 
+        @KWireCompilerApi
         fun of(returnType: FFIType, vararg parameterTypes: FFIType): FFIDescriptor {
             return of(returnType, parameterTypes.asList())
         }

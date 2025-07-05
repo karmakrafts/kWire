@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.optimizer
+package dev.karmakrafts.kwire.util
 
-import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.ir.visitors.IrTransformer
+@PublishedApi
+internal object AndroidNativePlatform {
+    init {
+        NativeLoader.ensureLoaded() // Ensure natives are loaded before we access any functions
+    }
 
-internal class NativeInvokeOptimizer : IrTransformer<KWirePluginContext>()
+    // Android-specific functions
+
+    @JvmStatic
+    external fun getFFICIFSize(): Long
+
+    @JvmStatic
+    external fun getFFIClosureSize(): Long
+
+    @JvmStatic
+    external fun getFFICIFReturnType(cif: Long): Long
+}

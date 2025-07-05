@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.isStruct
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -32,9 +33,19 @@ import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
-internal class StructValidationVisitor(
+internal class StructChecker(
     private val context: KWirePluginContext
 ) : IrVisitorVoid(), MessageCollectorExtensions by context {
+    override fun reportError(message: String, location: CompilerMessageLocation?) {
+        super.reportError(message, location)
+        context.checkerFailed = true
+    }
+
+    override fun reportError(message: String, element: IrElement) {
+        super.reportError(message, element)
+        context.checkerFailed = true
+    }
+
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
     }

@@ -16,6 +16,9 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.KWireCompilerApi
+
+@KWireCompilerApi
 enum class CallingConvention {
-    CDECL
+    CDECL, THISCALL, STDCALL, FASTCALL
 }

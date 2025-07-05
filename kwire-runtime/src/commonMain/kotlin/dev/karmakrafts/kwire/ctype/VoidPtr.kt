@@ -27,9 +27,9 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class VoidPtr @PublishedApi internal constructor(
     override val rawAddress: NUInt
-) : Address, Pointed {
+) : Address {
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
-    inline fun <N : Number> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
     inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
@@ -50,18 +50,7 @@ value class VoidPtr @PublishedApi internal constructor(
     inline operator fun minus(other: Int): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
     inline operator fun minus(other: Long): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
 
-    inline operator fun equals(other: VoidPtr): Boolean = rawAddress == other.rawAddress
     override fun toString(): String = "0x${rawAddress.toHexString()}"
-
-    override fun equals(other: Any?): Boolean = when (other) {
-        is Ptr<*> -> rawAddress == other.rawAddress
-        is NumPtr<*> -> rawAddress == other.rawAddress
-        is VoidPtr -> rawAddress == other.rawAddress
-        is FunPtr<*> -> rawAddress == other.rawAddress
-        else -> false
-    }
-
-    override fun hashCode(): Int = rawAddress.hashCode()
 }
 
 inline fun NUInt.asVoidPtr(): VoidPtr = VoidPtr(this)

@@ -33,12 +33,26 @@ import kotlin.test.Test
 
 class MemoryIntrinsicsTest {
     val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
-    val primitiveSizes: Array<Int> =
-        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES,
-            NInt.SIZE_BYTES, NFloat.SIZE_BYTES)
-    val primitiveAlignments: Array<Int> =
-        arrayOf(Byte.SIZE_BYTES, Short.SIZE_BYTES, Int.SIZE_BYTES, Long.SIZE_BYTES, Float.SIZE_BYTES, Double.SIZE_BYTES,
-            NInt.SIZE_BYTES, NFloat.SIZE_BYTES)
+    val primitiveSizes: Array<Int> = arrayOf(
+        Byte.SIZE_BYTES,
+        Short.SIZE_BYTES,
+        Int.SIZE_BYTES,
+        Long.SIZE_BYTES,
+        Float.SIZE_BYTES,
+        Double.SIZE_BYTES,
+        NInt.SIZE_BYTES,
+        NFloat.SIZE_BYTES
+    )
+    val primitiveAlignments: Array<Int> = arrayOf(
+        Byte.SIZE_BYTES,
+        Short.SIZE_BYTES,
+        Int.SIZE_BYTES,
+        Long.SIZE_BYTES,
+        Float.SIZE_BYTES,
+        Double.SIZE_BYTES,
+        NInt.SIZE_BYTES,
+        NFloat.SIZE_BYTES
+    )
 
     @Test
     fun `Obtain offset of field in single field struct`() = runCompilerTest {

@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.ffi
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
@@ -49,6 +50,9 @@ internal enum class FFIType(
         getEnumValue(context.ffi.ffiTypeType) { name }
 
     internal fun getType(context: KWirePluginContext): IrType = context.typeGetter()
+
+    internal fun getMemoryLayout(context: KWirePluginContext): MemoryLayout =
+        context.getOrComputeMemoryLayout(getType(context))
 }
 
 internal fun IrType.getFFIType(context: KWirePluginContext): FFIType? =

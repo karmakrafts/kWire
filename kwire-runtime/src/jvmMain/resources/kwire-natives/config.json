@@ -1,0 +1,36 @@
+{
+    "version": 1,
+    "platforms": {
+        "WINDOWS": {
+            "x86_64,x64,amd64": {
+                "resources": [
+                    "kwire-natives/windows-x64/libkwire-platform.dll"
+                ]
+            }
+        },
+        "LINUX": {
+            "x86_64,x64,amd64": {
+                "resources": [
+                    "kwire-natives/linux-x64/libkwire-platform.so"
+                ]
+            },
+            "aarch64,arm64": {
+                "resources": [
+                    "kwire-natives/linux-arm64/libkwire-platform.so"
+                ]
+            }
+        },
+        "MACOS": {
+            "x86_64,x64,amd64": {
+                "resources": [
+                    "kwire-natives/macos-x64/libkwire-platform.dylib"
+                ]
+            },
+            "aarch64,arm64": {
+                "resources": [
+                    "kwire-natives/macos-arm64/libkwire-platform.dylib"
+                ]
+            }
+        }
+    }
+}

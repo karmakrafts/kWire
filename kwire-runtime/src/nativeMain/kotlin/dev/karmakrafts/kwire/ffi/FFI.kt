@@ -24,6 +24,7 @@ import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.toCFunctionPointer
 import dev.karmakrafts.kwire.ctype.toCPointer
 import dev.karmakrafts.kwire.ctype.toNFloat
+import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.ctype.toPtr
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CArrayPointer
@@ -58,59 +59,33 @@ private object NativeFFI : FFI {
     @Suppress("NOTHING_TO_INLINE")
     private inline fun FFIArgBuffer.allocate(scope: NativePlacement): CArrayPointer<COpaquePointerVar> {
         return scope.allocArrayOf(types.mapIndexed { index, type ->
-            getAddress(index).toCPointer()
+            (address + types.take(index).sumOf { it.size }).toCPointer()
         })
     }
 
-    override fun createUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Unit): VoidPtr {
+    override fun createUpcallStub( // @formatter:off
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        function: (FFIArgBuffer) -> Unit
+    ): VoidPtr { // @formatter:on
         TODO("Not yet implemented")
     }
 
-    override fun createByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Byte): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Short): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Int): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createLongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Long): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createUByteUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UByte): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createUShortUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UShort): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createUIntUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> UInt): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createULongUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> ULong): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createFloatUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Float): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun createDoubleUpcallStub(descriptor: FFIDescriptor, function: (FFIArgBuffer) -> Double): VoidPtr {
-        TODO("Not yet implemented")
-    }
-
-    override fun call(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer) = memScoped {
+    override fun call( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ) = memScoped { // @formatter:on
         ffi_call(descriptor.toCif(this).ptr, address.toCFunctionPointer(), null, args.allocate(this))
     }
 
-    override fun callByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Byte = memScoped {
+    override fun callByte( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Byte = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -118,7 +93,12 @@ private object NativeFFI : FFI {
         result.reinterpret<ByteVar>().value
     }
 
-    override fun callShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Short = memScoped {
+    override fun callShort( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Short = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -126,7 +106,12 @@ private object NativeFFI : FFI {
         result.reinterpret<ShortVar>().value
     }
 
-    override fun callInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Int = memScoped {
+    override fun callInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Int = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -134,7 +119,12 @@ private object NativeFFI : FFI {
         result.reinterpret<IntVar>().value
     }
 
-    override fun callLong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Long = memScoped {
+    override fun callLong( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Long = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -143,7 +133,12 @@ private object NativeFFI : FFI {
     }
 
     @OptIn(UnsafeNumber::class)
-    override fun callNInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NInt = memScoped {
+    override fun callNInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NInt = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -151,7 +146,12 @@ private object NativeFFI : FFI {
         result.reinterpret<ptrdiff_tVar>().value.convert()
     }
 
-    override fun callUByte(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UByte = memScoped {
+    override fun callUByte( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UByte = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -159,7 +159,12 @@ private object NativeFFI : FFI {
         result.reinterpret<uint8_tVar>().value
     }
 
-    override fun callUShort(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UShort = memScoped {
+    override fun callUShort( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UShort = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -167,7 +172,12 @@ private object NativeFFI : FFI {
         result.reinterpret<uint16_tVar>().value
     }
 
-    override fun callUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): UInt = memScoped {
+    override fun callUInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): UInt = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -175,7 +185,12 @@ private object NativeFFI : FFI {
         result.reinterpret<uint32_tVar>().value
     }
 
-    override fun callULong(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): ULong = memScoped {
+    override fun callULong( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): ULong = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -184,15 +199,25 @@ private object NativeFFI : FFI {
     }
 
     @OptIn(UnsafeNumber::class)
-    override fun callNUInt(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NUInt = memScoped {
+    override fun callNUInt( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NUInt = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
         )
-        result.reinterpret<size_tVar>().value.convert()
+        result.reinterpret<size_tVar>().value.toNUInt()
     }
 
-    override fun callFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Float = memScoped {
+    override fun callFloat( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Float = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -200,7 +225,12 @@ private object NativeFFI : FFI {
         result.reinterpret<FloatVar>().value
     }
 
-    override fun callDouble(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): Double = memScoped {
+    override fun callDouble( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): Double = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -209,7 +239,12 @@ private object NativeFFI : FFI {
     }
 
     @OptIn(UnsafeNumber::class)
-    override fun callNFloat(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): NFloat = memScoped {
+    override fun callNFloat( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): NFloat = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)
@@ -217,7 +252,12 @@ private object NativeFFI : FFI {
         result.reinterpret<nfloat_tVar>().value.toNFloat()
     }
 
-    override fun callPointer(address: Address, descriptor: FFIDescriptor, args: FFIArgBuffer): VoidPtr = memScoped {
+    override fun callPointer( // @formatter:off
+        address: Address,
+        descriptor: FFIDescriptor,
+        callingConvention: CallingConvention,
+        args: FFIArgBuffer
+    ): VoidPtr = memScoped { // @formatter:on
         val result = alloc<ffi_type>()
         ffi_call(
             descriptor.toCif(this).ptr, address.toCFunctionPointer(), result.ptr, args.allocate(this)

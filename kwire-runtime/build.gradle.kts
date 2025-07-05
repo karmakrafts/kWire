@@ -20,8 +20,11 @@ import dev.karmakrafts.conventions.dependsOn
 import dev.karmakrafts.conventions.getBinaryBaseName
 import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.div
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -33,9 +36,48 @@ plugins {
 
 configureJava(rootProject.libs.versions.java)
 
-val binaryPackage: GitLabPackage = gitlab().project(
+val jvmPlatforms: List<Pair<String, String>> = listOf( // @formatter:off
+    "windows-x64" to "windowsX64",
+    "linux-x64" to "linuxX64",
+    "linux-arm64" to "linuxArm64",
+    "macos-x64" to "macosX64",
+    "macos-arm64" to "macosArm64"
+) // @formatter:on
+
+infix fun <T, U, V> Pair<T, U>.to(value: V): Triple<T, U, V> = Triple(first, second, value)
+val androidPlatforms: List<Triple<String, String, String>> = listOf( // @formatter:off
+    "android-x64" to "androidX64" to "x86_64",
+    "android-arm64" to "androidArm64" to "arm64-v8a",
+    "android-arm32" to "androidArm32" to "armeabi-v7a"
+) // @formatter:on
+
+val libffiJvmBinaries: Map<String, String> = mapOf(
+    "windows-x64" to "lib/libffi-8.dll",
+    "linux-x64" to "lib/libffi.so",
+    "linux-arm64" to "lib/libffi.so",
+    "macos-x64" to "lib/libffi.dylib",
+    "macos-arm64" to "lib/libffi.dylib",
+    "android-x64" to "lib/libffi.so",
+    "android-arm64" to "lib/libffi.so",
+    "android-arm32" to "lib/libffi.so"
+)
+val libffiPackage: GitLabPackage = gitlab().project(
     "kk/prebuilts/libffi"
 ).packageRegistry["generic/build", libs.versions.libffi]
+
+val platformJvmBinaries: Map<String, String> = mapOf(
+    "windows-x64" to "libkwire-platform.dll",
+    "linux-x64" to "libkwire-platform.so",
+    "linux-arm64" to "libkwire-platform.so",
+    "macos-x64" to "libkwire-platform.dylib",
+    "macos-arm64" to "libkwire-platform.dylib",
+    "android-x64" to "libkwire-platform.so",
+    "android-arm64" to "libkwire-platform.so",
+    "android-arm32" to "libkwire-platform.so"
+)
+val platformPackage: GitLabPackage = gitlab().project(
+    "kk/prebuilts/kwire-platform"
+).packageRegistry["generic/build", libs.versions.kwirePlatform]
 
 kotlin {
     withSourcesJar(true)
@@ -61,7 +103,7 @@ kotlin {
         publishLibraryVariants("release")
     }
     targets.withType<KotlinNativeTarget>().configureEach { ->
-        val libffiArtifact = binaryPackage["build-${getBinaryBaseName()}-release.zip", getBinaryTaskSuffix()]
+        val libffiArtifact = libffiPackage["build-${getBinaryBaseName()}-release.zip", getBinaryTaskSuffix()]
         compilations {
             val main by getting {
                 cinterops {
@@ -74,11 +116,7 @@ kotlin {
         }
     }
     compilerOptions {
-        freeCompilerArgs.addAll( // @formatter:off
-            "-Xexpect-actual-classes",
-            "-Xcontext-parameters",
-            "-XXLanguage:+CustomEqualsInValueClasses"
-        ) // @formatter:on
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
@@ -119,7 +157,14 @@ kotlin {
         watchosX64Main { dependsOn(x64Main) }
         watchosSimulatorArm64Main { dependsOn(x64Main) }
 
-        val jvmAndAndroidMain by creating { dependsOn(commonMain) }
+        val jvmAndAndroidMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.oshi.core)
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
+            }
+        }
 
         jvmMain {
             dependsOn(jvmAndAndroidMain)
@@ -168,7 +213,46 @@ val dokkaJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
+@OptIn(ExperimentalPathApi::class)
+fun TaskContainer.registerCopyJvmJniLibraryTasks(
+    taskPrefix: String, pkg: GitLabPackage, binaryNames: Map<String, String>
+) {
+    for ((name, suffix) in jvmPlatforms) {
+        val platformArtifact = pkg["build-$name-release.zip", suffix]
+        val copyTask = register<Copy>("copy${taskPrefix.capitalized()}JniLibraries${suffix.capitalized()}") {
+            group = "JNI Libraries"
+            dependsOn(platformArtifact.extractTask)
+            from((platformArtifact.outputDirectoryPath / binaryNames[name]!!).toFile())
+            into("src/jvmMain/resources/kwire-natives/$name")
+            onlyIf { true } // Always copy these over when building/setting up
+        }
+        named("prepareKotlinIdeaImport") { dependsOn(copyTask) }
+        named("assemble") { dependsOn(copyTask) }
+    }
+}
+
+@OptIn(ExperimentalPathApi::class)
+fun TaskContainer.registerCopyAndroidJniLibraryTasks(
+    taskPrefix: String, pkg: GitLabPackage, binaryNames: Map<String, String>
+) {
+    for ((name, suffix, jniTarget) in androidPlatforms) {
+        val platformArtifact = pkg["build-$name-release.zip", suffix]
+        val copyTask = register<Copy>("copy${taskPrefix.capitalized()}JniLibraries${suffix.capitalized()}") {
+            group = "JNI Libraries"
+            dependsOn(platformArtifact.extractTask)
+            from((platformArtifact.outputDirectoryPath / binaryNames[name]!!).toFile())
+            into("src/androidMain/jniLibs/$jniTarget")
+            onlyIf { true } // Always copy these over when building/setting up
+        }
+        named("prepareKotlinIdeaImport") { dependsOn(copyTask) }
+        named("assemble") { dependsOn(copyTask) }
+    }
+}
+
 tasks {
+    registerCopyJvmJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
+    registerCopyAndroidJniLibraryTasks("libffi", libffiPackage, libffiJvmBinaries)
+    registerCopyAndroidJniLibraryTasks("platform", platformPackage, platformJvmBinaries)
     System.getProperty("publishDocs.root")?.let { docsDir ->
         register("publishDocs", Copy::class) {
             dependsOn(dokkaJar)

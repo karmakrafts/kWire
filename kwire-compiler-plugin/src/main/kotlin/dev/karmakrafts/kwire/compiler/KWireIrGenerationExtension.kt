@@ -16,8 +16,9 @@
 
 package dev.karmakrafts.kwire.compiler
 
-import dev.karmakrafts.kwire.compiler.checker.ConstValidationVisitor
-import dev.karmakrafts.kwire.compiler.checker.StructValidationVisitor
+import dev.karmakrafts.kwire.compiler.checker.FunPtrChecker
+import dev.karmakrafts.kwire.compiler.checker.NumPtrChecker
+import dev.karmakrafts.kwire.compiler.checker.StructChecker
 import dev.karmakrafts.kwire.compiler.optimizer.JvmInvokeOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.NativeInvokeOptimizer
 import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
@@ -37,8 +38,10 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
         for (file in moduleFragment.files) {
             val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file)
             // Validation
-            file.acceptVoid(StructValidationVisitor(kwireContext))
-            file.acceptVoid(ConstValidationVisitor(kwireContext))
+            file.acceptVoid(StructChecker(kwireContext))
+            file.acceptVoid(NumPtrChecker(kwireContext))
+            file.acceptVoid(FunPtrChecker(kwireContext))
+            if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
             // Generation
             file.acceptVoid(SharedImportTransformer(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))
@@ -47,10 +50,11 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
             // Optimization passes
-            when(pluginContext.platform) {
+            when (pluginContext.platform) {
                 in JvmPlatforms.allJvmPlatforms -> {
                     file.transform(JvmInvokeOptimizer(), kwireContext)
                 }
+
                 in NativePlatforms.allNativePlatforms -> {
                     file.transform(NativeInvokeOptimizer(), kwireContext)
                 }

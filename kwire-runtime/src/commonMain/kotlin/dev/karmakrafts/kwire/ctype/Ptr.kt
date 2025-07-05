@@ -30,7 +30,7 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class Ptr<T : Pointed> @PublishedApi internal constructor(
     override val rawAddress: NUInt
-) : Address, Pointed {
+) : Address {
     inline var value: T
         get() = deref()
         set(value) {
@@ -38,7 +38,7 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
         }
 
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
-    inline fun <N : Number> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
     inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
@@ -73,18 +73,7 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
     inline operator fun set(index: Int, value: T) = (this + index).set(value)
     inline operator fun set(index: Long, value: T) = (this + index).set(value)
 
-    inline operator fun equals(other: Ptr<*>): Boolean = rawAddress == other.rawAddress
     override fun toString(): String = "0x${rawAddress.toHexString()}"
-
-    override fun equals(other: Any?): Boolean = when (other) {
-        is Ptr<*> -> rawAddress == other.rawAddress
-        is NumPtr<*> -> rawAddress == other.rawAddress
-        is VoidPtr -> rawAddress == other.rawAddress
-        is FunPtr<*> -> rawAddress == other.rawAddress
-        else -> false
-    }
-
-    override fun hashCode(): Int = rawAddress.hashCode()
 }
 
 inline fun <T : Pointed> NUInt.asPtr(): Ptr<T> = Ptr(this)

@@ -67,6 +67,8 @@ import org.jetbrains.kotlin.ir.util.toIrConst
 internal class KWirePluginContext(
     val pluginContext: IrPluginContext, val irModule: IrModuleFragment, override val irFile: IrFile
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions {
+    var checkerFailed: Boolean = false
+
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     val listOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Kotlin.listOf).first { symbol ->
         val parameters = symbol.owner.parameters.filter { it.kind == IrParameterKind.Regular }
@@ -120,22 +122,31 @@ internal class KWirePluginContext(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNInt(expr: IrExpression): IrExpression {
-        val symbol =
-            referenceFunctions(KWireNames.CTypePkg.toNInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        val symbol = referenceFunctions(KWireNames.CTypePkg.toNInt).single {
+            it.owner.parameters.single { param ->
+                param.kind == IrParameterKind.ExtensionReceiver
+            }.type == expr.type
+        }
         return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNUInt(expr: IrExpression): IrExpression {
-        val symbol =
-            referenceFunctions(KWireNames.CTypePkg.toNUInt).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        val symbol = referenceFunctions(KWireNames.CTypePkg.toNUInt).single {
+            it.owner.parameters.single { param ->
+                param.kind == IrParameterKind.ExtensionReceiver
+            }.type == expr.type
+        }
         return symbol.call(extensionReceiver = expr)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNFloat(expr: IrExpression): IrExpression {
-        val symbol =
-            referenceFunctions(KWireNames.CTypePkg.toNFloat).first { it.owner.extensionReceiverParameter!!.type == expr.type }
+        val symbol = referenceFunctions(KWireNames.CTypePkg.toNFloat).single {
+            it.owner.parameters.single { param ->
+                param.kind == IrParameterKind.ExtensionReceiver
+            }.type == expr.type
+        }
         return symbol.call(extensionReceiver = expr)
     }
 

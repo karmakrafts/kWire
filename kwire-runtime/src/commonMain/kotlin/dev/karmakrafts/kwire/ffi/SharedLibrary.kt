@@ -25,7 +25,6 @@ import dev.karmakrafts.kwire.ffi.SharedLibrary.Companion.open
 import dev.karmakrafts.kwire.ffi.SharedLibrary.Companion.tryOpen
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.reflect.KProperty
 
 /**
  * Internal interface representing a platform-specific handle to a shared library.
@@ -51,40 +50,6 @@ internal interface SharedLibraryHandle : AutoCloseable {
 internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkHandle() {
     contract {
         returns() implies (this@checkHandle is T)
-    }
-}
-
-/**
- * Provides property delegation for importing functions from a shared library.
- *
- * This class is used in conjunction with the [SharedLibrary.importing] method to enable
- * convenient access to library functions through Kotlin property delegation.
- *
- * When a property is delegated to an instance of this class, accessing the property
- * will look up a function with the same name as the property in the associated library,
- * using the provided function signature descriptor.
- *
- * @property library The shared library from which to import functions
- * @property descriptor The descriptor specifying the function signature
- */
-@ConsistentCopyVisibility
-data class ImportedFunctionProvider @PublishedApi internal constructor(
-    @PublishedApi internal val library: SharedLibrary, @PublishedApi internal val descriptor: FFIDescriptor
-) {
-    /**
-     * Gets a function from the library with the name of the delegated property.
-     *
-     * This operator function is called when a property delegated to an ImportedFunctionProvider
-     * is accessed. It looks up a function in the library with the same name as the property
-     * and the signature specified by the descriptor.
-     *
-     * @param thisRef The object containing the delegated property (not used)
-     * @param property The metadata for the delegated property, used to get the function name
-     * @return An [dev.karmakrafts.kwire.ffi.FFIFunction] representing the imported function
-     * @throws IllegalArgumentException if the function was not found in the library
-     */
-    inline operator fun getValue(thisRef: Any?, property: KProperty<*>): FFIFunction {
-        return library.getFunction(property.name, descriptor)
     }
 }
 
@@ -238,83 +203,6 @@ class SharedLibrary internal constructor(
      */
     fun getFunctionAddress(name: String): Address =
         requireNotNull(findFunctionAddress(name)) { "Could not find function '$name' in library ${handle.name}" }
-
-    /**
-     * Attempts to find a function in this library with the specified signature.
-     *
-     * This method searches for a function with the given name in the loaded library
-     * and creates an [FFIFunction] with the specified descriptor if found.
-     * If the function does not exist, it returns null.
-     *
-     * @param name The name of the function to find
-     * @param descriptor The descriptor specifying the function signature
-     * @return An [FFIFunction] representing the function, or null if the function was not found
-     */
-    fun findFunction(name: String, descriptor: FFIDescriptor): FFIFunction? {
-        return findFunctionAddress(name)?.let { address ->
-            FFIFunction(name, address, descriptor)
-        }
-    }
-
-    /**
-     * Gets a function from this library with the specified signature.
-     *
-     * This method searches for a function with the given name in the loaded library
-     * and creates an [FFIFunction] with the specified descriptor.
-     * If the function does not exist, it throws an exception.
-     *
-     * @param name The name of the function to get
-     * @param descriptor The descriptor specifying the function signature
-     * @return An [FFIFunction] representing the function
-     * @throws IllegalArgumentException if the function was not found in the library
-     */
-    fun getFunction(name: String, descriptor: FFIDescriptor): FFIFunction =
-        FFIFunction(name, getFunctionAddress(name), descriptor)
-
-    /**
-     * Gets a function from this library with the specified signature using [dev.karmakrafts.kwire.ffi.FFIType] parameters.
-     *
-     * This operator provides a convenient syntax for getting a function from the library.
-     * It creates an [FFIDescriptor] from the provided return type and parameter types,
-     * then calls [getFunction] with that descriptor.
-     *
-     * Example usage:
-     * ```
-     * val exitFunc = library["exit", FFIType.VOID, FFIType.INT]
-     * ```
-     *
-     * @param name The name of the function to get
-     * @param returnType The return type of the function as an [dev.karmakrafts.kwire.ffi.FFIType]
-     * @param parameterTypes The parameter types of the function as [dev.karmakrafts.kwire.ffi.FFIType]s
-     * @return An [FFIFunction] representing the function
-     * @throws IllegalArgumentException if the function was not found in the library
-     */
-    inline operator fun get(name: String, returnType: FFIType, vararg parameterTypes: FFIType): FFIFunction {
-        return getFunction(name, FFIDescriptor.of(returnType, *parameterTypes))
-    }
-
-    /**
-     * Creates an ImportedFunctionProvider for property delegation with the specified function signature.
-     *
-     * This method provides a convenient way to import functions from the library using Kotlin's
-     * property delegation feature. The returned provider can be used with the `by` keyword to
-     * create properties that represent functions in the library.
-     *
-     * Example usage:
-     * ```
-     * val lib = SharedLibrary.open("mylib.so")
-     * val myFunc by lib.importing(FFIType.INT, FFIType.FLOAT, FFIType.POINTER)
-     * ```
-     *
-     * When the property is accessed, it will automatically look up a function with the same name
-     * as the property and the specified signature in the library.
-     *
-     * @param returnType The return type of the function as an [FFIType]
-     * @param parameterTypes The parameter types of the function as [FFIType]s
-     * @return An [ImportedFunctionProvider] that can be used with property delegation
-     */
-    inline fun importing(returnType: FFIType, vararg parameterTypes: FFIType): ImportedFunctionProvider =
-        ImportedFunctionProvider(this, FFIDescriptor.of(returnType, *parameterTypes))
 
     /**
      * Registers this library to be closed when the application exits.

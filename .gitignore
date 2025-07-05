@@ -1,5 +1,7 @@
 *.iml
 *.so
+*.dylib
+*.dll
 .gradle/
 .kotlin/
 .DS_Store

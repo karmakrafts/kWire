@@ -28,9 +28,9 @@ import kotlin.jvm.JvmInline
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class NumPtr<N : Number> @PublishedApi internal constructor(
+value class NumPtr<N : Comparable<N>> @PublishedApi internal constructor(
     override val rawAddress: NUInt
-) : Address, Pointed {
+) : Address {
     inline var value: N
         get() = deref()
         set(value) {
@@ -38,7 +38,7 @@ value class NumPtr<N : Number> @PublishedApi internal constructor(
         }
 
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
-    inline fun <N : Number> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
     inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 
@@ -73,25 +73,14 @@ value class NumPtr<N : Number> @PublishedApi internal constructor(
     inline operator fun set(index: Int, value: N) = (this + index).set(value)
     inline operator fun set(index: Long, value: N) = (this + index).set(value)
 
-    inline operator fun equals(other: NumPtr<*>): Boolean = rawAddress == other.rawAddress
     override fun toString(): String = "0x${rawAddress.toHexString()}"
-
-    override fun equals(other: Any?): Boolean = when (other) {
-        is Ptr<*> -> rawAddress == other.rawAddress
-        is NumPtr<*> -> rawAddress == other.rawAddress
-        is VoidPtr -> rawAddress == other.rawAddress
-        is FunPtr<*> -> rawAddress == other.rawAddress
-        else -> false
-    }
-
-    override fun hashCode(): Int = rawAddress.hashCode()
 }
 
-inline fun <N : Number> NUInt.asNumPtr(): NumPtr<N> = NumPtr(this)
-inline fun <N : Number> ULong.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
-inline fun <N : Number> Long.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
-inline fun <N : Number> UInt.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
-inline fun <N : Number> Int.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
+inline fun <N : Comparable<N>> NUInt.asNumPtr(): NumPtr<N> = NumPtr(this)
+inline fun <N : Comparable<N>> ULong.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
+inline fun <N : Comparable<N>> Long.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
+inline fun <N : Comparable<N>> UInt.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
+inline fun <N : Comparable<N>> Int.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
 
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
-fun <N : Number> N.ref(): NumPtr<N> = throw KWirePluginNotAppliedException()
+fun <N : Comparable<N>> N.ref(): NumPtr<N> = throw KWirePluginNotAppliedException()

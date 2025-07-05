@@ -17,8 +17,10 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.ctype.Address
+import org.lwjgl.system.libffi.LibFFI
 import java.lang.foreign.MemoryLayout
 import java.lang.foreign.ValueLayout
+import org.lwjgl.system.libffi.FFIType as LibFFIType
 
 /**
  * Determines the appropriate [ValueLayout] for pointer types based on the provided parameters.
@@ -71,4 +73,38 @@ fun FFIType.getMemoryLayout(useSegments: Boolean = false): MemoryLayout {
         FFIType.DOUBLE -> ValueLayout.JAVA_DOUBLE
         else -> throw IllegalStateException("$this has no valid memory layout")
     }
+}
+
+internal fun FFIType.toLibFFI(): LibFFIType = when (this) {
+    FFIType.VOID -> LibFFI.ffi_type_void
+    FFIType.BYTE -> LibFFI.ffi_type_sint8
+    FFIType.SHORT -> LibFFI.ffi_type_sint16
+    FFIType.INT -> LibFFI.ffi_type_sint32
+    FFIType.LONG -> LibFFI.ffi_type_sint64
+    FFIType.NINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_sint32 else LibFFI.ffi_type_sint64
+    FFIType.UBYTE -> LibFFI.ffi_type_uint8
+    FFIType.USHORT -> LibFFI.ffi_type_uint16
+    FFIType.UINT -> LibFFI.ffi_type_uint32
+    FFIType.ULONG -> LibFFI.ffi_type_uint64
+    FFIType.NUINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_uint64 else LibFFI.ffi_type_uint64
+    FFIType.FLOAT -> LibFFI.ffi_type_float
+    FFIType.DOUBLE -> LibFFI.ffi_type_double
+    FFIType.NFLOAT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_float else LibFFI.ffi_type_double
+    FFIType.PTR -> LibFFI.ffi_type_pointer
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+internal fun LibFFIType.toFFI(): FFIType = when (this) {
+    LibFFI.ffi_type_sint8 -> FFIType.BYTE
+    LibFFI.ffi_type_sint16 -> FFIType.SHORT
+    LibFFI.ffi_type_sint, LibFFI.ffi_type_sint32 -> FFIType.INT
+    LibFFI.ffi_type_sint64 -> FFIType.LONG
+    LibFFI.ffi_type_uint8 -> FFIType.UBYTE
+    LibFFI.ffi_type_uint16 -> FFIType.USHORT
+    LibFFI.ffi_type_uint, LibFFI.ffi_type_uint32 -> FFIType.UINT
+    LibFFI.ffi_type_uint64 -> FFIType.ULONG
+    LibFFI.ffi_type_float -> FFIType.FLOAT
+    LibFFI.ffi_type_double -> FFIType.DOUBLE
+    LibFFI.ffi_type_pointer -> FFIType.PTR
+    else -> error("Incompatible FFI type at 0x${address().toHexString()}")
 }

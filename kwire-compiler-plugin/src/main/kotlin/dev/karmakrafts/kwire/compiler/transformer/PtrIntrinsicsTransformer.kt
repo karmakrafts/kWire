@@ -17,24 +17,36 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.isAddress
 import dev.karmakrafts.kwire.compiler.util.isFunPtr
 import dev.karmakrafts.kwire.compiler.util.isNumPtr
+import dev.karmakrafts.kwire.compiler.util.isPointed
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.isVoidPtr
+import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
+import dev.karmakrafts.kwire.compiler.util.toComposite
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.isNumber
 import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.ir.util.target
+import org.jetbrains.kotlin.name.Name
 
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
@@ -78,9 +90,37 @@ internal class PtrIntrinsicsTransformer(
         }
     }
 
-    private fun emitRef(call: IrCall): IrExpression {
-        // TODO: implement allocation scopes
-        TODO("Implement this")
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun emitFunctionRef(call: IrCall): IrExpression {
+        val reference = call.arguments[call.target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]
+        if (reference == null || reference !is IrFunctionReference) {
+            reportError("Could not retrieve function reference from extension receiver", call)
+            return call
+        }
+        val targetSymbol = reference.reflectionTarget
+        if (targetSymbol == null) {
+            reportError("Could not determine target for function reference", call)
+            return call
+        }
+        // TODO: finish me
+        return call
+    }
+
+    private fun emitRef(call: IrCall, data: IntrinsicContext): IrExpression {
+        val type = call.typeArguments.first()
+        if (type == null) {
+            reportError("Could not resolve reference type for reference", call)
+            return call
+        }
+        return when {
+            type.isFunctionTypeOrSubtype() -> emitFunctionRef(call)
+            type.isNumber() -> call
+            type.isPointed(context) -> call
+            else -> {
+                reportError("Could not determine reference type for reference", call)
+                call
+            }
+        }
     }
 
     private fun emitDeref(call: IrCall): IrExpression {
@@ -96,7 +136,7 @@ internal class PtrIntrinsicsTransformer(
     private fun emitSet(call: IrCall): IrExpression {
         val function = call.target
         val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
-        val valueParam = params.first { it.name.asString() == "value" }
+        val valueParam = params.single { it.name.asString() == "value" }
         val type = valueParam.type.resolveFromReceiver(call)
         if (type == null) {
             reportError("Could not resolve reference type for pointer write", call)
@@ -119,11 +159,11 @@ internal class PtrIntrinsicsTransformer(
         val function = call.target
         val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
 
-        val argsParam = params.first { it.name.asString() == "args" }
+        val argsParam = params.single { it.name.asString() == "args" }
         val argsValue = call.arguments[argsParam]!!
         check(argsValue is IrVararg) { "Function pointer invocation requires variadic arguments" }
-        val (argBuffer, _) = context.ffi.extractArgumentsIntoBuffer(argsValue)
-        if (argBuffer == null) {
+        val (_, argBufferInit, argBufferVar) = context.ffi.extractArgumentsIntoBuffer(argsValue)
+        if (argBufferVar == null) {
             reportError("Could not extract function pointer invocation arguments", call)
             return call
         }
@@ -139,13 +179,37 @@ internal class PtrIntrinsicsTransformer(
             functionType.arguments.dropLast(1) // First n - 1 type args are parameter arguments for FunctionN
         val descriptor = context.ffi.getDescriptor(returnType, paramTypes.map { it.typeOrFail })
 
-        return context.ffi.call(returnType, call.extensionReceiver!!, descriptor, argBuffer)
+        val address = call.arguments[function.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]
+        if (address == null) {
+            reportError("Could not retrieve address for pointer invocation")
+            return call
+        }
+
+        val resultVariable = IrVariableImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            origin = FFI.declOrigin,
+            symbol = IrVariableSymbolImpl(),
+            name = Name.special("<__result_${call.hashCode()}__>"),
+            type = returnType,
+            isVar = false,
+            isConst = false,
+            isLateinit = false
+        ).apply {
+            initializer = context.ffi.call(returnType, address, descriptor, argBufferVar.load())
+        }
+
+        return (argBufferInit + listOf( // @formatter:off
+            resultVariable,
+            context.ffi.releaseArgBuffer(argBufferVar.load()),
+            resultVariable.load()
+        )).toComposite(returnType) // @formatter:on
     }
 
     override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {
         return when (type) {
             KWireIntrinsicType.PTR_NULL -> emitNull(expression)
-            KWireIntrinsicType.PTR_REF -> emitRef(expression)
+            KWireIntrinsicType.PTR_REF -> emitRef(expression, data)
             KWireIntrinsicType.PTR_DEREF -> emitDeref(expression)
             KWireIntrinsicType.PTR_SET -> emitSet(expression)
             KWireIntrinsicType.PTR_ARRAY_GET -> emitArrayGet(expression)

@@ -24,7 +24,7 @@ import dev.karmakrafts.kwire.memory.Memory
 internal expect val pointerSize: Int
 
 @KWireCompilerApi
-sealed interface Address {
+sealed interface Address : Pointed {
     companion object {
         val SIZE_BYTES: Int get() = pointerSize
     }
@@ -33,7 +33,7 @@ sealed interface Address {
 }
 
 inline fun <R : Pointed> Address.reinterpret(): Ptr<R> = Ptr(rawAddress)
-inline fun <N : Number> Address.reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+inline fun <N : Comparable<N>> Address.reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
 inline fun <F : Function<*>> Address.reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
 inline fun Address.reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
 

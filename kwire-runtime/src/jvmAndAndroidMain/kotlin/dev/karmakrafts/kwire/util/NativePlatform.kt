@@ -17,10 +17,9 @@
 package dev.karmakrafts.kwire.util
 
 @PublishedApi
-internal object JNIUtils {
+internal object NativePlatform {
     init {
-        // TODO: add proper native loading for all platforms
-        System.loadLibrary("libkwire-platform.so")
+        NativeLoader.ensureLoaded() // Ensure natives are loaded before we access any functions
     }
 
     @JvmStatic
@@ -54,6 +53,9 @@ internal object JNIUtils {
     external fun getDoubleArrayAddress(array: DoubleArray): Long
 
     @JvmStatic
+    external fun getCharArrayAddress(array: CharArray): Long
+
+    @JvmStatic
     external fun releaseByteArrayAddress(array: ByteArray, address: Long)
 
     @JvmStatic
@@ -70,4 +72,7 @@ internal object JNIUtils {
 
     @JvmStatic
     external fun releaseDoubleArrayAddress(array: DoubleArray, address: Long)
+
+    @JvmStatic
+    external fun releaseCharArrayAddress(array: CharArray, address: Long)
 }
