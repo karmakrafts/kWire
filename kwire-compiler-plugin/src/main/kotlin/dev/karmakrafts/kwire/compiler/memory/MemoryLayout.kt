@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler.memory
 
 import com.ensarsarajcic.kotlinx.serialization.msgpack.MsgPack
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.isStruct
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
@@ -26,8 +27,10 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.name.ClassId
 
 private val serializer: MsgPack = MsgPack(serializersModule = SerializersModule {
@@ -59,4 +62,17 @@ internal sealed interface MemoryLayout {
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
 
     fun serialize(): ByteArray = serializer.encodeToByteArray(this)
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrType.computeMemoryLayout(context: KWirePluginContext): MemoryLayout {
+    // Handle Unit/void type
+    if (type.isUnit()) return BuiltinMemoryLayout.VOID
+    // Handle builtin/primitive types
+    val builtinLayout = type.getBuiltinMemoryLayout()
+    if (builtinLayout != null) return builtinLayout
+    // Handle reference objects
+    if (!type.isStruct(context)) return ReferenceMemoryLayout.of(type)
+    // Handle user defined types
+    return type.computeStructMemoryLayout(context) ?: BuiltinMemoryLayout.VOID
 }

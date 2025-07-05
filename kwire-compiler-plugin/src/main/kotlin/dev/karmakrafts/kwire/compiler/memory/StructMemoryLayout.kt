@@ -114,7 +114,7 @@ internal fun IrType.computeStructMemoryLayout(context: KWirePluginContext): Stru
     for (property in clazz.properties) {
         val propertyType = property.backingField?.type
         check(propertyType != null) { "Struct field must have a backing field" }
-        fields += context.getOrComputeMemoryLayout(propertyType)
+        fields += propertyType.computeMemoryLayout(context)
     }
     return StructMemoryLayout.of(this, fields)
 }

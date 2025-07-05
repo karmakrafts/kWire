@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.compiler.transformer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getPointedType
@@ -149,7 +150,7 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         val pointerType = dispatchReceiver.type
-        val layout = context.getOrComputeMemoryLayout(type)
+        val layout = type.computeMemoryLayout(context)
 
         val function = call.target
         val indexParam = function.parameters.firstOrNull { it.kind == IrParameterKind.Regular }
@@ -186,7 +187,7 @@ internal class PtrIntrinsicsTransformer(
         }
         val pointerType = dispatchReceiver.type
 
-        val layout = context.getOrComputeMemoryLayout(type)
+        val layout = type.computeMemoryLayout(context)
         val value = call.arguments[valueParam]
         if(value == null) {
             reportError("Could not determine value expression for pointer write", call)
@@ -278,7 +279,7 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not determine pointed type for pointer arithmetic intrinsic", call)
             return call
         }
-        val layout = context.getOrComputeMemoryLayout(pointedType)
+        val layout = pointedType.computeMemoryLayout(context)
         if (layout is ReferenceMemoryLayout) {
             reportError("Cannot perform pointer arithmetic operation on pointer to reference type", call)
             return call

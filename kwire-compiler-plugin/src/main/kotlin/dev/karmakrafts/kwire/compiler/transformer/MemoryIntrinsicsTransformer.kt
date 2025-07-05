@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
@@ -41,7 +42,7 @@ internal class MemoryIntrinsicsTransformer(
     // @formatter:on
     private fun emitSizeOf(call: IrCall): IrExpression {
         val type = call.typeArguments.first() ?: return constNUInt(context, 0UL)
-        val layout = context.getOrComputeMemoryLayout(type)
+        val layout = type.computeMemoryLayout(context)
         return context.toNUInt(layout.emitSize(context))
     }
 
@@ -50,7 +51,7 @@ internal class MemoryIntrinsicsTransformer(
         if (type.hasCustomAlignment()) {
             return constNUInt(context, type.getCustomAlignment()!!.toULong())
         }
-        val layout = context.getOrComputeMemoryLayout(type)
+        val layout = type.computeMemoryLayout(context)
         return context.toNUInt(layout.emitAlignment(context))
     }
 
@@ -64,7 +65,7 @@ internal class MemoryIntrinsicsTransformer(
         }
         val property = ref.symbol.owner
         val clazz = property.parentAsClass
-        val layout = context.getOrComputeMemoryLayout(clazz.defaultType)
+        val layout = clazz.defaultType.computeMemoryLayout(context)
         val index = clazz.properties.indexOf(property)
         if (index == -1) {
             reportError("Could not determine field index for offsetOf", call)

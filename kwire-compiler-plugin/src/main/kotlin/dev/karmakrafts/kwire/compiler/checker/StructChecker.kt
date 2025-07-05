@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.isStruct
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -52,7 +53,7 @@ internal class StructChecker(
 
     private fun isValidStructFieldType(type: IrType): Boolean {
         // At the moment, we accept any field type except kotlin reference objects
-        return context.getOrComputeMemoryLayout(type) !is ReferenceMemoryLayout
+        return type.computeMemoryLayout(context) !is ReferenceMemoryLayout
     }
 
     // Enforce compatible field types and visibility

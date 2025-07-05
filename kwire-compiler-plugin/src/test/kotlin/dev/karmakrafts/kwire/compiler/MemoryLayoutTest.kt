@@ -22,6 +22,7 @@ import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -51,7 +52,7 @@ class MemoryLayoutTest {
             resetAssertions()
             result irMatches {
                 val context = KWirePluginContext(pluginContext, element, element.files.first())
-                val layout = context.getOrComputeMemoryLayout(type.typeGetter(context))
+                val layout = type.typeGetter(context).computeMemoryLayout(context)
                 val data = layout.serialize()
                 val deserializedLayout = MemoryLayout.deserialize(data)
                 deserializedLayout::class shouldBe BuiltinMemoryLayout::class
@@ -78,7 +79,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
+            val layout = struct.defaultType.computeMemoryLayout(context)
 
             val data = layout.serialize()
 
@@ -110,7 +111,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
+            val layout = struct.defaultType.computeMemoryLayout(context)
 
             val data = layout.serialize()
 
@@ -141,7 +142,7 @@ class MemoryLayoutTest {
         result irMatches {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = context.getOrComputeMemoryLayout(struct.defaultType)
+            val layout = struct.defaultType.computeMemoryLayout(context)
             layout::class shouldBe ReferenceMemoryLayout::class
             layout.typeName shouldBe "Foo"
 

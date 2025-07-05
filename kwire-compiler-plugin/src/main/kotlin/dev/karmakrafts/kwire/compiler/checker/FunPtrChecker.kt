@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.isFunPtr
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
@@ -39,12 +40,12 @@ internal class FunPtrChecker(
         val arguments = pointedType.arguments.dropLast(1)
         for (argument in arguments) {
             val type = argument.typeOrFail
-            val layout = context.getOrComputeMemoryLayout(type)
+            val layout = type.computeMemoryLayout(context)
             if (layout !is ReferenceMemoryLayout) continue
             reportError("Incompatible argument type ${type.render()} for FunPtr signature", declaration)
         }
         val returnType = pointedType.arguments.last().typeOrFail
-        val layout = context.getOrComputeMemoryLayout(returnType)
+        val layout = returnType.computeMemoryLayout(context)
         if (layout !is ReferenceMemoryLayout) return
         reportError("Incompatible return type ${returnType.render()} for FunPtr signature", declaration)
     }

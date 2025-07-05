@@ -17,18 +17,13 @@
 package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.ffi.FFI
-import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.Memory
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
-import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.computeStructMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.getBuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
-import dev.karmakrafts.kwire.compiler.util.isStruct
 import dev.karmakrafts.kwire.compiler.util.new
 import dev.karmakrafts.kwire.compiler.util.toVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -46,7 +41,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.toIrConst
 
@@ -61,7 +55,6 @@ internal class KWirePluginContext( // @formatter:off
     val ffi: FFI = FFI(this)
     val memory: Memory = Memory(this)
     val memoryStack: MemoryStack = MemoryStack(this)
-    private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNInt(expr: IrExpression): IrExpression {
@@ -136,19 +129,6 @@ internal class KWirePluginContext( // @formatter:off
         )
         val annotation = kwireSymbols.structLayoutConstructor.new(valueArguments = mapOf("data" to dataArray))
         metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(type, listOf(annotation))
-    }
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun getOrComputeMemoryLayout(type: IrType): MemoryLayout = memoryLayoutCache.getOrPut(type) {
-        // Handle Unit/void type
-        if (type.isUnit()) return@getOrPut BuiltinMemoryLayout.VOID
-        // Handle builtin/primitive types
-        val builtinLayout = type.getBuiltinMemoryLayout()
-        if (builtinLayout != null) return builtinLayout
-        // Handle reference objects
-        if (!type.isStruct(this)) return ReferenceMemoryLayout.of(type)
-        // Handle user defined types
-        return type.computeStructMemoryLayout(this) ?: BuiltinMemoryLayout.VOID
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
