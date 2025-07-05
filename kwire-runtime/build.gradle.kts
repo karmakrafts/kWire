@@ -217,7 +217,8 @@ val dokkaJar by tasks.registering(Jar::class) {
 @OptIn(ExperimentalPathApi::class)
 fun TaskContainer.registerCopyJvmJniLibraryTasks(
     taskPrefix: String, pkg: GitLabPackage, binaryNames: Map<String, String>
-) {
+): List<TaskProvider<Copy>> {
+    val tasks = ArrayList<TaskProvider<Copy>>()
     for ((name, suffix) in jvmPlatforms) {
         val platformArtifact = pkg["build-$name-release.zip", suffix]
         val copyTask = register<Copy>("copy${taskPrefix.capitalized()}JniLibraries${suffix.capitalized()}") {
@@ -229,7 +230,9 @@ fun TaskContainer.registerCopyJvmJniLibraryTasks(
         }
         named("prepareKotlinIdeaImport") { dependsOn(copyTask) }
         named("assemble") { dependsOn(copyTask) }
+        tasks += copyTask
     }
+    return tasks
 }
 
 @OptIn(ExperimentalPathApi::class)
