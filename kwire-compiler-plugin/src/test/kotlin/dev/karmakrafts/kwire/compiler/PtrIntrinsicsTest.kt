@@ -121,6 +121,8 @@ class PtrIntrinsicsTest {
         compiler shouldNotReport { error() }
         result irMatches {
             getChild<IrProperty> { it.name.asString() == "test" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "getFloat" }
+                containsChild<IrCall> { it.target.name.asString() == "putInt" }
                 containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
             }
         }
@@ -135,15 +137,16 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.ref
             class Foo(val x: Int = 0) : Struct {
-                fun test() = println("Hello, World!")
+                fun test(y: Float) = println("Hello, World!")
             }
             val foo: Foo = Foo()
-            val test: FunPtr<() -> Unit> = foo::test.ref()
+            val test: FunPtr<(Float) -> Unit> = foo::test.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
             getChild<IrProperty> { it.name.asString() == "test" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "getFloat" }
                 containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
             }
         }
