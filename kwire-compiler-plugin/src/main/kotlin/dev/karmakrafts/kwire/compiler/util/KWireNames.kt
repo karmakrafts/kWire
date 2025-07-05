@@ -45,6 +45,7 @@ internal object KWireNames {
         val listOf: Name = Name.identifier("listOf")
         val acquire: Name = Name.identifier("acquire")
         val release: Name = Name.identifier("release")
+        val createUpcallStub: Name = Name.identifier("createUpcallStub")
     }
 
     object Kotlin {
@@ -315,6 +316,7 @@ internal object KWireNames {
         val name: Name = Name.identifier("FFI")
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
+        val createUpcallStub: CallableId = CallableId(id, Functions.createUpcallStub)
 
         object Companion {
             val name: FqName = FqName("FFI.Companion")

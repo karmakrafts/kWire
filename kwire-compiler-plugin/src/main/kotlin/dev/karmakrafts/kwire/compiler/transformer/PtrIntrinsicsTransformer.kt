@@ -17,10 +17,12 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.ffi.CallingConvention
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.getRawAddress
@@ -36,19 +38,31 @@ import dev.karmakrafts.kwire.compiler.util.plus
 import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
 import dev.karmakrafts.kwire.compiler.util.times
 import dev.karmakrafts.kwire.compiler.util.toBlock
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.createBlockBody
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.isNumber
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
@@ -75,17 +89,20 @@ internal class PtrIntrinsicsTransformer(
         type: IrType,
         value: IrExpression
     ): IrExpression {
-        val isOpaque = type.isVoidPtr()
-        val pointedType = if(isOpaque) context.irBuiltIns.unitType else type.getPointedType()
-        if (pointedType == null) {
-            reportError("Could not determine pointed type for pointer", errorExpr)
-            return errorExpr
-        }
         return when {
-            type.isNumPtr() -> context.createNumPtr(value, pointedType)
-            type.isFunPtr() -> context.createFunPtr(value, pointedType)
-            type.isPtr() -> context.createPtr(value, pointedType)
-            isOpaque -> context.createVoidPtr(value)
+            type.isNumPtr() -> {
+                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
+                context.createNumPtr(value, pointedType)
+            }
+            type.isFunPtr() -> {
+                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
+                context.createFunPtr(value, pointedType)
+            }
+            type.isPtr() -> {
+                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
+                context.createPtr(value, pointedType)
+            }
+            type.isVoidPtr() || type.isAddress(context) -> context.createVoidPtr(value)
             else -> {
                 reportError("Unrecognized pointer type ${type.render()}", errorExpr)
                 return errorExpr
@@ -119,8 +136,72 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not determine target for function reference", call)
             return call
         }
-        // TODO: finish me
-        return call
+        val function = targetSymbol.owner
+        if(function !is IrSimpleFunction) {
+            reportError("Function reference target must be a callable function", call)
+            return call
+        }
+        val parameters = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        val descriptor = context.ffi.getDescriptor(
+            returnType = function.returnType,
+            parameterTypes = parameters.map { it.type }
+        )
+        val callingConvention = CallingConvention.CDECL
+        val stubFunction = context.irFactory.createSimpleFunction(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            origin = IrDeclarationOrigin.INLINE_LAMBDA,
+            name = Name.identifier("__kwire_stub_${call.hashCode()}__"),
+            visibility = DescriptorVisibilities.LOCAL,
+            isInline = false,
+            isExpect = false,
+            returnType = function.returnType,
+            modality = Modality.FINAL,
+            symbol = IrSimpleFunctionSymbolImpl(null, null),
+            isTailrec = false,
+            isSuspend = false,
+            isOperator = false,
+            isInfix = false,
+            isExternal = false
+        ).apply {
+            val bufferParam = addValueParameter {
+                name = Name.identifier("buffer")
+                type = context.ffi.ffiArgBufferType.defaultType
+            }
+            body = context.irFactory.createBlockBody(
+                startOffset = SYNTHETIC_OFFSET,
+                endOffset = SYNTHETIC_OFFSET,
+                statements = buildList {
+                    val buffer = bufferParam.symbol.load()
+                    val argumentTypes = parameters.map { it.type }
+                    val arguments = argumentTypes.map { context.ffi.getArgument(buffer, it) }
+                    val namedArguments = HashMap<String, IrExpression>()
+                    for(argumentIndex in arguments.indices) {
+                        namedArguments[parameters[argumentIndex].name.asString()] = arguments[argumentIndex]
+                    }
+                    // If the call doesn't have a reuslt, simply make the call
+                    if(returnType.isUnit() || returnType.isNothing()) {
+                        this += function.call( // @formatter:off
+                            dispatchReceiver = reference.dispatchReceiver,
+                            valueArguments = namedArguments
+                        ) // @formatter:on
+                        return@buildList
+                    }
+                    this += context.ffi.putArgument(buffer, function.call( // @formatter:off
+                        dispatchReceiver = reference.dispatchReceiver,
+                        valueArguments = namedArguments
+                    ))
+                // @formatter:on
+                })
+        }
+        val stubFunctionExpr = IrFunctionExpressionImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = function.returnType,
+            function = stubFunction,
+            origin = IrStatementOrigin.INLINE_LAMBDA
+        )
+        return context.ffi.createUpcallStub(descriptor, callingConvention, stubFunctionExpr)
     }
 
     private fun emitRef(call: IrCall, data: IntrinsicContext): IrExpression {
@@ -161,7 +242,7 @@ internal class PtrIntrinsicsTransformer(
         // Handle subscript-operator memory offsets
         if (index != null) {
             val rawAddress = dispatchReceiver.getRawAddress()
-            if(rawAddress == null) {
+            if (rawAddress == null) {
                 reportError("Could not retrieve raw address of pointer in dereference", call)
                 return call
             }
@@ -191,7 +272,7 @@ internal class PtrIntrinsicsTransformer(
 
         val layout = type.computeMemoryLayout(context)
         val value = call.arguments[valueParam]
-        if(value == null) {
+        if (value == null) {
             reportError("Could not determine value expression for pointer write", call)
             return call
         }
@@ -199,9 +280,9 @@ internal class PtrIntrinsicsTransformer(
         val index = indexParam?.let { call.arguments[it] }
 
         // Handle subscript-operator memory offsets
-        if(index != null) {
+        if (index != null) {
             val rawAddress = dispatchReceiver.getRawAddress()
-            if(rawAddress == null) {
+            if (rawAddress == null) {
                 reportError("Could not retrieve raw address of pointer in pointer write", call)
                 return call
             }
@@ -283,7 +364,7 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         pointerType = pointerType.getClass()?.typeWith(pointedType)
-        if(pointerType == null) {
+        if (pointerType == null) {
             reportError("Could not reify pointer type for pointer arithmetic intrinsic", call)
             return call
         }

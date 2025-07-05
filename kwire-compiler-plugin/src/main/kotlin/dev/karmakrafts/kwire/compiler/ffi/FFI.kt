@@ -61,6 +61,7 @@ internal class FFI(
 
     val ffiType: IrClassSymbol = context.referenceClass(KWireNames.FFI.id)!!
     val ffiCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFI.Companion.id)!!
+    val ffiCreateUpcallStub: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.FFI.createUpcallStub).first()
 
     val ffiTypeType: IrClassSymbol = context.referenceClass(KWireNames.FFIType.id)!!
 
@@ -100,6 +101,19 @@ internal class FFI(
             parameterTypes = parameterTypes.map { it.getFFIType(context)!!(context) })
     }
 
+    fun createUpcallStub(
+        descriptor: IrExpression,
+        callingConvention: CallingConvention,
+        function: IrExpression
+    ): IrCall = ffiCreateUpcallStub.call( // @formatter:off
+        dispatchReceiver = ffiType.getObjectInstance(),
+        valueArguments = mapOf(
+            "descriptor" to descriptor,
+            "callingConvention" to callingConvention.getEnumValue(callingConventionType) { name },
+            "function" to function
+        )
+    ) // @formatter:on
+
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun call(type: IrType, address: IrExpression, descriptor: IrExpression, argBuffer: IrExpression): IrCall {
         return ffiType.owner.functions.first { function ->
@@ -126,6 +140,15 @@ internal class FFI(
     fun releaseArgBuffer(buffer: IrExpression): IrCall = ffiArgBufferRelease.call(
         dispatchReceiver = buffer
     )
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    fun getArgument(buffer: IrExpression, type: IrType): IrCall {
+        val function = ffiArgBufferType.owner.functions.first { function ->
+            if (!function.name.asString().startsWith("get")) return@first false
+            function.returnType == type
+        }
+        return function.call(dispatchReceiver = buffer)
+    }
 
     fun putArguments(buffer: IrExpression, argumentArray: IrExpression): IrCall {
         return ffiArgBufferPutAll.call( // @formatter:off
@@ -154,7 +177,7 @@ internal class FFI(
             endOffset = SYNTHETIC_OFFSET,
             origin = declOrigin,
             symbol = IrVariableSymbolImpl(),
-            name = Name.special("<__arg_buffer_${args.hashCode()}__>"),
+            name = Name.identifier("__kwire_arg_buffer_${args.hashCode()}__"),
             type = ffiArgBufferType.defaultType,
             isVar = false,
             isConst = false,

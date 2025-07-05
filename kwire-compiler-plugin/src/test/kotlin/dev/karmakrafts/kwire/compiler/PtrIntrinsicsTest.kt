@@ -69,7 +69,6 @@ class PtrIntrinsicsTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            println(element.dump())
             containsChild<IrCall> { it.target.name.asString() == "plus" }
         }
     }
@@ -121,10 +120,9 @@ class PtrIntrinsicsTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            // TODO: fixme
-            //getChild<IrProperty> { it.name.asString() == "test" } matches {
-            //    containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
-            //}
+            getChild<IrProperty> { it.name.asString() == "test" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
+            }
         }
     }
 
@@ -145,10 +143,9 @@ class PtrIntrinsicsTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            // TODO: fixme
-            //getChild<IrProperty> { it.name.asString() == "test" } matches {
-            //    containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
-            //}
+            getChild<IrProperty> { it.name.asString() == "test" } matches {
+                containsChild<IrCall> { it.target.name.asString() == "createUpcallStub" }
+            }
         }
     }
 
