@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
+@file:Suppress("NOTHING_TO_INLINE") @file:OptIn(ExperimentalContracts::class)
 
 package dev.karmakrafts.kwire.ffi
 
@@ -24,6 +24,9 @@ import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Internal function to get the platform-specific implementation of the FFI interface.
@@ -313,10 +316,17 @@ inline fun FFI.call(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ) {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    call(address, descriptor, callingConvention, buffer)
-    buffer.release()
+    try {
+        buffer.args()
+        call(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -333,11 +343,17 @@ inline fun FFI.callByte(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Byte {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callByte(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callByte(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -354,11 +370,17 @@ inline fun FFI.callShort(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Short {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callShort(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callShort(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -375,11 +397,17 @@ inline fun FFI.callInt(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Int {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callInt(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callInt(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -396,11 +424,17 @@ inline fun FFI.callLong(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Long {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callLong(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callLong(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -417,11 +451,17 @@ inline fun FFI.callNInt(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): NInt {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callNInt(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callNInt(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -438,11 +478,17 @@ inline fun FFI.callFloat(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Float {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callFloat(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callFloat(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -459,11 +505,17 @@ inline fun FFI.callDouble(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): Double {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callDouble(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callDouble(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -480,11 +532,17 @@ inline fun FFI.callNFloat(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): NFloat {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callNFloat(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callNFloat(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -501,11 +559,17 @@ inline fun FFI.callPointer(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): VoidPtr {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callPointer(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callPointer(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -522,11 +586,17 @@ inline fun FFI.callUByte(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): UByte {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callUByte(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callUByte(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -543,11 +613,17 @@ inline fun FFI.callUShort(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): UShort {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callUShort(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callUShort(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -564,11 +640,17 @@ inline fun FFI.callUInt(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): UInt {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callUInt(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callUInt(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -585,11 +667,17 @@ inline fun FFI.callULong(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): ULong {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callULong(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callULong(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }
 
 /**
@@ -606,9 +694,15 @@ inline fun FFI.callNUInt(
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
 ): NUInt {
+    contract {
+        callsInPlace(args, InvocationKind.EXACTLY_ONCE)
+    }
     val buffer = FFIArgBuffer.acquire()
-    buffer.args()
-    val result = callNUInt(address, descriptor, callingConvention, buffer)
-    buffer.release()
-    return result
+    return try {
+        buffer.args()
+        callNUInt(address, descriptor, callingConvention, buffer)
+    }
+    finally {
+        buffer.release()
+    }
 }

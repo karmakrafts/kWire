@@ -24,6 +24,9 @@ import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.minus
 import dev.karmakrafts.kwire.ctype.toNUInt
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 class MemoryStack private constructor() : Allocator {
     companion object {
@@ -41,7 +44,11 @@ class MemoryStack private constructor() : Allocator {
             return stack
         }
 
+        @OptIn(ExperimentalContracts::class)
         inline fun <reified R> withStackFrame(block: (MemoryStack) -> R): R {
+            contract {
+                callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+            }
             return get().withStackFrame(block)
         }
     }
@@ -86,7 +93,11 @@ class MemoryStack private constructor() : Allocator {
         Memory.free(address)
     }
 
+    @OptIn(ExperimentalContracts::class)
     inline fun <reified R> withStackFrame(block: (MemoryStack) -> R): R {
+        contract {
+            callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        }
         return try {
             push()
             block(this)

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
+@file:OptIn(ExperimentalContracts::class)
+
 package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.jvm.JvmInline
 
 @RequiresOptIn("The API you are trying to use requires great care, otherwise undefined behaviour may be invoked")
@@ -88,6 +93,9 @@ expect fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>)
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     return try {
         block(pinTack.acquireStableAddress())
@@ -116,6 +124,9 @@ value class StableRef<T : Any>(
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireByteAddress()
     return try {
@@ -129,6 +140,9 @@ inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireShortAddress()
     return try {
@@ -142,6 +156,9 @@ inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireIntAddress()
     return try {
@@ -155,6 +172,9 @@ inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireLongAddress()
     return try {
@@ -168,6 +188,9 @@ inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireFloatAddress()
     return try {
@@ -181,6 +204,9 @@ inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireDoubleAddress()
     return try {
@@ -194,6 +220,9 @@ inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> CharArray.fixed(block: (NumPtr<Char>) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
     val pinTack = pin()
     val address = pinTack.acquireCharAddress()
     return try {
