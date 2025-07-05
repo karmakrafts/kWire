@@ -92,6 +92,17 @@ val dokkaJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
+tasks {
+    System.getProperty("publishDocs.root")?.let { docsDir ->
+        register("publishDocs", Copy::class) {
+            dependsOn(dokkaJar)
+            mustRunAfter(dokkaJar)
+            from(zipTree(dokkaJar.get().outputs.files.first()))
+            into("$docsDir/${project.name}")
+        }
+    }
+}
+
 publishing {
     publications.withType<MavenPublication> {
         artifact(dokkaJar)

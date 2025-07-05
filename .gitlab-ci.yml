@@ -1,116 +1,107 @@
-stages:
-  - test
-  - publish
-  - release
-
-cache:
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
-    - .kotlin
-
-test-linux:
-  stage: test
-  before_script:
-    - export JAVA_HOME=/home/sdks/zulu-17
-  script:
-    - ./gradlew
-      clean
-      linuxX64Test
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - linux
-
-test-macos:
-  stage: test
-  before_script:
-    - export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
-  script:
-    - ./gradlew
-      clean
-      macosArm64Test
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - macos
-
-test-windows:
-  stage: test
-  script:
-    - ./gradlew
-      clean
-      mingwX64Test
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - windows
-
-publish-linux:
-  stage: publish
-  before_script:
-    - export JAVA_HOME=/home/sdks/zulu-17
-  script:
-    - ./gradlew
-      -DpublishDocs.root=/var/www/docs/multiplatform-dlfcn
-      clean
-      publish{KotlinMultiplatform,LinuxX64,LinuxArm64}PublicationToGitlabRepository
-      publishDocs
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - linux
-
-publish-windows:
-  stage: publish
-  script:
-    - ./gradlew
-      clean
-      publishMingwX64PublicationToGitlabRepository
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - windows
-
-publish-macos:
-  stage: publish
-  before_script:
-    - export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
-  script:
-    - ./gradlew
-      clean
-      publishMacos{X64,Arm64}PublicationToGitlabRepository
-      --no-daemon
-      --stacktrace
-  only:
-    - master
-  tags:
-    - macos
-
-create-release:
-  stage: release
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
-    - if: $CI_COMMIT_TAG
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+stages:
+  - build
+  - security
+  - publish
+
+variables:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+# ------------------------------ Conditions
+
+.if-merge-request-or-main: &if-merge-request-or-main
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+    when: never
+
+.if-main: &if-main
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+    when: never
+
+.if-release: &if-release
+  - if: '$CI_COMMIT_TAG =~ /^\d+.\d+.\d+.*/'
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+    when: never
+
+# ------------------------------ Security
+
+security:
+  stage: security
+  interruptible: true
+  needs: [ ]
+  variables:
+    TRIVY_CACHE_DIR: ".trivycache/"
+  cache:
+    paths:
+      - .trivycache/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      allow_failure: true
+    - if: '$CI_COMMIT_TAG =~ /^\d+.\d+.\d+.*/'
+      allow_failure: false
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      allow_failure: false
+  artifacts:
+    when: always
+    reports:
+      dependency_scanning: report.json
   before_script:
-    - echo "Fetching project version from libs.versions.toml"
-    - export PROJECT_VERSION=$(./gradlew generateVersionInfo --quiet)
+    - ./gradlew dependenciesForAll --write-locks --no-parallel > dependencies.txt
   script:
-    - echo "Creating release for version $PROJECT_VERSION.$CI_PIPELINE_IID"
-  release:
-    tag_name: '$(cat .version).$CI_PIPELINE_IID'
-    description: '$(cat .version).$CI_PIPELINE_IID'
-    ref: '$CI_COMMIT_SHA'
+    - trivy repo ./ --exit-code 0
+    - trivy repo ./ --exit-code 0 --format template --template "@/Volumes/Data/contrib/gitlab.tpl" --output report.json
+    - trivy repo ./ --exit-code 1 --severity CRITICAL
   tags:
-    - linux
+    - macos
+
+# ------------------------------ Build
+
+build:
+  stage: build
+  interruptible: true
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew clean build --stacktrace
+  tags:
+    - macos
+
+# ------------------------------ Publish
+
+publish-gitlab:
+  stage: publish
+  rules:
+    - *if-main
+    - *if-release
+  script:
+    - ./gradlew publishAllPublicationsToGitLabRepository
+  tags:
+    - macos
+
+publish-central:
+  stage: publish
+  rules:
+    - *if-main
+    - *if-release
+  script:
+    - ./gradlew publishToSonatype closeAndReleaseStagingRepositories
+  tags:
+    - macos
+
+publish-documentation:
+  stage: publish
+  rules:
+    - *if-release
+  script:
+    - ./gradlew -DpublishDocs.root=/var/www/docs publishDocs
+  tags:
+    - docs

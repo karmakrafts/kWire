@@ -1,7 +1,14 @@
 # kWire
 
+[![](https://git.karmakrafts.dev/kk/kwire/badges/master/pipeline.svg)](https://git.karmakrafts.dev/kk/kwire/-/pipelines)
+[![](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo.maven.apache.org%2Fmaven2%2Fdev%2Fkarmakrafts%2Fkwire%2Fkwire-runtime%2Fmaven-metadata.xml
+)](https://git.karmakrafts.dev/kk/kwire/-/packages)
+[![](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fdev%2Fkarmakrafts%2Fkwire%2Fkwire-runtime%2Fmaven-metadata.xml
+)](https://git.karmakrafts.dev/kk/kwire/-/packages)
+
 Shared library access and FFI for Kotlin Multiplatform.  
-**This library does not support JS/WASM targets, and there is no plans on supporting it in the future.**
+**This library does not support JS/WASM targets, and there is no plans on supporting it in the future,
+if you know how to do it, feel free to contribute :)**
 
 ## How it works
 
