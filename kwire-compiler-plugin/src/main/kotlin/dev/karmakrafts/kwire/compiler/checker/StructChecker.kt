@@ -52,7 +52,7 @@ internal class StructChecker(
 
     private fun isValidStructFieldType(type: IrType): Boolean {
         // At the moment, we accept any field type except kotlin reference objects
-        return context.getOrComputeMemoryLayout(type) != ReferenceMemoryLayout
+        return context.getOrComputeMemoryLayout(type) !is ReferenceMemoryLayout
     }
 
     // Enforce compatible field types and visibility

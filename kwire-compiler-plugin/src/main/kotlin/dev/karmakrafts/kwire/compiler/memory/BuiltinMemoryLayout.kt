@@ -69,87 +69,122 @@ private object BuiltinMemoryOps {
 @SerialName("builtin")
 @Serializable
 internal enum class BuiltinMemoryLayout(
+    @Transient override val typeName: String,
+    @Transient private val typeGetter: KWirePluginContext.() -> IrType,
     @Transient private val sizeEmitter: (KWirePluginContext) -> IrExpression,
     @Transient private val alignmentEmitter: (KWirePluginContext) -> IrExpression,
     @Transient private val readEmitter: (KWirePluginContext, IrExpression) -> IrExpression,
     @Transient private val writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
 ) : MemoryLayout {
     // @formatter:off
-    VOID({ constInt(it, 0) },
+    VOID("kotlin.Unit",
+        { irBuiltIns.unitType },
+        { constInt(it, 0) },
         { _, _ -> error("Unit/void type cannot be read from memory") },
         { _, _, _ -> error("Unit/void type cannot be written to memory") }),
 
     // Signed types
 
-    BYTE({ constInt(it, Byte.SIZE_BYTES) },
+    BYTE("kotlin.Byte",
+        { irBuiltIns.byteType },
+        { constInt(it, Byte.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.byteType } },
         BuiltinMemoryOps::write),
 
-    SHORT({ constInt(it, Short.SIZE_BYTES) },
+    SHORT("kotlin.Short",
+        { irBuiltIns.shortType },
+        { constInt(it, Short.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.shortType } },
         BuiltinMemoryOps::write),
 
-    INT({ constInt(it, Int.SIZE_BYTES) },
+    INT("kotlin.Int",
+        { irBuiltIns.intType },
+        { constInt(it, Int.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.intType } },
         BuiltinMemoryOps::write),
 
-    LONG({ constInt(it, Long.SIZE_BYTES) },
+    LONG("kotlin.Long",
+        { irBuiltIns.longType },
+        { constInt(it, Long.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.longType } },
         BuiltinMemoryOps::write),
 
-    NINT({ it.emitPointerSize() },
+    NINT("dev.karmakrafts.kwire.ctype.NInt",
+        { kwireSymbols.nIntType.owner.expandedType },
+        { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nIntType.owner.expandedType } },
         BuiltinMemoryOps::write),
 
     // Unsigned types
 
-    UBYTE({ constInt(it, UByte.SIZE_BYTES) },
+    UBYTE("kotlin.UByte",
+        { kwireSymbols.uByteType.defaultType },
+        { constInt(it, UByte.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uByteType.defaultType } },
         BuiltinMemoryOps::write),
 
-    USHORT({ constInt(it, UShort.SIZE_BYTES) },
+    USHORT("kotlin.UShort",
+        { kwireSymbols.uShortType.defaultType },
+        { constInt(it, UShort.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uShortType.defaultType } },
         BuiltinMemoryOps::write),
 
-    UINT({ constInt(it, UInt.SIZE_BYTES) },
+    UINT("kotlin.UInt",
+        { kwireSymbols.uIntType.defaultType },
+        { constInt(it, UInt.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uIntType.defaultType } },
         BuiltinMemoryOps::write),
 
-    ULONG({ constInt(it, ULong.SIZE_BYTES) },
+    ULONG("kotlin.ULong",
+        { kwireSymbols.uLongType.defaultType },
+        { constInt(it, ULong.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uLongType.defaultType } },
         BuiltinMemoryOps::write),
 
-    NUINT({ it.emitPointerSize() },
+    NUINT("dev.karmakrafts.kwire.ctype.NUInt",
+        { kwireSymbols.nUIntType.defaultType },
+        { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nUIntType.defaultType } },
         BuiltinMemoryOps::write),
 
     // IEEE-754 types
 
-    FLOAT({ constInt(it, Float.SIZE_BYTES) },
+    FLOAT("kotlin.Float",
+        { irBuiltIns.floatType },
+        { constInt(it, Float.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.floatType } },
         BuiltinMemoryOps::write),
 
-    DOUBLE({ constInt(it, Double.SIZE_BYTES) },
+    DOUBLE("kotlin.Double",
+        { irBuiltIns.doubleType },
+        { constInt(it, Double.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.doubleType } },
         BuiltinMemoryOps::write),
 
-    NFLOAT({ it.emitPointerSize() },
+    NFLOAT("dev.karmakrafts.kwire.ctype.NFloat",
+        { kwireSymbols.nFloatType.owner.expandedType },
+        { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nFloatType.owner.expandedType } },
         BuiltinMemoryOps::write),
 
     // Pointer types
 
-    ADDRESS({ it.emitPointerSize() },
+    ADDRESS("dev.karmakrafts.kwire.ctype.Address",
+        { kwireSymbols.addressType.defaultType },
+        { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.voidPtrType.defaultType } },
         BuiltinMemoryOps::write);
     // @formatter:on
 
     constructor(
+        typeName: String,
+        typeGetter: KWirePluginContext.() -> IrType,
         sizeEmitter: (KWirePluginContext) -> IrExpression,
         readEmitter: (KWirePluginContext, IrExpression) -> IrExpression,
         writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
-    ) : this(sizeEmitter, sizeEmitter, readEmitter, writeEmitter)
+    ) : this(typeName, typeGetter, sizeEmitter, sizeEmitter, readEmitter, writeEmitter)
 
+    override fun getType(context: KWirePluginContext): IrType? = typeGetter(context)
     override fun emitSize(context: KWirePluginContext): IrExpression = sizeEmitter(context)
     override fun emitAlignment(context: KWirePluginContext): IrExpression = alignmentEmitter(context)
 

@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.Memory
 import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
 import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
@@ -67,6 +68,7 @@ internal class KWirePluginContext( // @formatter:off
     val kwireSymbols: KWireSymbols = KWireSymbols(pluginContext)
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     val ffi: FFI = FFI(this)
+    val memory: Memory = Memory(this)
     val memoryStack: MemoryStack = MemoryStack(this)
     private val memoryLayoutCache: HashMap<IrType, MemoryLayout> = HashMap()
 
@@ -177,7 +179,7 @@ internal class KWirePluginContext( // @formatter:off
             NativeType.PTR -> BuiltinMemoryLayout.ADDRESS
         }
         // Handle reference objects
-        if (!type.isStruct(this)) return ReferenceMemoryLayout
+        if (!type.isStruct(this)) return ReferenceMemoryLayout.of(type)
         // Handle user defined types
         val clazz = type.getClass() ?: return@getOrPut BuiltinMemoryLayout.VOID
         if (clazz.hasStructLayoutData()) {
@@ -190,7 +192,7 @@ internal class KWirePluginContext( // @formatter:off
             check(propertyType != null) { "Struct field must have a backing field" }
             fields += getOrComputeMemoryLayout(propertyType)
         }
-        if (fields.isEmpty()) BuiltinMemoryLayout.VOID else StructMemoryLayout(fields)
+        if (fields.isEmpty()) BuiltinMemoryLayout.VOID else StructMemoryLayout.of(type, fields)
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)

@@ -26,6 +26,9 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.name.ClassId
 
 private val serializer: MsgPack = MsgPack(serializersModule = SerializersModule {
     polymorphic(MemoryLayout::class) {
@@ -40,6 +43,12 @@ private val serializer: MsgPack = MsgPack(serializersModule = SerializersModule 
 internal sealed interface MemoryLayout {
     companion object {
         fun deserialize(data: ByteArray): MemoryLayout = serializer.decodeFromByteArray(data)
+    }
+
+    val typeName: String?
+
+    fun getType(context: KWirePluginContext): IrType? {
+        return typeName?.let { context.referenceClass(ClassId.fromString(it))?.defaultType }
     }
 
     fun emitSize(context: KWirePluginContext): IrExpression

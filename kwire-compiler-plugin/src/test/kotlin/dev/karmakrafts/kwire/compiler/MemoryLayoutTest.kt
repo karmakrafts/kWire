@@ -142,12 +142,14 @@ class MemoryLayoutTest {
             val context = KWirePluginContext(pluginContext, element, element.files.first())
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = context.getOrComputeMemoryLayout(struct.defaultType)
-            layout shouldBe ReferenceMemoryLayout
+            layout::class shouldBe ReferenceMemoryLayout::class
+            layout.typeName shouldBe "Foo"
 
             val data = layout.serialize()
 
             val deserializedLayout = MemoryLayout.deserialize(data)
-            deserializedLayout shouldBe ReferenceMemoryLayout
+            deserializedLayout::class shouldBe ReferenceMemoryLayout::class
+            deserializedLayout.typeName shouldBe "Foo"
         }
     }
 }

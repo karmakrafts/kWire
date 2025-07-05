@@ -279,7 +279,7 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         val layout = context.getOrComputeMemoryLayout(pointedType)
-        if (layout == ReferenceMemoryLayout) {
+        if (layout is ReferenceMemoryLayout) {
             reportError("Cannot perform pointer arithmetic operation on pointer to reference type", call)
             return call
         }

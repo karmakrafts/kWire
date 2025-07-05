@@ -21,6 +21,7 @@ import dev.karmakrafts.kwire.compiler.checker.NumPtrChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
 import dev.karmakrafts.kwire.compiler.optimizer.JvmInvokeOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.NativeInvokeOptimizer
+import dev.karmakrafts.kwire.compiler.transformer.AllocatorIntrinsicTransformer
 import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
@@ -49,6 +50,7 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             val intrinsicContext = IntrinsicContext(kwireContext)
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
+            file.transform(AllocatorIntrinsicTransformer(kwireContext), intrinsicContext)
             // Optimization passes
             when (pluginContext.platform) {
                 in JvmPlatforms.allJvmPlatforms -> {

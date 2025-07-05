@@ -40,12 +40,12 @@ internal class FunPtrChecker(
         for (argument in arguments) {
             val type = argument.typeOrFail
             val layout = context.getOrComputeMemoryLayout(type)
-            if (layout != ReferenceMemoryLayout) continue
+            if (layout !is ReferenceMemoryLayout) continue
             reportError("Incompatible argument type ${type.render()} for FunPtr signature", declaration)
         }
         val returnType = pointedType.arguments.last().typeOrFail
         val layout = context.getOrComputeMemoryLayout(returnType)
-        if (layout != ReferenceMemoryLayout) return
+        if (layout !is ReferenceMemoryLayout) return
         reportError("Incompatible return type ${returnType.render()} for FunPtr signature", declaration)
     }
 }

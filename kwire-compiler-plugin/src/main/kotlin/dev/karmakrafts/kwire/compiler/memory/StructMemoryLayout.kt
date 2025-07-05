@@ -23,12 +23,32 @@ import dev.karmakrafts.kwire.compiler.util.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.util.classId
 
 @SerialName("struct")
 @Serializable
-internal data class StructMemoryLayout(
+internal data class StructMemoryLayout
+@Deprecated( // @formatter:off
+    message = "StructMemoryLayout shouldn't be constructed directly",
+    replaceWith = ReplaceWith("StructMemoryLayout.of")
+) // @formatter:on
+constructor(
+    override val typeName: String?, // FQN of IrClass for serialization
     val fields: List<MemoryLayout>
 ) : MemoryLayout {
+    companion object {
+        @Suppress("DEPRECATION")
+        val zeroSize: StructMemoryLayout = StructMemoryLayout(null, emptyList())
+
+        @Suppress("DEPRECATION")
+        fun of(type: IrType, fields: List<MemoryLayout>): StructMemoryLayout {
+            return if (fields.isEmpty()) zeroSize
+            else StructMemoryLayout(type.getClass()?.classId?.asString(), fields)
+        }
+    }
+
     override fun emitSize(context: KWirePluginContext): IrExpression = when (fields.size) {
         0 -> constInt(context, 0)
         1 -> fields.first().emitSize(context)
@@ -55,10 +75,12 @@ internal data class StructMemoryLayout(
         }
     }
 
+    // Since structs must always provide a public default constructor, we can create one and set its fields afterward
     override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression {
         TODO("Not yet implemented")
     }
 
+    // Since structs must always provide a public default constructor, we can create one and set its fields afterward
     override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression {
         TODO("Not yet implemented")
     }
