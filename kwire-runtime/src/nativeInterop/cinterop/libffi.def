@@ -1,6 +1,6 @@
 package = dev.karmakrafts.kwire.ffi
-headers = fficonfig.h ffi.h
 staticLibraries = libffi.a
+headers = fficonfig.h ffi.h
 
 # Windows
 compilerOpts.mingw_x64 = -Ibuild/libffi/windowsX64/include
@@ -27,12 +27,12 @@ compilerOpts.macos_arm64 = -Ibuild/libffi/macosArm64/include
 libraryPaths.macos_arm64 = build/libffi/macosArm64/lib
 
 # iOS
-compilerOpts.iphoneos_x64 = -Ibuild/libffi/iosX64Simulator/include
-libraryPaths.iphoneos_x64 = build/libffi/iosX64Simulator/lib
-compilerOpts.iphoneos_arm64 = -Ibuild/libffi/iosArm64Device/include
-libraryPaths.iphoneos_arm64 = build/libffi/iosArm64Device/lib
-compilerOpts.iphoneos_simulator_arm64 = -Ibuild/libffi/iosArm64Simulator/include
-libraryPaths.iphoneos_simulator_arm64 = build/libffi/iosArm64Simulator/lib
+compilerOpts.ios_x64 = -Ibuild/libffi/iosX64Simulator/include
+libraryPaths.ios_x64 = build/libffi/iosX64Simulator/lib
+compilerOpts.ios_arm64 = -Ibuild/libffi/iosArm64Device/include
+libraryPaths.ios_arm64 = build/libffi/iosArm64Device/lib
+compilerOpts.ios_simulator_arm64 = -Ibuild/libffi/iosArm64Simulator/include
+libraryPaths.ios_simulator_arm64 = build/libffi/iosArm64Simulator/lib
 
 # tvOS
 compilerOpts.tvos_x64 = -Ibuild/libffi/tvosX64Simulator/include

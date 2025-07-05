@@ -1,5 +1,5 @@
 package = platform.posix
-headers = stddef.h stdint.h stdlib.h malloc.h string.h
+headers = stddef.h stdint.h stdlib.h string.h
 
 ---
 
