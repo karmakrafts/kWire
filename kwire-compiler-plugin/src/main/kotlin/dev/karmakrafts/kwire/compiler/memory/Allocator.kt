@@ -26,24 +26,28 @@ internal interface Allocator {
 
     fun get(): IrExpression
 
-    fun allocate(size: IrExpression, alignment: IrExpression): IrCall = context.allocatorAllocate.call( // @formatter:off
-        dispatchReceiver = get(),
-        valueArguments = mapOf(
-            "size" to size,
-            "alignment" to alignment
-        )
-    ) // @formatter:on
+    fun allocate(size: IrExpression, alignment: IrExpression): IrCall {
+        return context.kwireSymbols.allocatorAllocate.call( // @formatter:off
+            dispatchReceiver = get(),
+            valueArguments = mapOf(
+                "size" to size,
+                "alignment" to alignment
+            )
+        ) // @formatter:on
+    }
 
-    fun reallocate(address: IrExpression, size: IrExpression, alignment: IrExpression): IrCall = context.allocatorReallocate.call( // @formatter:off
-        dispatchReceiver = get(),
-        valueArguments = mapOf(
-            "address" to address,
-            "size" to size,
-            "alignment" to alignment
-        )
-    ) // @formatter:on
+    fun reallocate(address: IrExpression, size: IrExpression, alignment: IrExpression): IrCall {
+        return context.kwireSymbols.allocatorReallocate.call( // @formatter:off
+            dispatchReceiver = get(),
+            valueArguments = mapOf(
+                "address" to address,
+                "size" to size,
+                "alignment" to alignment
+            )
+        ) // @formatter:on
+    }
 
-    fun free(address: IrExpression): IrCall = context.allocatorFree.call( // @formatter:off
+    fun free(address: IrExpression): IrCall = context.kwireSymbols.allocatorFree.call( // @formatter:off
         dispatchReceiver = get(),
         valueArguments = mapOf("address" to address)
     ) // @formatter:on

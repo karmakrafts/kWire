@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrComposite
@@ -42,6 +43,7 @@ import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
+import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
@@ -67,6 +69,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.FqName
 
@@ -173,14 +176,23 @@ internal fun IrExpression.topLevelBinaryOp(
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.plus(
     other: IrExpression, isExtension: Boolean = false
-): IrExpression =
-    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "plus" }.symbol, other, isExtension)
+): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
+    function.name.asString() == "plus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+}.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.times(
     other: IrExpression, isExtension: Boolean = false
-): IrExpression =
-    binaryOp(type.getClass()!!.functions.first { it.name.asString() == "times" }.symbol, other, isExtension)
+): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
+    function.name.asString() == "times" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+}.symbol, other, isExtension)
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.minus(
+    other: IrExpression, isExtension: Boolean = false
+): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
+    function.name.asString() == "minus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+}.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
@@ -399,6 +411,14 @@ internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompos
     statements = this
 ) // @formatter:on
 
+internal fun List<IrStatement>.toBlock(type: IrType): IrBlock = IrBlockImpl( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = type,
+    origin = null,
+    statements = this
+) // @formatter:on
+
 internal fun List<IrVarargElement>.toVararg(context: KWirePluginContext, type: IrType): IrVararg = IrVarargImpl(
     startOffset = SYNTHETIC_OFFSET,
     endOffset = SYNTHETIC_OFFSET,
@@ -413,3 +433,11 @@ internal fun IrVariableSymbol.load(): IrGetValue = IrGetValueImpl(
 )
 
 internal fun IrVariable.load(): IrGetValue = symbol.load()
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off
+    return type.getClass()?.properties
+        ?.single { it.name.asString() == "rawAddress" }
+        ?.getter
+        ?.call(dispatchReceiver = this)
+} // @formatter:on

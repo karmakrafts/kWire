@@ -37,13 +37,13 @@ private object BuiltinMemoryOps {
         context: KWirePluginContext,
         address: IrExpression,
         typeSelector: (KWirePluginContext) -> IrType
-    ): IrExpression { // @formatter:on
-        val type = typeSelector(context)
-        val function = context.memoryCompanionType.functions.map { it.owner }.first { function ->
+    ): IrExpression = with(context) { // @formatter:on
+        val type = typeSelector(this)
+        val function = kwireSymbols.memoryCompanionType.functions.map { it.owner }.first { function ->
             function.name.asString().startsWith("read") && function.returnType == type
         }
         return function.call( // @formatter:off
-            dispatchReceiver = context.memoryCompanionType.getObjectInstance(),
+            dispatchReceiver = kwireSymbols.memoryCompanionType.getObjectInstance(),
             valueArguments = mapOf("address" to address)
         ) // @formatter:on
     }
@@ -52,14 +52,14 @@ private object BuiltinMemoryOps {
         context: KWirePluginContext,
         address: IrExpression,
         value: IrExpression
-    ): IrExpression { // @formatter:on
+    ): IrExpression = with(context) { // @formatter:on
         val type = value.type
-        val function = context.memoryCompanionType.functions.map { it.owner }.first { function ->
+        val function = kwireSymbols.memoryCompanionType.functions.map { it.owner }.first { function ->
             val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
             function.name.asString().startsWith("write") && params[1].type == type
         }
         return function.call( // @formatter:off
-            dispatchReceiver = context.memoryCompanionType.getObjectInstance(),
+            dispatchReceiver = kwireSymbols.memoryCompanionType.getObjectInstance(),
             valueArguments = mapOf("address" to address, "value" to value)
         ) // @formatter:on
     }
@@ -98,29 +98,29 @@ internal enum class BuiltinMemoryLayout(
         BuiltinMemoryOps::write),
 
     NINT({ it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.nIntType.owner.expandedType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nIntType.owner.expandedType } },
         BuiltinMemoryOps::write),
 
     // Unsigned types
 
     UBYTE({ constInt(it, UByte.SIZE_BYTES) },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.uByteType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uByteType.defaultType } },
         BuiltinMemoryOps::write),
 
     USHORT({ constInt(it, UShort.SIZE_BYTES) },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.uShortType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uShortType.defaultType } },
         BuiltinMemoryOps::write),
 
     UINT({ constInt(it, UInt.SIZE_BYTES) },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.uIntType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uIntType.defaultType } },
         BuiltinMemoryOps::write),
 
     ULONG({ constInt(it, ULong.SIZE_BYTES) },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.uLongType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uLongType.defaultType } },
         BuiltinMemoryOps::write),
 
     NUINT({ it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.nUIntType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nUIntType.defaultType } },
         BuiltinMemoryOps::write),
 
     // IEEE-754 types
@@ -134,13 +134,13 @@ internal enum class BuiltinMemoryLayout(
         BuiltinMemoryOps::write),
 
     NFLOAT({ it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.nFloatType.owner.expandedType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nFloatType.owner.expandedType } },
         BuiltinMemoryOps::write),
 
     // Pointer types
 
     ADDRESS({ it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.voidPtrType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.voidPtrType.defaultType } },
         BuiltinMemoryOps::write);
     // @formatter:on
 

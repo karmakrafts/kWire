@@ -55,18 +55,18 @@ internal fun IrType.toClassReference(context: IrPluginContext): IrClassReference
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.structType.owner)
+internal fun IrClass.isStruct(context: KWirePluginContext): Boolean = isSubclassOf(context.kwireSymbols.structType.owner)
 
 internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?.isStruct(context) == true
 internal fun IrType.hasCustomAlignment(): Boolean = getClass()?.hasAnnotation(KWireNames.AlignAs.fqName) == true
 internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<Int>(KWireNames.AlignAs.fqName, "value")
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isAddress(context: KWirePluginContext): Boolean = isSubclassOf(context.addressType.owner)
+internal fun IrClass.isAddress(context: KWirePluginContext): Boolean = isSubclassOf(context.kwireSymbols.addressType.owner)
 internal fun IrType.isAddress(context: KWirePluginContext): Boolean = getClass()?.isAddress(context) == true
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isPointed(context: KWirePluginContext): Boolean = isSubclassOf(context.pointedType.owner)
+internal fun IrClass.isPointed(context: KWirePluginContext): Boolean = isSubclassOf(context.kwireSymbols.pointedType.owner)
 internal fun IrType.isPointed(context: KWirePluginContext): Boolean = getClass()?.isPointed(context) == true
 
 internal fun IrClass.isNumPtr(): Boolean = isClassWithFqName(KWireNames.NumPtr.fqName)

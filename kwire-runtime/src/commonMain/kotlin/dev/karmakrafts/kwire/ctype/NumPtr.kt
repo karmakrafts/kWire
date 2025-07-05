@@ -22,21 +22,14 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
-import dev.karmakrafts.kwire.memory.sizeOf
 import kotlin.jvm.JvmInline
 
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
 value class NumPtr<N : Comparable<N>> @PublishedApi internal constructor(
-    override val rawAddress: NUInt
+    @KWireCompilerApi override val rawAddress: NUInt
 ) : Address {
-    inline var value: N
-        get() = deref()
-        set(value) {
-            set(value)
-        }
-
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
     inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
@@ -51,27 +44,47 @@ value class NumPtr<N : Comparable<N>> @PublishedApi internal constructor(
     inline fun asULong(): ULong = rawAddress.toULong()
     inline fun asLong(): Long = rawAddress.value.toLong()
 
-    inline operator fun plus(other: NUInt): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other))
-    inline operator fun plus(other: Int): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other.toNUInt()))
-    inline operator fun plus(other: Long): NumPtr<N> = NumPtr(rawAddress + (sizeOf<N>() * other.toNUInt()))
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
 
-    inline operator fun minus(other: NUInt): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other))
-    inline operator fun minus(other: Int): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other.toNUInt()))
-    inline operator fun minus(other: Long): NumPtr<N> = NumPtr(rawAddress - (sizeOf<N>() * other.toNUInt()))
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: Int): NumPtr<N> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: Long): NumPtr<N> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: Int): NumPtr<N> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: Long): NumPtr<N> = throw KWirePluginNotAppliedException()
 
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): N = throw KWirePluginNotAppliedException()
 
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: NUInt): N = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: Int): N = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: Long): N = throw KWirePluginNotAppliedException()
+
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
     fun set(value: N): Unit = throw KWirePluginNotAppliedException()
 
-    inline operator fun get(index: NUInt): N = (this + index).deref()
-    inline operator fun get(index: Int): N = (this + index).deref()
-    inline operator fun get(index: Long): N = (this + index).deref()
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: NUInt, value: N): Unit = throw KWirePluginNotAppliedException()
 
-    inline operator fun set(index: NUInt, value: N) = (this + index).set(value)
-    inline operator fun set(index: Int, value: N) = (this + index).set(value)
-    inline operator fun set(index: Long, value: N) = (this + index).set(value)
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: Int, value: N): Unit = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: Long, value: N): Unit = throw KWirePluginNotAppliedException()
 
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }

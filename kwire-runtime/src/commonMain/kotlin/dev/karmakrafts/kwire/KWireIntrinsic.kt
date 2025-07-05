@@ -30,7 +30,11 @@ internal annotation class KWireIntrinsic(val type: Type) {
         PTR_SET,
         PTR_ARRAY_GET,
         PTR_ARRAY_SET,
-        PTR_INVOKE
+        PTR_INVOKE,
+        PTR_PLUS,
+        PTR_MINUS,
+        ALLOCATOR_ALLOC,
+        ALLOCATOR_ALLOC_ARRAY
         // @formatter:on
     }
 }

@@ -39,6 +39,62 @@ class PtrIntrinsicsTest {
         arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "Long", "Double")
 
     @Test
+    fun `Perform plus operation on NumPtr`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.NumPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            val test: NumPtr<Byte> = nullptr<NumPtr<Byte>>() + 42
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
+    fun `Perform plus operation on Ptr`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.Struct
+            import dev.karmakrafts.kwire.ctype.nullptr
+            class Test(val x: Int = 0) : Struct
+            val test: Ptr<Test> = nullptr<Ptr<Test>>() + 42
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
+    fun `Perform minus operation on NumPtr`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.NumPtr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            val test: NumPtr<Byte> = nullptr<NumPtr<Byte>>() - 42
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
+    fun `Perform minus operation on Ptr`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.Struct
+            import dev.karmakrafts.kwire.ctype.nullptr
+            class Test(val x: Int = 0) : Struct
+            val test: Ptr<Test> = nullptr<Ptr<Test>>() - 42
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
     fun `Obtain pointer from top level function`() = runCompilerTest {
         kwireTransformerPipeline()
         // @formatter:off

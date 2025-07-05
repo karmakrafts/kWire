@@ -18,6 +18,8 @@
 
 package dev.karmakrafts.kwire.memory
 
+import dev.karmakrafts.kwire.KWireIntrinsic
+import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
@@ -75,16 +77,17 @@ interface Allocator {
         }
 }
 
-inline fun <reified N : Comparable<N>> Allocator.allocateNum(): NumPtr<N> =
-    allocate(sizeOf<N>(), alignOf<N>()).reinterpretNum()
+@KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC)
+fun <N : Comparable<N>> Allocator.allocateNum(): NumPtr<N> = throw KWirePluginNotAppliedException()
 
-inline fun <reified N : Comparable<N>> Allocator.allocateNumArray(count: NUInt): NumPtr<N> =
-    allocate(sizeOf<N>() * count, alignOf<N>()).reinterpretNum()
+@KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC_ARRAY)
+fun <N : Comparable<N>> Allocator.allocateNumArray(count: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
 
-inline fun <reified T : Pointed> Allocator.allocate(): Ptr<T> = allocate(sizeOf<T>(), alignOf<T>()).reinterpret()
+@KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC)
+fun <T : Pointed> Allocator.allocate(): Ptr<T> = throw KWirePluginNotAppliedException()
 
-inline fun <reified T : Pointed> Allocator.allocateArray(count: NUInt): Ptr<T> =
-    allocate(sizeOf<T>() * count, alignOf<T>()).reinterpret()
+@KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC_ARRAY)
+fun <T : Pointed> Allocator.allocateArray(count: NUInt): Ptr<T> = throw KWirePluginNotAppliedException()
 
 // Single values (mostly used by generated code)
 

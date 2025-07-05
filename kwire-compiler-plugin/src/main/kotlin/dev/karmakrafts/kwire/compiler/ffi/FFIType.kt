@@ -34,16 +34,16 @@ internal enum class FFIType(
     SHORT   ({ irBuiltIns.shortType }),
     INT     ({ irBuiltIns.intType }),
     LONG    ({ irBuiltIns.longType }),
-    NINT    ({ nIntType.owner.expandedType }),
-    UBYTE   ({ uByteType.defaultType }),
-    USHORT  ({ uShortType.defaultType }),
-    UINT    ({ uIntType.defaultType }),
-    ULONG   ({ uLongType.defaultType }),
-    NUINT   ({ nUIntType.defaultType }),
+    NINT    ({ kwireSymbols.nIntType.owner.expandedType }),
+    UBYTE   ({ kwireSymbols.uByteType.defaultType }),
+    USHORT  ({ kwireSymbols.uShortType.defaultType }),
+    UINT    ({ kwireSymbols.uIntType.defaultType }),
+    ULONG   ({ kwireSymbols.uLongType.defaultType }),
+    NUINT   ({ kwireSymbols.nUIntType.defaultType }),
     FLOAT   ({ irBuiltIns.floatType }),
     DOUBLE  ({ irBuiltIns.doubleType }),
-    NFLOAT  ({ nFloatType.owner.expandedType }),
-    PTR     ({ addressType.defaultType });
+    NFLOAT  ({ kwireSymbols.nFloatType.owner.expandedType }),
+    PTR     ({ kwireSymbols.addressType.defaultType });
     // @formatter:on
 
     internal operator fun invoke(context: KWirePluginContext): IrExpression =

@@ -27,6 +27,7 @@ internal object KWireNames {
         val sizeOf: Name = Name.identifier("sizeOf")
         val alignOf: Name = Name.identifier("alignOf")
         val plus: Name = Name.identifier("plus")
+        val minus: Name = Name.identifier("minus")
         val times: Name = Name.identifier("times")
         val min: Name = Name.identifier("min")
         val max: Name = Name.identifier("max")
@@ -208,12 +209,16 @@ internal object KWireNames {
         val name: Name = Name.identifier("NumPtr")
         val id: ClassId = ClassId(ctypePackageName, name)
         val fqName: FqName = id.asSingleFqName()
+        val plus: CallableId = CallableId(id, Functions.plus)
+        val minus: CallableId = CallableId(id, Functions.minus)
     }
 
     object Ptr {
         val name: Name = Name.identifier("Ptr")
         val id: ClassId = ClassId(ctypePackageName, name)
         val fqName: FqName = id.asSingleFqName()
+        val plus: CallableId = CallableId(id, Functions.plus)
+        val minus: CallableId = CallableId(id, Functions.minus)
     }
 
     object FunPtr {

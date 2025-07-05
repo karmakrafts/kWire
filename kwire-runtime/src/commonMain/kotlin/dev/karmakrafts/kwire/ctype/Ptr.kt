@@ -22,21 +22,14 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
-import dev.karmakrafts.kwire.memory.sizeOf
 import kotlin.jvm.JvmInline
 
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
 value class Ptr<T : Pointed> @PublishedApi internal constructor(
-    override val rawAddress: NUInt
+    @KWireCompilerApi override val rawAddress: NUInt
 ) : Address {
-    inline var value: T
-        get() = deref()
-        set(value) {
-            set(value)
-        }
-
     inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
     inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
     inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
@@ -51,27 +44,47 @@ value class Ptr<T : Pointed> @PublishedApi internal constructor(
     inline fun asULong(): ULong = rawAddress.toULong()
     inline fun asLong(): Long = rawAddress.value.toLong()
 
-    inline operator fun plus(other: NUInt): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other))
-    inline operator fun plus(other: Int): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other.toNUInt()))
-    inline operator fun plus(other: Long): Ptr<T> = Ptr(rawAddress + (sizeOf<T>() * other.toNUInt()))
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: NUInt): Ptr<T> = throw KWirePluginNotAppliedException()
 
-    inline operator fun minus(other: NUInt): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other))
-    inline operator fun minus(other: Int): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other.toNUInt()))
-    inline operator fun minus(other: Long): Ptr<T> = Ptr(rawAddress - (sizeOf<T>() * other.toNUInt()))
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: Int): Ptr<T> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
+    operator fun plus(other: Long): Ptr<T> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: NUInt): Ptr<T> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: Int): Ptr<T> = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
+    operator fun minus(other: Long): Ptr<T> = throw KWirePluginNotAppliedException()
 
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): T = throw KWirePluginNotAppliedException()
 
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: NUInt): T = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: Int): T = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
+    operator fun get(index: Long): T = throw KWirePluginNotAppliedException()
+
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
     fun set(value: T): Unit = throw KWirePluginNotAppliedException()
 
-    inline operator fun get(index: NUInt): T = (this + index).deref()
-    inline operator fun get(index: Int): T = (this + index).deref()
-    inline operator fun get(index: Long): T = (this + index).deref()
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: NUInt, value: T): Unit = throw KWirePluginNotAppliedException()
 
-    inline operator fun set(index: NUInt, value: T) = (this + index).set(value)
-    inline operator fun set(index: Int, value: T) = (this + index).set(value)
-    inline operator fun set(index: Long, value: T) = (this + index).set(value)
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: Int, value: T): Unit = throw KWirePluginNotAppliedException()
+
+    @KWireIntrinsic(KWireIntrinsic.Type.PTR_SET)
+    operator fun set(index: Long, value: T): Unit = throw KWirePluginNotAppliedException()
 
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }

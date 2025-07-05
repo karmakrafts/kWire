@@ -45,11 +45,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantArrayImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
-import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
@@ -60,61 +55,16 @@ import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
-import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.toIrConst
 
-internal class KWirePluginContext(
-    val pluginContext: IrPluginContext, val irModule: IrModuleFragment, override val irFile: IrFile
-) : IrPluginContext by pluginContext, MessageCollectorExtensions {
+internal class KWirePluginContext( // @formatter:off
+    val pluginContext: IrPluginContext,
+    val irModule: IrModuleFragment,
+    override val irFile: IrFile
+) : IrPluginContext by pluginContext, MessageCollectorExtensions { // @formatter:on
     var checkerFailed: Boolean = false
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
-    val listOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Kotlin.listOf).first { symbol ->
-        val parameters = symbol.owner.parameters.filter { it.kind == IrParameterKind.Regular }
-        parameters.first().isVararg
-    }
-
-    val sizeOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.sizeOf).first()
-    val alignOf: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.MemoryPkg.alignOf).first()
-
-    val pointedType: IrClassSymbol = referenceClass(KWireNames.Pointed.id)!!
-
-    val addressType: IrClassSymbol = referenceClass(KWireNames.Address.id)!!
-    val addressCompanionType: IrClassSymbol = referenceClass(KWireNames.Address.Companion.id)!!
-    val addressSizeBytes: IrPropertySymbol = referenceProperties(KWireNames.Address.Companion.SIZE_BYTES).first()
-
-    val memoryType: IrClassSymbol = referenceClass(KWireNames.Memory.id)!!
-    val memoryCompanionType: IrClassSymbol = referenceClass(KWireNames.Memory.Companion.id)!!
-    val allocatorType: IrClassSymbol = referenceClass(KWireNames.Allocator.id)!!
-    val allocatorAllocate: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.allocate).first()
-    val allocatorReallocate: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.reallocate).first()
-    val allocatorFree: IrSimpleFunctionSymbol = referenceFunctions(KWireNames.Allocator.free).first()
-
-    val structType: IrClassSymbol = referenceClass(KWireNames.Struct.id)!!
-    val structLayoutType: IrClassSymbol = referenceClass(KWireNames.StructLayout.id)!!
-    val structLayoutConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.StructLayout.id).first()
-    val alignAsType: IrClassSymbol = referenceClass(KWireNames.AlignAs.id)!!
-    val alignAsConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.AlignAs.id).first()
-
-    val numPtrType: IrClassSymbol = referenceClass(KWireNames.NumPtr.id)!!
-    val numPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.NumPtr.id).first()
-    val ptrType: IrClassSymbol = referenceClass(KWireNames.Ptr.id)!!
-    val ptrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.Ptr.id).first()
-    val funPtrType: IrClassSymbol = referenceClass(KWireNames.FunPtr.id)!!
-    val funPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.FunPtr.id).first()
-    val voidPtrType: IrClassSymbol = referenceClass(KWireNames.VoidPtr.id)!!
-    val voidPtrConstructor: IrConstructorSymbol = referenceConstructors(KWireNames.VoidPtr.id).first()
-
-    val nIntType: IrTypeAliasSymbol = referenceTypeAlias(KWireNames.NInt.id)!!
-    val nUIntType: IrClassSymbol = referenceClass(KWireNames.NUInt.id)!!
-    val nFloatType: IrTypeAliasSymbol = referenceTypeAlias(KWireNames.NFloat.id)!!
-
-    val uByteType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UByte.id)!!
-    val uShortType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UShort.id)!!
-    val uIntType: IrClassSymbol = referenceClass(KWireNames.Kotlin.UInt.id)!!
-    val uLongType: IrClassSymbol = referenceClass(KWireNames.Kotlin.ULong.id)!!
-
+    val kwireSymbols: KWireSymbols = KWireSymbols(pluginContext)
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     val ffi: FFI = FFI(this)
     val memoryStack: MemoryStack = MemoryStack(this)
@@ -122,6 +72,7 @@ internal class KWirePluginContext(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNInt(expr: IrExpression): IrExpression {
+        if (expr.type == kwireSymbols.nIntType.owner.expandedType) return expr
         val symbol = referenceFunctions(KWireNames.CTypePkg.toNInt).single {
             it.owner.parameters.single { param ->
                 param.kind == IrParameterKind.ExtensionReceiver
@@ -132,6 +83,7 @@ internal class KWirePluginContext(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNUInt(expr: IrExpression): IrExpression {
+        if (expr.type == kwireSymbols.nUIntType.defaultType) return expr
         val symbol = referenceFunctions(KWireNames.CTypePkg.toNUInt).single {
             it.owner.parameters.single { param ->
                 param.kind == IrParameterKind.ExtensionReceiver
@@ -142,6 +94,7 @@ internal class KWirePluginContext(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun toNFloat(expr: IrExpression): IrExpression {
+        if (expr.type == kwireSymbols.nFloatType.owner.expandedType) return expr
         val symbol = referenceFunctions(KWireNames.CTypePkg.toNFloat).single {
             it.owner.parameters.single { param ->
                 param.kind == IrParameterKind.ExtensionReceiver
@@ -151,25 +104,25 @@ internal class KWirePluginContext(
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createNumPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = numPtrConstructor.new( // @formatter:off
+    fun createNumPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.numPtrConstructor.new( // @formatter:off
         typeArguments = mapOf("N" to pointedType),
         valueArguments = mapOf("rawAddress" to address)
     ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = ptrConstructor.new( // @formatter:off
+    fun createPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.ptrConstructor.new( // @formatter:off
         typeArguments = mapOf("T" to pointedType),
         valueArguments = mapOf("rawAddress" to address)
     ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createFunPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = funPtrConstructor.new( // @formatter:off
+    fun createFunPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.funPtrConstructor.new( // @formatter:off
         typeArguments = mapOf("F" to pointedType),
         valueArguments = mapOf("rawAddress" to address)
     ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createVoidPtr(address: IrExpression): IrConstructorCall = voidPtrConstructor.new( // @formatter:off
+    fun createVoidPtr(address: IrExpression): IrConstructorCall = kwireSymbols.voidPtrConstructor.new( // @formatter:off
         valueArguments = mapOf("rawAddress" to address)
     ) // @formatter:on
 
@@ -188,7 +141,7 @@ internal class KWirePluginContext(
             type = irBuiltIns.byteArray.defaultType,
             initElements = data
         )
-        val annotation = structLayoutConstructor.new(valueArguments = mapOf("data" to dataArray))
+        val annotation = kwireSymbols.structLayoutConstructor.new(valueArguments = mapOf("data" to dataArray))
         metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(type, listOf(annotation))
     }
 
@@ -241,15 +194,15 @@ internal class KWirePluginContext(
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun emitPointerSize(): IrExpression = addressSizeBytes.owner.getter!!.call(
-        dispatchReceiver = addressCompanionType.getObjectInstance()
+    fun emitPointerSize(): IrExpression = kwireSymbols.addressSizeBytes.owner.getter!!.call(
+        dispatchReceiver = kwireSymbols.addressCompanionType.getObjectInstance()
     )
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     internal fun createListOf( // @formatter:off
         type: IrType,
         values: List<IrExpression>
-    ): IrCall = listOf.call(
+    ): IrCall = kwireSymbols.listOf.call(
         typeArguments = mapOf("T" to type),
         valueArguments = mapOf("elements" to values.toVararg(this, type))
     ) // @formatter:on

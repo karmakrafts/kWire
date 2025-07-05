@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.toBlock
 import dev.karmakrafts.kwire.compiler.util.toComposite
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -40,7 +41,7 @@ internal data class AllocationScope( // @formatter:off
     val function: IrFunction
 ) { // @formatter:on
     companion object {
-        private val variableName: Name = Name.special("<__stack_frame__>")
+        private val variableName: Name = Name.identifier("__kwire_stack_frame__")
         private val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(AllocationScopeKey)
     }
 
@@ -80,14 +81,14 @@ internal data class AllocationScope( // @formatter:off
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
             type = function.returnType,
-            tryResult = body.statements.toComposite(function.returnType),
+            tryResult = body.statements.toBlock(function.returnType),
             catches = emptyList(),
             finallyExpression = context.memoryStack.pop(getStack())
         )
         function.body = context.irFactory.createExpressionBody( // @formatter:off
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
-            expression = listOf(stackVariable, tryExpression).toComposite(function.returnType)
+            expression = listOf(stackVariable, tryExpression).toBlock(function.returnType)
         )
     }
 }
