@@ -172,9 +172,8 @@ internal class PtrIntrinsicsTransformer(
                 startOffset = SYNTHETIC_OFFSET,
                 endOffset = SYNTHETIC_OFFSET,
                 statements = buildList {
-                    val buffer = bufferParam.symbol.load()
                     val argumentTypes = parameters.map { it.type }
-                    val arguments = argumentTypes.map { context.ffi.getArgument(buffer, it) }
+                    val arguments = argumentTypes.map { context.ffi.getArgument(bufferParam.symbol.load(), it) }
                     val namedArguments = HashMap<String, IrExpression>()
                     for(argumentIndex in arguments.indices) {
                         namedArguments[parameters[argumentIndex].name.asString()] = arguments[argumentIndex]
@@ -187,7 +186,7 @@ internal class PtrIntrinsicsTransformer(
                         ) // @formatter:on
                         return@buildList
                     }
-                    this += context.ffi.putArgument(buffer, function.call( // @formatter:off
+                    this += context.ffi.putArgument(bufferParam.symbol.load(), function.call( // @formatter:off
                         dispatchReceiver = reference.dispatchReceiver,
                         valueArguments = namedArguments
                     ))
