@@ -22,7 +22,7 @@ panamaPort = "v0.0.7-preview" # https://github.com/vova7878/PanamaPort/releases
 oshi = "6.8.2"
 
 libffi = "3.5.1-1" # https://git.karmakrafts.dev/kk/prebuilts/libffi/-/packages
-kwirePlatform = "1.4.0" # https://git.karmakrafts.dev/kk/prebuilts/kwire-platform/-/packages
+kwirePlatform = "1.5.0" # https://git.karmakrafts.dev/kk/prebuilts/kwire-platform/-/packages
 
 [libraries]
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }

@@ -72,7 +72,7 @@ internal class FFI(
     val ffiDescriptorOf: IrSimpleFunctionSymbol =
         context.referenceFunctions(KWireNames.FFIDescriptor.Companion.of).first { symbol ->
             val params = symbol.owner.parameters.filter { it.kind == IrParameterKind.Regular }
-            !params.last().isVararg
+            params.last().isVararg
         }
 
     val ffiArgBufferType: IrClassSymbol = context.referenceClass(KWireNames.FFIArgBuffer.id)!!
@@ -106,7 +106,7 @@ internal class FFI(
         callingConvention: CallingConvention,
         function: IrExpression
     ): IrCall = ffiCreateUpcallStub.call( // @formatter:off
-        dispatchReceiver = ffiType.getObjectInstance(),
+        dispatchReceiver = ffiCompanionType.getObjectInstance(),
         valueArguments = mapOf(
             "descriptor" to descriptor,
             "callingConvention" to callingConvention.getEnumValue(callingConventionType) { name },

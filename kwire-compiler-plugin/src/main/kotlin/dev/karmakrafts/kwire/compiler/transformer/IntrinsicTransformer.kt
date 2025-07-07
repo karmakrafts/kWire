@@ -22,7 +22,10 @@ import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrScript
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
@@ -37,10 +40,31 @@ internal abstract class IntrinsicTransformer( // @formatter:off
         type: KWireIntrinsicType
     ): IrElement // @formatter:on
 
+    override fun visitScript(declaration: IrScript, data: IntrinsicContext): IrStatement {
+        data.pushScript(declaration)
+        val transformedScript = super.visitScript(declaration, data)
+        data.popScript()
+        return transformedScript
+    }
+
+    override fun visitFile(declaration: IrFile, data: IntrinsicContext): IrFile {
+        data.pushFile(declaration)
+        val transformedFile = super.visitFile(declaration, data)
+        data.popFile()
+        return transformedFile
+    }
+
+    override fun visitClass(declaration: IrClass, data: IntrinsicContext): IrStatement {
+        data.pushClass(declaration)
+        val transformedClass = super.visitClass(declaration, data)
+        data.popClass()
+        return transformedClass
+    }
+
     override fun visitFunction(declaration: IrFunction, data: IntrinsicContext): IrStatement {
-        val allocationScope = data.pushAllocationScope(declaration)
+        data.pushFunction(declaration)
         val transformedFunction = super.visitFunction(declaration, data)
-        data.popAllocationScope(allocationScope)
+        data.popFunction()
         return transformedFunction
     }
 

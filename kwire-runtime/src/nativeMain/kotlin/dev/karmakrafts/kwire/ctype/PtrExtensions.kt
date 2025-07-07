@@ -24,6 +24,7 @@ package dev.karmakrafts.kwire.ctype
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CFunction
 import kotlinx.cinterop.COpaque
+import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -34,7 +35,7 @@ import kotlinx.cinterop.ShortVar
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toCPointer
 
-inline fun CPointer<COpaque>.toPtr(): VoidPtr = rawValue.toLong().asVoidPtr()
+inline fun COpaquePointer.toPtr(): VoidPtr = rawValue.toLong().asVoidPtr()
 inline fun CPointer<CFunction<*>>.toPtr(): VoidPtr = rawValue.toLong().asVoidPtr()
 
 inline fun CPointer<ByteVar>.toPtr(): NumPtr<Byte> = rawValue.toLong().asNumPtr()

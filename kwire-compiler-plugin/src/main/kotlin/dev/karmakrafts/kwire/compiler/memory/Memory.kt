@@ -17,12 +17,15 @@
 package dev.karmakrafts.kwire.compiler.memory
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.KWireNames
+import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 
 internal class Memory(
     override val context: KWirePluginContext
 ) : Allocator {
-    override fun get(): IrExpression {
-        TODO("Not yet implemented")
-    }
+    private val memoryType: IrClassSymbol = context.referenceClass(KWireNames.Memory.id)!!
+
+    override fun get(): IrExpression = memoryType.getObjectInstance()
 }

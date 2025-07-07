@@ -33,7 +33,7 @@ import org.lwjgl.system.libffi.FFIType as LibFFIType
  *                    (JAVA_INT for 32-bit platforms, JAVA_LONG for 64-bit platforms).
  * @return The appropriate [ValueLayout] for representing pointers in memory.
  */
-private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
+private fun getPointerLayout(useSegments: Boolean = true): ValueLayout {
     if (useSegments) return ValueLayout.ADDRESS
     return if (Address.SIZE_BYTES == Int.SIZE_BYTES) ValueLayout.JAVA_INT
     else ValueLayout.JAVA_LONG
@@ -61,7 +61,7 @@ private fun getPointerLayout(useSegments: Boolean = false): ValueLayout {
  * @return A [MemoryLayout] that represents the memory layout of this FFI type.
  * @throws IllegalStateException if this FFI type has no valid memory layout.
  */
-fun FFIType.getMemoryLayout(useSegments: Boolean = false): MemoryLayout {
+fun FFIType.getMemoryLayout(useSegments: Boolean = true): MemoryLayout {
     return when (this) {
         FFIType.BYTE, FFIType.UBYTE -> ValueLayout.JAVA_BYTE
         FFIType.SHORT, FFIType.USHORT -> ValueLayout.JAVA_SHORT

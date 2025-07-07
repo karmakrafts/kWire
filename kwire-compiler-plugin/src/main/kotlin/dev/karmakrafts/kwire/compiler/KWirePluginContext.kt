@@ -34,13 +34,13 @@ import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstantArrayImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.toIrConst
 
@@ -114,18 +114,13 @@ internal class KWirePluginContext( // @formatter:off
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun attachMemoryLayout(type: IrClass, layout: MemoryLayout) {
-        val data = layout.serialize().map { value ->
-            IrConstantPrimitiveImpl(
-                startOffset = SYNTHETIC_OFFSET,
-                endOffset = SYNTHETIC_OFFSET,
-                value = value.toIrConst(irBuiltIns.byteType)
-            )
-        }
-        val dataArray = IrConstantArrayImpl(
+        val data = layout.serialize().map { it.toIrConst(irBuiltIns.byteType) }
+        val dataArray = IrVarargImpl(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
-            type = irBuiltIns.byteArray.defaultType,
-            initElements = data
+            type = irBuiltIns.arrayClass.typeWith(irBuiltIns.byteType),
+            varargElementType = irBuiltIns.byteType,
+            elements = data
         )
         val annotation = kwireSymbols.structLayoutConstructor.new(valueArguments = mapOf("data" to dataArray))
         metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(type, listOf(annotation))

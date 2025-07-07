@@ -20,15 +20,18 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.call
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
 
 internal interface Allocator {
     val context: KWirePluginContext
 
     fun get(): IrExpression
 
-    fun allocate(size: IrExpression, alignment: IrExpression): IrCall {
+    fun allocate(
+        size: IrExpression, alignment: IrExpression, dispatchReceiver: IrExpression = get()
+    ): IrCall {
         return context.kwireSymbols.allocatorAllocate.call( // @formatter:off
-            dispatchReceiver = get(),
+            dispatchReceiver = dispatchReceiver,
             valueArguments = mapOf(
                 "size" to size,
                 "alignment" to alignment
@@ -36,9 +39,22 @@ internal interface Allocator {
         ) // @formatter:on
     }
 
-    fun reallocate(address: IrExpression, size: IrExpression, alignment: IrExpression): IrCall {
+    fun allocate(
+        type: IrType, dispatchReceiver: IrExpression = get()
+    ): IrCall {
+        val layout = type.computeMemoryLayout(context)
+        return allocate( // @formatter:off
+            size = context.toNUInt(layout.emitSize(context)),
+            alignment = context.toNUInt(layout.emitAlignment(context)),
+            dispatchReceiver = dispatchReceiver
+        ) // @formatter:on
+    }
+
+    fun reallocate(
+        address: IrExpression, size: IrExpression, alignment: IrExpression, dispatchReceiver: IrExpression = get()
+    ): IrCall {
         return context.kwireSymbols.allocatorReallocate.call( // @formatter:off
-            dispatchReceiver = get(),
+            dispatchReceiver = dispatchReceiver,
             valueArguments = mapOf(
                 "address" to address,
                 "size" to size,
@@ -47,8 +63,10 @@ internal interface Allocator {
         ) // @formatter:on
     }
 
-    fun free(address: IrExpression): IrCall = context.kwireSymbols.allocatorFree.call( // @formatter:off
-        dispatchReceiver = get(),
+    fun free(
+        address: IrExpression, dispatchReceiver: IrExpression = get()
+    ): IrCall = context.kwireSymbols.allocatorFree.call( // @formatter:off
+        dispatchReceiver = dispatchReceiver,
         valueArguments = mapOf("address" to address)
     ) // @formatter:on
 }

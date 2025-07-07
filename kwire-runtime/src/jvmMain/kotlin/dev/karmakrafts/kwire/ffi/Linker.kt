@@ -66,12 +66,18 @@ private object PanamaLinker : Linker {
         val arena = Arena.ofShared()
         for (searchPath in searchPaths) {
             for (name in names) {
+                // Try to find library by name first
+                try {
+                    return PanamaSharedLibraryHandle(name, SymbolLookup.libraryLookup(name, arena), arena)
+                } catch (_: Throwable) {
+                }
+                // Then attempt to search through paths
                 try {
                     var libraryPath = searchPath / name
                     // Resolve possible symbolic links beforehand
                     if (libraryPath.isSymbolicLink()) libraryPath = libraryPath.readSymbolicLink()
                     return PanamaSharedLibraryHandle(name, SymbolLookup.libraryLookup(libraryPath, arena), arena)
-                } catch (error: IllegalArgumentException) { // Only skip if lib name is invalid
+                } catch (_: IllegalArgumentException) { // Only skip if lib name is invalid
                     continue
                 }
             }

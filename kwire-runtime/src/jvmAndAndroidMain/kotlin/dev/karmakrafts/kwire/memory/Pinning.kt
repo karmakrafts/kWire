@@ -21,36 +21,37 @@ package dev.karmakrafts.kwire.memory
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.asLong
 import dev.karmakrafts.kwire.ctype.asNumPtr
 import dev.karmakrafts.kwire.ctype.asVoidPtr
 import dev.karmakrafts.kwire.util.NativePlatform
 
+// Objects
+
+@PublishedApi
+@DelicatePinningApi
+internal actual fun acquireStableAddress(value: Any): VoidPtr = NativePlatform.pin(value).asVoidPtr()
+
+@PublishedApi
+@Suppress("UNCHECKED_CAST")
+@DelicatePinningApi
+internal actual fun <T : Any> derefStableAddress(address: Address): T =
+    NativePlatform.derefObject(address.asLong()) as T
+
+@PublishedApi
+@DelicatePinningApi
+internal actual fun releaseStableAddress(address: Address) = NativePlatform.unpin(address.asLong())
+
+// Arrays
+
+@DelicatePinningApi
 actual class Pinned<T : Any>(actual val value: T)
 
 @DelicatePinningApi
-actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = Pinned(value)
-
-@Suppress("UNCHECKED_CAST")
-@DelicatePinningApi
-actual fun <T : Any> T.pin(): Pinned<T> {
-    return Pinned(NativePlatform.pin(this) as T)
-}
+actual fun <T : Any> T.pin(): Pinned<T> = Pinned(this)
 
 @DelicatePinningApi
-actual fun unpin(pinned: Pinned<out Any>) {
-    NativePlatform.unpin(pinned.value)
-}
-
-@DelicatePinningApi
-actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr {
-    return NativePlatform.refObject(value).asVoidPtr()
-}
-
-@Suppress("UNCHECKED_CAST")
-@DelicatePinningApi
-actual inline fun <reified T : Any> Address.fromStableAddress(): T {
-    return NativePlatform.derefObject(rawAddress.toLong()) as T
-}
+actual fun unpin(pinned: Pinned<out Any>) = Unit
 
 @DelicatePinningApi
 actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> = NativePlatform.getByteArrayAddress(value).asNumPtr()

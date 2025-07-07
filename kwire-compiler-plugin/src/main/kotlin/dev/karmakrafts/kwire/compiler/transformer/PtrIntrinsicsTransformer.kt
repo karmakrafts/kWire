@@ -24,6 +24,8 @@ import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constNUInt
+import dev.karmakrafts.kwire.compiler.util.getFunctionType
+import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.getRawAddress
 import dev.karmakrafts.kwire.compiler.util.isAddress
@@ -35,17 +37,21 @@ import dev.karmakrafts.kwire.compiler.util.isVoidPtr
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.minus
 import dev.karmakrafts.kwire.compiler.util.plus
+import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
 import dev.karmakrafts.kwire.compiler.util.times
 import dev.karmakrafts.kwire.compiler.util.toBlock
+import org.jetbrains.kotlin.GeneratedDeclarationKey
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
+import org.jetbrains.kotlin.ir.builders.declarations.buildFun
+import org.jetbrains.kotlin.ir.builders.irExprBody
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.createBlockBody
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -54,15 +60,15 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNothing
-import org.jetbrains.kotlin.ir.types.isNumber
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.isUnsignedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
@@ -70,6 +76,10 @@ import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.Name
+
+internal object PtrIntrinsicKey : GeneratedDeclarationKey() {
+    val origin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
+}
 
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
@@ -124,8 +134,35 @@ internal class PtrIntrinsicsTransformer(
         return emitTypedNull(call, type)
     }
 
+    private fun createUpcallTrampoline(
+        reference: IrFunctionReference,
+        bufferParam: IrValueParameter,
+        parameters: List<IrValueParameter>,
+        function: IrSimpleFunction
+    ): IrExpression {
+        val argumentTypes = parameters.map { it.type }
+        val arguments = argumentTypes.map { context.ffi.getArgument(bufferParam.symbol.load(), it) }
+        val namedArguments = HashMap<String, IrExpression>()
+        for(argumentIndex in arguments.indices) {
+            namedArguments[parameters[argumentIndex].name.asString()] = arguments[argumentIndex]
+        }
+        val returnType = function.returnType
+        // If the call doesn't have a reuslt, simply make the call
+        if(returnType.isUnit() || returnType.isNothing()) {
+            return function.call( // @formatter:off
+                dispatchReceiver = reference.dispatchReceiver,
+                valueArguments = namedArguments
+            ) // @formatter:on
+        }
+        return context.ffi.putArgument(bufferParam.symbol.load(), function.call( // @formatter:off
+            dispatchReceiver = reference.dispatchReceiver,
+            valueArguments = namedArguments
+        ))
+        // @formatter:on
+    }
+
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    private fun emitFunctionRef(call: IrCall): IrExpression {
+    private fun emitFunctionRef(call: IrCall, data: IntrinsicContext): IrExpression {
         val reference = call.arguments[call.target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]
         if (reference == null || reference !is IrFunctionReference) {
             reportError("Could not retrieve function reference from extension receiver", call)
@@ -137,16 +174,14 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         val function = targetSymbol.owner
-        if(function !is IrSimpleFunction) {
+        if (function !is IrSimpleFunction) {
             reportError("Function reference target must be a callable function", call)
             return call
         }
         val parameters = function.parameters.filter { it.kind == IrParameterKind.Regular }
         val descriptor = context.ffi.getDescriptor(
-            returnType = function.returnType,
-            parameterTypes = parameters.map { it.type }
-        )
-        val callingConvention = when(call.target.name.asString()) {
+            returnType = function.returnType, parameterTypes = parameters.map { it.type })
+        val callingConvention = when (call.target.name.asString()) {
             "ref" -> CallingConvention.CDECL
             "refThisCall" -> CallingConvention.THISCALL
             "refStdCall" -> CallingConvention.STDCALL
@@ -156,60 +191,73 @@ internal class PtrIntrinsicsTransformer(
                 return call
             }
         }
-        val stubFunction = context.irFactory.createSimpleFunction(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET,
-            origin = IrDeclarationOrigin.INLINE_LAMBDA,
-            name = Name.identifier("__kwire_stub_${call.hashCode()}__"),
-            visibility = DescriptorVisibilities.LOCAL,
-            isInline = false,
-            isExpect = false,
-            returnType = function.returnType,
-            modality = Modality.FINAL,
-            symbol = IrSimpleFunctionSymbolImpl(null, null),
-            isTailrec = false,
-            isSuspend = false,
-            isOperator = false,
-            isInfix = false,
-            isExternal = false
-        ).apply {
+        val stubFunction = context.irFactory.buildFun {
+            startOffset = SYNTHETIC_OFFSET
+            endOffset = SYNTHETIC_OFFSET
+            returnType = function.returnType
+            origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+            visibility = DescriptorVisibilities.LOCAL
+            name = Name.special("<anonymous>")
+        }.apply {
+            parent = data.parent
             val bufferParam = addValueParameter {
                 name = Name.identifier("buffer")
                 type = context.ffi.ffiArgBufferType.defaultType
+                kind = IrParameterKind.Regular
             }
-            body = context.irFactory.createBlockBody(
+            body = DeclarationIrBuilder(
+                generatorContext = context,
+                symbol = symbol,
                 startOffset = SYNTHETIC_OFFSET,
-                endOffset = SYNTHETIC_OFFSET,
-                statements = buildList {
-                    val argumentTypes = parameters.map { it.type }
-                    val arguments = argumentTypes.map { context.ffi.getArgument(bufferParam.symbol.load(), it) }
-                    val namedArguments = HashMap<String, IrExpression>()
-                    for(argumentIndex in arguments.indices) {
-                        namedArguments[parameters[argumentIndex].name.asString()] = arguments[argumentIndex]
-                    }
-                    // If the call doesn't have a reuslt, simply make the call
-                    if(returnType.isUnit() || returnType.isNothing()) {
-                        this += function.call( // @formatter:off
-                            dispatchReceiver = reference.dispatchReceiver,
-                            valueArguments = namedArguments
-                        ) // @formatter:on
-                        return@buildList
-                    }
-                    this += context.ffi.putArgument(bufferParam.symbol.load(), function.call( // @formatter:off
-                        dispatchReceiver = reference.dispatchReceiver,
-                        valueArguments = namedArguments
-                    ))
-                // @formatter:on
-                })
+                endOffset = SYNTHETIC_OFFSET
+            ).irExprBody(createUpcallTrampoline(reference, bufferParam, parameters, function))
         }
         val stubFunctionExpr = IrFunctionExpressionImpl(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
-            type = function.returnType,
+            type = stubFunction.getFunctionType(context),
             function = stubFunction,
-            origin = IrStatementOrigin.INLINE_LAMBDA
+            origin = IrStatementOrigin.LAMBDA
         )
         return context.ffi.createUpcallStub(descriptor, callingConvention, stubFunctionExpr)
+    }
+
+    private fun emitNumberRef(call: IrCall, data: IntrinsicContext): IrExpression {
+        val function = call.target
+        val reference = call.arguments[function.parameters.first { it.kind == IrParameterKind.ExtensionReceiver }]
+        if(reference == null) {
+            reportError("Could not retrieve extension reciver for NumPtr reference", call)
+            return call
+        }
+        val pointerType = call.type
+        val pointedType = pointerType.getPointedType()
+        if (pointedType == null) {
+            reportError("Could not determine pointed type for NumPtr reference", call)
+            return call
+        }
+        val allocationScope = data.allocationScope
+        val addressVariable = IrVariableImpl(
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            origin = PtrIntrinsicKey.origin,
+            symbol = IrVariableSymbolImpl(),
+            name = Name.identifier("__kwire_ref_address_${call.hashCode()}__"),
+            type = pointerType,
+            isVar = false,
+            isConst = false,
+            isLateinit = false
+        ).apply {
+            parent = data.parent
+            initializer = context.memoryStack.allocate( // @formatter:off
+                type = pointedType,
+                dispatchReceiver = allocationScope.getStack()
+            ).reinterpret(context, pointerType) // @formatter:on
+        }
+        return listOf(
+            addressVariable,
+            pointedType.computeMemoryLayout(context).emitWrite(context, addressVariable.load(), reference),
+            addressVariable.load()
+        ).toBlock(pointerType)
     }
 
     private fun emitRef(call: IrCall, data: IntrinsicContext): IrExpression {
@@ -218,15 +266,16 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not resolve reference type for reference", call)
             return call
         }
-        return when {
-            type.isFunctionTypeOrSubtype() -> emitFunctionRef(call)
-            type.isNumber() -> call
+        return when { // @formatter:off
+            type.isFunctionTypeOrSubtype() -> emitFunctionRef(call, data)
+            type.isPrimitiveType(false) || type.isUnsignedType(false) || type.getNativeType() != null ->
+                emitNumberRef(call, data)
             type.isPointed(context) -> call
             else -> {
-                reportError("Could not determine reference type for reference", call)
+                reportError("Incompatible reference type for reference", call)
                 call
             }
-        }
+        } // @formatter:on
     }
 
     private fun emitDeref(call: IrCall): IrExpression {

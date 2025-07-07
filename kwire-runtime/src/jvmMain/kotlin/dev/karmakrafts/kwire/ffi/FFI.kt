@@ -97,12 +97,13 @@ internal object PanamaFFI : FFI {
     }
 
     internal fun getDowncallHandle(
-        address: Address, descriptor: FFIDescriptor, useSegments: Boolean = false
+        address: Address, descriptor: FFIDescriptor, useSegments: Boolean = true
     ): MethodHandle {
         return JvmLinker.nativeLinker()
             .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
     }
 
+    @JvmStatic
     @Suppress("UNUSED", "UNCHECKED_CAST") // This is invoked through a MethodHandle
     private fun invokeUpcallStub( // @formatter:off
         cif: MemorySegment,
@@ -120,9 +121,10 @@ internal object PanamaFFI : FFI {
     }
 
     private val invokeUpcallStubAddress: MemorySegment by lazy {
-        val method = PanamaFFI::class.java.getDeclaredMethod("invokeUpcallStub")
+        val method = PanamaFFI::class.java.getDeclaredMethod("invokeUpcallStub", *(0..<4).map {
+            MemorySegment::class.java
+        }.toTypedArray())
         val handle = MethodHandles.lookup().unreflect(method)
-        handle.bindTo(this) // Bind the function to this instance so it is properly callable
         val descriptor = FunctionDescriptor.ofVoid(
             ValueLayout.ADDRESS, // cif
             ValueLayout.ADDRESS, // ret

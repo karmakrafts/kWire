@@ -36,36 +36,36 @@ import kotlin.io.path.div
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@Serializable
+internal data class NativeLoaderArchitectureConfig( // @formatter:off
+    val resources: List<String> = emptyList(),
+    val systemLibs: List<String> = emptyList()
+) // @formatter:on
+
+@Serializable
+internal data class NativeLoaderPlatformConfig( // @formatter:off
+    val architectures: Map<String, NativeLoaderArchitectureConfig> = emptyMap()
+) // @formatter:on
+
+@Serializable
+internal data class NativeLoaderConfig( // @formatter:off
+    val version: Int = VERSION,
+    val platforms: Map<PlatformEnum, NativeLoaderPlatformConfig> = emptyMap()
+) { // @formatter:on
+    companion object {
+        const val VERSION: Int = 1
+    }
+}
+
 @OptIn(ExperimentalAtomicApi::class)
 internal object NativeLoader {
-    @Serializable
-    private data class NativeLoaderArchitectureConfig( // @formatter:off
-        val resources: List<String> = emptyList(),
-        val systemLibs: List<String> = emptyList()
-    ) // @formatter:on
-
-    @Serializable
-    private data class NativeLoaderPlatformConfig( // @formatter:off
-        val architectures: Map<String, NativeLoaderArchitectureConfig> = emptyMap()
-    ) // @formatter:on
-
-    @Serializable
-    private data class NativeLoaderConfig( // @formatter:off
-        val version: Int = VERSION,
-        val platforms: Map<PlatformEnum, NativeLoaderPlatformConfig> = emptyMap()
-    ) { // @formatter:on
-        companion object {
-            const val VERSION: Int = 1
-        }
-    }
-
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val isLoaded: AtomicBoolean = AtomicBoolean(false)
 
     @OptIn(ExperimentalSerializationApi::class, ExperimentalUuidApi::class, ExperimentalPathApi::class)
     fun ensureLoaded() {
         if (!isLoaded.compareAndSet(expectedValue = false, newValue = true)) return
-        val config = NativeLoader::class.java.getResourceAsStream("kwire-natives/config.json")?.use {
+        val config = NativeLoader::class.java.getResourceAsStream("/kwire-natives/config.json")?.use {
             json.decodeFromStream<NativeLoaderConfig>(it)
         }!!
         check(config.version == NativeLoaderConfig.VERSION) {
@@ -78,8 +78,8 @@ internal object NativeLoader {
             if (currentArch !in architectures) continue
             for (library in archConfig.systemLibs) try {
                 System.loadLibrary(library)
-            } catch (_: Throwable) {
-                continue
+            } catch (error: Throwable) {
+                System.err.println("Could not load kWire system library $library: ${error.stackTraceToString()}")
             }
             if (archConfig.resources.isNotEmpty()) {
                 val userHome = Path(System.getProperty("user.home") ?: ".").absolute()
@@ -95,8 +95,8 @@ internal object NativeLoader {
                             Files.copy(it, tempFile, StandardCopyOption.REPLACE_EXISTING)
                         }
                         System.load(tempFile.absolutePathString())
-                    } catch (_: Throwable) {
-                        continue
+                    } catch (error: Throwable) {
+                        System.err.println("Could not load kWire platform library $resource: ${error.stackTraceToString()}")
                     }
                 }
                 Runtime.getRuntime().addShutdownHook(Thread {

@@ -18,6 +18,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.karmakrafts.kwire.Platform
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
@@ -76,6 +77,8 @@ class SharedLibrary internal constructor(
      * requiring an instance of the class.
      */
     companion object {
+        internal val openLibraries: ConcurrentMutableMap<String, SharedLibrary> = ConcurrentMutableMap()
+
         /**
          * Lazily loaded reference to the C runtime library.
          *
@@ -135,7 +138,15 @@ class SharedLibrary internal constructor(
          * @return A SharedLibrary instance if the library was found and loaded, or null otherwise
          */
         fun tryOpen(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? {
-            return Linker.findLibrary(names, linkMode)?.let(::SharedLibrary)
+            for (name in names) {
+                if (name !in openLibraries) continue
+                return openLibraries[name]
+            }
+            return Linker.findLibrary(names, linkMode)?.let {
+                openLibraries.getOrPut(it.name) {
+                    SharedLibrary(it)
+                }
+            }
         }
 
         /**
@@ -221,5 +232,8 @@ class SharedLibrary internal constructor(
      * resource leaks. Alternatively, [closeOnExit] can be used to automatically
      * close the library when the application exits.
      */
-    override fun close() = handle.close()
+    override fun close() {
+        handle.close()
+        openLibraries -= handle.name
+    }
 }

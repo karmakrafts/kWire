@@ -21,6 +21,7 @@ package dev.karmakrafts.kwire.memory
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.reinterpretVoid
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -30,24 +31,47 @@ import kotlin.jvm.JvmInline
 @Retention(AnnotationRetention.BINARY)
 annotation class DelicatePinningApi
 
+// Objects
+
+@PublishedApi
+@DelicatePinningApi
+internal expect fun acquireStableAddress(value: Any): VoidPtr
+
+@PublishedApi
+@DelicatePinningApi
+internal expect fun <T : Any> derefStableAddress(address: Address): T
+
+@PublishedApi
+@DelicatePinningApi
+internal expect fun releaseStableAddress(address: Address)
+
+@Suppress("NOTHING_TO_INLINE")
+@OptIn(DelicatePinningApi::class)
+@JvmInline
+value class StableRef<T : Any> @PublishedApi internal constructor(val address: VoidPtr) {
+    companion object {
+        inline fun <T : Any> create(value: T): StableRef<T> = StableRef(acquireStableAddress(value))
+
+        inline fun <T : Any> from(address: Address): StableRef<T> = StableRef(address.reinterpretVoid())
+    }
+
+    inline val value: T get() = derefStableAddress(address)
+
+    inline fun dispose() = releaseStableAddress(address)
+}
+
+// Arrays
+
+@DelicatePinningApi
 expect class Pinned<T : Any> {
     val value: T
 }
-
-@DelicatePinningApi
-expect fun <T : Any> pinnedFrom(value: T): Pinned<T>
 
 @DelicatePinningApi
 expect fun <T : Any> T.pin(): Pinned<T>
 
 @DelicatePinningApi
 expect fun unpin(pinned: Pinned<out Any>)
-
-@DelicatePinningApi
-expect fun Pinned<out Any>.acquireStableAddress(): VoidPtr
-
-@DelicatePinningApi
-expect inline fun <reified T : Any> Address.fromStableAddress(): T
 
 @DelicatePinningApi
 expect fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte>
@@ -90,37 +114,6 @@ expect fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double
 
 @DelicatePinningApi
 expect fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>)
-
-@OptIn(DelicatePinningApi::class)
-inline fun <reified T : Any, reified R> T.stableRef(block: (VoidPtr) -> R): R {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    val pinTack = pin()
-    return try {
-        block(pinTack.acquireStableAddress())
-    }
-    finally {
-        unpin(pinTack)
-    }
-}
-
-@OptIn(DelicatePinningApi::class)
-@JvmInline
-value class StableRef<T : Any>(
-    @PublishedApi internal val pinTack: Pinned<T>
-) {
-    companion object {
-        fun <T : Any> create(value: T): StableRef<T> = StableRef(value.pin())
-
-        inline fun <reified T : Any> from(address: Address): StableRef<T> =
-            StableRef(pinnedFrom(address.fromStableAddress()))
-    }
-
-    inline val value: T get() = pinTack.value
-    inline val address: VoidPtr get() = pinTack.acquireStableAddress()
-    fun dispose() = unpin(pinTack)
-}
 
 @OptIn(DelicatePinningApi::class)
 inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {

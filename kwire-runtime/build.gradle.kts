@@ -22,6 +22,7 @@ import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
 import dev.karmakrafts.conventions.setProjectInfo
 import org.gradle.internal.extensions.stdlib.capitalized
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
 import kotlin.io.path.ExperimentalPathApi
@@ -31,6 +32,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlin.serialization)
     signing
     `maven-publish`
 }
@@ -79,6 +81,11 @@ val platformJvmBinaries: Map<String, String> = mapOf(
 val platformPackage: GitLabPackage = gitlab().project(
     "kk/prebuilts/kwire-platform"
 ).packageRegistry["generic/build", libs.versions.kwirePlatform]
+
+fun KotlinDependencyHandler.lwjglNatives(platform: String) {
+    val dependency = libs.lwjgl.asProvider().get()
+    implementation("${dependency.module}:${dependency.version}:natives-$platform")
+}
 
 kotlin {
     withSourcesJar(true)
@@ -171,6 +178,11 @@ kotlin {
             dependsOn(jvmAndAndroidMain)
             dependencies {
                 implementation(libs.lwjgl)
+                lwjglNatives("windows")
+                lwjglNatives("linux")
+                lwjglNatives("linux-arm64")
+                lwjglNatives("macos")
+                lwjglNatives("macos-arm64")
             }
         }
 

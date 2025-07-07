@@ -56,10 +56,8 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
-import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
-import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -73,6 +71,7 @@ import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.FqName
 
@@ -444,3 +443,32 @@ internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off
         ?.getter
         ?.call(dispatchReceiver = this)
 } // @formatter:on
+
+internal fun IrFunction.getFunctionType(context: KWirePluginContext): IrType {
+    val paramTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
+    return context.irBuiltIns.functionN(paramTypes.size).typeWith(paramTypes + returnType)
+}
+
+internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType): IrExpression {
+    if (this.type == type) return this
+    val rawAddress = getRawAddress() ?: error("Could not retrieve raw address for generated reinterpret cast")
+    return when {
+        type.isFunPtr() -> {
+            val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type for FunPtr" }
+            context.createFunPtr(rawAddress, pointedType)
+        }
+
+        type.isPtr() -> {
+            val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
+            context.createPtr(rawAddress, pointedType)
+        }
+
+        type.isNumPtr() -> {
+            val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
+            context.createNumPtr(rawAddress, pointedType)
+        }
+
+        type.isVoidPtr() || type.isAddress(context) -> context.createVoidPtr(rawAddress)
+        else -> error("Unsupported type for generated reinterpretation: ${type.render()}")
+    }
+}

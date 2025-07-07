@@ -18,23 +18,26 @@ package dev.karmakrafts.kwire.memory
 
 import co.touchlab.stately.concurrency.ThreadLocalRef
 import co.touchlab.stately.concurrency.value
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.minus
 import dev.karmakrafts.kwire.ctype.toNUInt
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+@KWireCompilerApi
 class MemoryStack private constructor() : Allocator {
+    @KWireCompilerApi
     companion object {
         val stackSize: NUInt = 8192U.toNUInt()
         val stackAlignment: NUInt = Memory.defaultAlignment
         private val headerSize: NUInt = Address.SIZE_BYTES.toNUInt()
         private val instance: ThreadLocalRef<MemoryStack> = ThreadLocalRef()
 
+        @KWireCompilerApi
         fun get(): MemoryStack {
             var stack = instance.value
             if (stack == null) {
@@ -63,29 +66,27 @@ class MemoryStack private constructor() : Allocator {
     }
 
     override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {
-        val alignedSize = Memory.align(size + headerSize, alignment)
-        val address = frameAddress.align(alignment)
-        Memory.writeNUInt(address, size)
-        frameAddress += alignedSize
-        return address + headerSize
+        val alignedSize = Memory.align(size, alignment)
+        val address = frameAddress
+        frameAddress = frameAddress + alignedSize
+        return address.align(alignment)
     }
 
     override fun reallocate(address: Address, size: NUInt, alignment: NUInt): VoidPtr {
-        val oldSize = Memory.readNUInt(address - headerSize)
-        val newAddress = allocate(size, alignment)
-        Memory.copy(address, newAddress, oldSize)
-        return newAddress
+        return allocate(size, alignment)
     }
 
     override fun free(address: Address) {}
 
+    @KWireCompilerApi
     fun push(): MemoryStack {
         frames.add(frameAddress)
         return this
     }
 
+    @KWireCompilerApi
     fun pop(): MemoryStack {
-        frameAddress = frames.removeFirst()
+        frameAddress = frames.removeLast()
         return this
     }
 

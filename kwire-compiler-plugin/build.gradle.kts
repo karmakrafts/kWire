@@ -30,8 +30,8 @@ configureJava(rootProject.libs.versions.java)
 
 dependencies {
     compileOnly(libs.kotlin.compiler.embeddable)
-    compileOnly(libs.kotlinx.serialization.core)
-    compileOnly(libs.kotlinx.serialization.msgpack)
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.msgpack)
     compileOnly(libs.autoService)
     kapt(libs.autoService)
 

@@ -23,13 +23,10 @@ internal object NativePlatform {
     }
 
     @JvmStatic
-    external fun pin(instance: Any): Any
+    external fun pin(instance: Any): Long
 
     @JvmStatic
-    external fun unpin(instance: Any)
-
-    @JvmStatic
-    external fun refObject(instance: Any): Long
+    external fun unpin(address: Long)
 
     @JvmStatic
     external fun derefObject(address: Long): Any

@@ -22,38 +22,43 @@ import dev.karmakrafts.kwire.ctype.Address
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.asNumPtr
-import dev.karmakrafts.kwire.ctype.asVoidPtr
-import kotlinx.cinterop.COpaque
+import dev.karmakrafts.kwire.ctype.toCPointer
+import dev.karmakrafts.kwire.ctype.toPtr
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.asStableRef
-import kotlinx.cinterop.toCPointer
 import kotlinx.cinterop.Pinned as KXPinned
 import kotlinx.cinterop.StableRef as KXStableRef
 import kotlinx.cinterop.pin as kxPin
 
-actual class Pinned<T : Any>(
-    @PublishedApi internal val delegate: KXPinned<T>
-) {
-    actual val value: T get() = delegate.get()
-}
+// Objects
+
+@PublishedApi
+@DelicatePinningApi
+internal actual fun acquireStableAddress(value: Any): VoidPtr = KXStableRef.create(value).asCPointer().toPtr()
+
+@PublishedApi
+@Suppress("UNCHECKED_CAST")
+@DelicatePinningApi
+internal actual fun <T : Any> derefStableAddress(address: Address): T =
+    address.toCPointer().asStableRef<Any>().get() as T
+
+@PublishedApi
+@DelicatePinningApi
+internal actual fun releaseStableAddress(address: Address) = address.toCPointer().asStableRef<Any>().dispose()
+
+// Arrays
 
 @DelicatePinningApi
-actual fun <T : Any> pinnedFrom(value: T): Pinned<T> = Pinned(value.kxPin())
+actual class Pinned<T : Any>(internal val delegate: KXPinned<T>) {
+    actual val value: T get() = delegate.get()
+}
 
 @DelicatePinningApi
 actual fun <T : Any> T.pin(): Pinned<T> = Pinned(kxPin())
 
 @DelicatePinningApi
 actual fun unpin(pinned: Pinned<out Any>) = pinned.delegate.unpin()
-
-@DelicatePinningApi
-actual fun Pinned<out Any>.acquireStableAddress(): VoidPtr =
-    KXStableRef.create(value).asCPointer().rawValue.toLong().asVoidPtr()
-
-@DelicatePinningApi
-actual inline fun <reified T : Any> Address.fromStableAddress(): T =
-    rawAddress.toLong().toCPointer<COpaque>()!!.asStableRef<T>().get()
 
 // @formatter:off
 @DelicatePinningApi
