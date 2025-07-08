@@ -114,7 +114,6 @@ class PtrIntrinsicsTest {
             compiler shouldNotReport { error() }
         }
         for (type in primitiveTypes) {
-            println("Testing $type")
             resetAssertions()
             // @formatter:off
             source("""
@@ -126,6 +125,37 @@ class PtrIntrinsicsTest {
                 fun test() {
                     val x: $type = 100.to$type()
                     val ptr = x.ref()
+                }
+            """.trimIndent())
+            // @formatter:on
+            result irMatches {
+                // TODO: implement me
+            }
+            evaluate()
+        }
+    }
+
+    @Test
+    fun `Obtain pointer to local primitive variable in constructor`() = setupCompilerTest {
+        kwireTransformerPipeline()
+        default {
+            compiler shouldNotReport { error() }
+        }
+        for (type in primitiveTypes) {
+            println("Testing $type")
+            resetAssertions()
+            // @formatter:off
+            source("""
+                import dev.karmakrafts.kwire.ctype.ref
+                import dev.karmakrafts.kwire.ctype.NInt
+                import dev.karmakrafts.kwire.ctype.toNInt
+                import dev.karmakrafts.kwire.ctype.NFloat
+                import dev.karmakrafts.kwire.ctype.toNFloat
+                class Test {
+                    init {
+                        val x: $type = 100.to$type()
+                        val ptr = x.ref()
+                    }
                 }
             """.trimIndent())
             // @formatter:on

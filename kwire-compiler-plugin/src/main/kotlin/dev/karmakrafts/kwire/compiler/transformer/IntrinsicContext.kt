@@ -140,6 +140,7 @@ internal data class AllocationScope( // @formatter:off
             is IrAnonymousInitializer -> {
                 val statements = function.body.statements
                 statements.clear()
+                statements += stackVariable
                 statements += tryExpression
             }
         }
@@ -186,6 +187,7 @@ internal class IntrinsicContext(  // @formatter:off
     }
 
     fun popAnonInitializer() {
+        allocationScope.injectIfNeeded()
         allocationScopeStack.pop()
     }
 
