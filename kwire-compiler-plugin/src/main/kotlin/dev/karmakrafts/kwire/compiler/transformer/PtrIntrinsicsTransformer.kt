@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irExprBody
@@ -235,13 +236,14 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         val allocationScope = data.allocationScope
-        val isLocalRef = reference is IrGetValue
 
         // Check if there's already a ref to the same local var, and if so, load it instead
-        if (isLocalRef) {
-            val variable = reference.symbol.owner
-            val ref = allocationScope.getLocalReference(variable)
-            if (ref != null) return ref
+        when (reference) {
+            is IrGetValue -> {
+                val variable = reference.symbol.owner
+                val ref = allocationScope.getLocalReference(variable)
+                if (ref != null) return ref
+            }
         }
 
         val pointerType = call.type
@@ -267,15 +269,21 @@ internal class PtrIntrinsicsTransformer(
         }
 
         // Check if we are ref'ing a local variable, and if so, add a reference to the allocation scope
-        if (reference is IrGetValue) {
-            val variable = reference.symbol.owner
-            allocationScope.addLocalReference(variable, addressVariable)
+        var insertAddressInLine = true
+        when (reference) {
+            is IrGetValue -> {
+                val variable = reference.symbol.owner
+                allocationScope.addLocalReference(variable, addressVariable)
+                insertAddressInLine = false
+            }
         }
 
-        return listOf(
-            pointedType.computeMemoryLayout(context).emitWrite(context, addressVariable.load(), reference),
-            addressVariable.load()
-        ).toBlock(pointerType, ptrIntrinsicOrigin)
+        val statements = ArrayList<IrStatement>()
+        if (insertAddressInLine) statements += addressVariable
+        statements += pointedType.computeMemoryLayout(context).emitWrite(context, addressVariable.load(), reference)
+        statements += addressVariable.load()
+
+        return statements.toBlock(pointerType, ptrIntrinsicOrigin)
     }
 
     private fun emitRef(call: IrCall, data: IntrinsicContext): IrExpression {
