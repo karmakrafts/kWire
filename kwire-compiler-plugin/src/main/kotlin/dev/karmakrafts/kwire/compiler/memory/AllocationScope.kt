@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.Name
-import java.util.HashMap
 
 internal data class AllocationScope( // @formatter:off
     val context: KWirePluginContext,
@@ -73,7 +72,7 @@ internal data class AllocationScope( // @formatter:off
     inline val hasAllocations: Boolean get() = _stack.isInitialized()
 
     // Store receiver symbol of .ref() call -> address accessor so we can re-use the existing refs
-    private val localReferences: java.util.HashMap<IrValueDeclaration, IrVariable> = HashMap()
+    private val localReferences: HashMap<IrValueDeclaration, IrVariable> = HashMap()
 
     fun getLocalReference(variable: IrValueDeclaration): IrExpression? {
         return localReferences[variable]?.load()
