@@ -56,7 +56,9 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+import org.jetbrains.kotlin.ir.expressions.IrStatementOriginImpl
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
@@ -80,6 +82,8 @@ import org.jetbrains.kotlin.name.Name
 internal object PtrIntrinsicKey : GeneratedDeclarationKey() {
     val origin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
 }
+
+internal val ptrIntrinsicOrigin: IrStatementOrigin = IrStatementOriginImpl("kWire-PtrIntrinsicsTransformer")
 
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
@@ -222,20 +226,31 @@ internal class PtrIntrinsicsTransformer(
         return context.ffi.createUpcallStub(descriptor, callingConvention, stubFunctionExpr)
     }
 
-    private fun emitNumberRef(call: IrCall, data: IntrinsicContext): IrExpression {
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun emitLocalRef(call: IrCall, data: IntrinsicContext): IrExpression {
         val function = call.target
         val reference = call.arguments[function.parameters.first { it.kind == IrParameterKind.ExtensionReceiver }]
-        if(reference == null) {
+        if (reference == null) {
             reportError("Could not retrieve extension reciver for NumPtr reference", call)
             return call
         }
+        val allocationScope = data.allocationScope
+        val isLocalRef = reference is IrGetValue
+
+        // Check if there's already a ref to the same local var, and if so, load it instead
+        if (isLocalRef) {
+            val variable = reference.symbol.owner
+            val ref = allocationScope.getLocalReference(variable)
+            if (ref != null) return ref
+        }
+
         val pointerType = call.type
         val pointedType = pointerType.getPointedType()
         if (pointedType == null) {
             reportError("Could not determine pointed type for NumPtr reference", call)
             return call
         }
-        val allocationScope = data.allocationScope
+
         val addressVariable = IrVariableImpl(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
@@ -248,16 +263,19 @@ internal class PtrIntrinsicsTransformer(
             isLateinit = false
         ).apply {
             parent = data.parent
-            initializer = context.memoryStack.allocate( // @formatter:off
-                type = pointedType,
-                dispatchReceiver = allocationScope.getStack()
-            ).reinterpret(context, pointerType) // @formatter:on
+            initializer = allocationScope.allocate(pointedType).reinterpret(context, pointerType)
         }
+
+        // Check if we are ref'ing a local variable, and if so, add a reference to the allocation scope
+        if (reference is IrGetValue) {
+            val variable = reference.symbol.owner
+            allocationScope.addLocalReference(variable, addressVariable)
+        }
+
         return listOf(
-            addressVariable,
             pointedType.computeMemoryLayout(context).emitWrite(context, addressVariable.load(), reference),
             addressVariable.load()
-        ).toBlock(pointerType)
+        ).toBlock(pointerType, ptrIntrinsicOrigin)
     }
 
     private fun emitRef(call: IrCall, data: IntrinsicContext): IrExpression {
@@ -269,8 +287,8 @@ internal class PtrIntrinsicsTransformer(
         return when { // @formatter:off
             type.isFunctionTypeOrSubtype() -> emitFunctionRef(call, data)
             type.isPrimitiveType(false) || type.isUnsignedType(false) || type.getNativeType() != null ->
-                emitNumberRef(call, data)
-            type.isPointed(context) -> call
+                emitLocalRef(call, data)
+            type.isPointed(context) -> emitLocalRef(call, data)
             else -> {
                 reportError("Incompatible reference type for reference", call)
                 call

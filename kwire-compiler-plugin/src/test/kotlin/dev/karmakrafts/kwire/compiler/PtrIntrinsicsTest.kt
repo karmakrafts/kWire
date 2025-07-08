@@ -113,7 +113,7 @@ class PtrIntrinsicsTest {
         default {
             compiler shouldNotReport { error() }
         }
-        for(type in primitiveTypes) {
+        for (type in primitiveTypes) {
             println("Testing $type")
             resetAssertions()
             // @formatter:off

@@ -26,19 +26,20 @@ import org.jetbrains.kotlin.ir.util.target
 
 internal class AllocatorIntrinsicTransformer(
     context: KWirePluginContext
-) : IntrinsicTransformer(context, setOf(
-    KWireIntrinsicType.ALLOCATOR_ALLOC,
-    KWireIntrinsicType.ALLOCATOR_ALLOC_ARRAY
-)) {
+) : IntrinsicTransformer(
+    context, setOf(
+        KWireIntrinsicType.ALLOCATOR_ALLOC, KWireIntrinsicType.ALLOCATOR_ALLOC_ARRAY
+    )
+) {
     private fun emitAlloc(call: IrCall): IrExpression {
         val function = call.target
         val extensionParam = function.parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
-        if(extensionParam == null) {
+        if (extensionParam == null) {
             reportError("Could not find extension parameter for allocator intrinsic", call)
             return call
         }
         val allocator = call.arguments[extensionParam]
-        if(allocator == null) {
+        if (allocator == null) {
             reportError("Could not retrieve instance for allocator intrinsic", call)
             return call
         }
@@ -50,7 +51,7 @@ internal class AllocatorIntrinsicTransformer(
     }
 
     override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {
-        return when(type) {
+        return when (type) {
             KWireIntrinsicType.ALLOCATOR_ALLOC -> emitAlloc(expression)
             KWireIntrinsicType.ALLOCATOR_ALLOC_ARRAY -> emitAllocArray(expression)
             else -> error("Unsupported intrinsic type $type for AllocatorIntrinsicTransformer")

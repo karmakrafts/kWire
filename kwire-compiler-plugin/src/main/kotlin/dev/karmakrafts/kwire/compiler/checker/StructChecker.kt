@@ -28,8 +28,8 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
@@ -76,9 +76,9 @@ internal class StructChecker(
     override fun visitClass(declaration: IrClass) {
         super.visitClass(declaration)
         if (!declaration.isStruct(context)) return
-        val constructor = declaration.defaultConstructor
+        val constructor = declaration.primaryConstructor
         if (constructor == null) {
-            reportError("Struct requires default constructor", declaration)
+            reportError("Struct requires primary constructor", declaration)
             return
         }
         val visibility = constructor.visibility

@@ -22,6 +22,7 @@ import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -66,6 +67,13 @@ internal abstract class IntrinsicTransformer( // @formatter:off
         val transformedFunction = super.visitFunction(declaration, data)
         data.popFunction()
         return transformedFunction
+    }
+
+    override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: IntrinsicContext): IrStatement {
+        data.pushAnonInitializer(declaration)
+        val transformedInitializer = super.visitAnonymousInitializer(declaration, data)
+        data.popAnonInitializer()
+        return transformedInitializer
     }
 
     override fun visitCall(expression: IrCall, data: IntrinsicContext): IrElement {

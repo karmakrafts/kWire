@@ -61,7 +61,8 @@ internal class FFI(
 
     val ffiType: IrClassSymbol = context.referenceClass(KWireNames.FFI.id)!!
     val ffiCompanionType: IrClassSymbol = context.referenceClass(KWireNames.FFI.Companion.id)!!
-    val ffiCreateUpcallStub: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.FFI.createUpcallStub).first()
+    val ffiCreateUpcallStub: IrSimpleFunctionSymbol =
+        context.referenceFunctions(KWireNames.FFI.createUpcallStub).first()
 
     val ffiTypeType: IrClassSymbol = context.referenceClass(KWireNames.FFIType.id)!!
 
@@ -102,9 +103,7 @@ internal class FFI(
     }
 
     fun createUpcallStub(
-        descriptor: IrExpression,
-        callingConvention: CallingConvention,
-        function: IrExpression
+        descriptor: IrExpression, callingConvention: CallingConvention, function: IrExpression
     ): IrCall = ffiCreateUpcallStub.call( // @formatter:off
         dispatchReceiver = ffiCompanionType.getObjectInstance(),
         valueArguments = mapOf(

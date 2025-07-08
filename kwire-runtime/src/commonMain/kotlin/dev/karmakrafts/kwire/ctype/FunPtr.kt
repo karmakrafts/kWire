@@ -26,7 +26,7 @@ import kotlin.jvm.JvmInline
 
 /**
  * Represents a pointer to a function in native code.
- * 
+ *
  * This class provides a type-safe way to work with function pointers in native code.
  * It allows for reinterpretation to other pointer types, alignment, and arithmetic operations.
  *

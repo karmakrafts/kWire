@@ -31,7 +31,7 @@ internal class JvmDowncallOptimizer : IrTransformer<KWirePluginContext>() {
             val function = transformedCall.target
             val intrinsicType = function.getIntrinsicType() ?: return transformedCall
             if (intrinsicType != KWireIntrinsicType.PTR_INVOKE) return transformedCall
-            
+
         }
         return transformedCall
     }

@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
@@ -413,11 +414,11 @@ internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompos
     statements = this
 ) // @formatter:on
 
-internal fun List<IrStatement>.toBlock(type: IrType): IrBlock = IrBlockImpl( // @formatter:off
+internal fun List<IrStatement>.toBlock(type: IrType, origin: IrStatementOrigin? = null): IrBlock = IrBlockImpl( // @formatter:off
     startOffset = SYNTHETIC_OFFSET,
     endOffset = SYNTHETIC_OFFSET,
     type = type,
-    origin = null,
+    origin = origin,
     statements = this
 ) // @formatter:on
 
