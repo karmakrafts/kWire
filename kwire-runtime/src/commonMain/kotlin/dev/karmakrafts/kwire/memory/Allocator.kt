@@ -78,16 +78,16 @@ interface Allocator {
 }
 
 @KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC)
-fun <N : Comparable<N>> Allocator.allocateNum(): NumPtr<N> = throw KWirePluginNotAppliedException()
+inline fun <N : Comparable<N>> Allocator.allocateNum(): NumPtr<N> = throw KWirePluginNotAppliedException()
 
 @KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC_ARRAY)
-fun <N : Comparable<N>> Allocator.allocateNumArray(count: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
+inline fun <N : Comparable<N>> Allocator.allocateNumArray(count: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
 
 @KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC)
-fun <T : Pointed> Allocator.allocate(): Ptr<T> = throw KWirePluginNotAppliedException()
+inline fun <T : Pointed> Allocator.allocate(): Ptr<T> = throw KWirePluginNotAppliedException()
 
 @KWireIntrinsic(KWireIntrinsic.Type.ALLOCATOR_ALLOC_ARRAY)
-fun <T : Pointed> Allocator.allocateArray(count: NUInt): Ptr<T> = throw KWirePluginNotAppliedException()
+inline fun <T : Pointed> Allocator.allocateArray(count: NUInt): Ptr<T> = throw KWirePluginNotAppliedException()
 
 // Single values (mostly used by generated code)
 

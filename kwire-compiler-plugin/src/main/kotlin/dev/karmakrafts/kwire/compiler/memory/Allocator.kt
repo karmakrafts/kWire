@@ -23,6 +23,15 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
 
 internal interface Allocator {
+    companion object {
+        fun from(context: KWirePluginContext, allocator: IrExpression): Allocator {
+            return object : Allocator {
+                override val context: KWirePluginContext get() = context
+                override fun get(): IrExpression = allocator
+            }
+        }
+    }
+
     val context: KWirePluginContext
 
     fun get(): IrExpression
