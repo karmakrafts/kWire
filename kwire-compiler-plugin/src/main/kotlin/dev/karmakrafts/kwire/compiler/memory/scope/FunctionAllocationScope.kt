@@ -54,7 +54,7 @@ internal class FunctionAllocationScope( // @formatter:off
             is IrFunction -> element.body = context.irFactory.createExpressionBody( // @formatter:off
                 startOffset = SYNTHETIC_OFFSET,
                 endOffset = SYNTHETIC_OFFSET,
-                expression = listOf(stackVariable, tryExpression).toBlock(returnType)
+                expression = listOf(stackVariable, tryExpression).toBlock(returnType, statementOrigin)
             )
             is IrAnonymousInitializer -> {
                 val statements = element.body.statements

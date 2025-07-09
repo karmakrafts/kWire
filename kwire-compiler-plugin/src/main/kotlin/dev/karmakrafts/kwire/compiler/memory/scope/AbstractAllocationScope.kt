@@ -45,7 +45,7 @@ internal abstract class AbstractAllocationScope( // @formatter:off
     val parent: IrDeclarationParent
 ) { // @formatter:on
     companion object : GeneratedDeclarationKey() {
-        private val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
+        val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
         val statementOrigin: IrStatementOrigin = IrStatementOriginImpl("kWire-AllocationScope")
     }
 
