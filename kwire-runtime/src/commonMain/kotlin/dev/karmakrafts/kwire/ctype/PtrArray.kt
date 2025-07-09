@@ -18,6 +18,7 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import kotlin.jvm.JvmInline
@@ -35,7 +36,7 @@ value class PtrArray<P : Address> @PublishedApi internal constructor(
     /**
      * The underlying array of native unsigned integers that store the raw addresses.
      */
-    val value: NUIntArray
+    @KWireCompilerApi val value: NUIntArray
 ) {
     /**
      * Creates a new pointer array with the specified size and initializer function.

@@ -18,7 +18,7 @@ package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.Allocator
-import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.reinterpret
@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.target
 
-internal class AllocatorIntrinsicTransformer( // @formatter:off
+internal class AllocatorIntrinsicsTransformer( // @formatter:off
     context: KWirePluginContext
 ) : IntrinsicTransformer(context, setOf(
     KWireIntrinsicType.ALLOCATOR_ALLOC,

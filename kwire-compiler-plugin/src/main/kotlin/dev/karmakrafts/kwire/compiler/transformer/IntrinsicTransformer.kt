@@ -27,7 +27,9 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrScript
+import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
@@ -65,15 +67,22 @@ internal abstract class IntrinsicTransformer( // @formatter:off
     override fun visitFunction(declaration: IrFunction, data: IntrinsicContext): IrStatement {
         data.pushFunction(declaration)
         val transformedFunction = super.visitFunction(declaration, data)
-        data.popFunction()
+        data.popFunction(transformedFunction)
         return transformedFunction
     }
 
     override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: IntrinsicContext): IrStatement {
-        data.pushAnonInitializer(declaration)
+        data.pushAnonInitializer()
         val transformedInitializer = super.visitAnonymousInitializer(declaration, data)
-        data.popAnonInitializer()
+        data.popAnonInitializer(transformedInitializer)
         return transformedInitializer
+    }
+
+    override fun visitBlock(expression: IrBlock, data: IntrinsicContext): IrExpression {
+        data.pushNestedAllocationScope()
+        val transformedBlock = super.visitBlock(expression, data)
+        data.popNestedAllocationScope(expression)
+        return transformedBlock
     }
 
     override fun visitCall(expression: IrCall, data: IntrinsicContext): IrElement {

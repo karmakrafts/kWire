@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.memory
+package dev.karmakrafts.kwire.compiler.memory.scope
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.load
-import dev.karmakrafts.kwire.compiler.util.toBlock
 import org.jetbrains.kotlin.GeneratedDeclarationKey
-import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
@@ -32,18 +30,15 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrStatementOriginImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrTryImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.dump
-import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.Name
 
-internal data class AllocationScope( // @formatter:off
+internal abstract class AbstractAllocationScope( // @formatter:off
     val context: KWirePluginContext,
-    val function: IrDeclaration,
     val parent: IrDeclarationParent
 ) { // @formatter:on
     companion object : GeneratedDeclarationKey() {
@@ -63,33 +58,29 @@ internal data class AllocationScope( // @formatter:off
             isConst = false,
             isLateinit = false
         ).apply {
-            this.parent = this@AllocationScope.parent // Stack frame variable is contained in scope owner function
+            this.parent = this@AbstractAllocationScope.parent // Stack frame variable is contained in scope parentt
             initializer = context.memoryStack.push(context.memoryStack.get())
         }
     }
 
     inline val stackVariable: IrVariable get() = _stack.value
     inline val hasAllocations: Boolean get() = _stack.isInitialized()
+    protected val localReferences: HashMap<IrValueDeclaration, IrVariable> = HashMap()
 
-    // Store receiver symbol of .ref() call -> address accessor so we can re-use the existing refs
-    private val localReferences: HashMap<IrValueDeclaration, IrVariable> = HashMap()
+    fun loadStack(): IrGetValue = stackVariable.load()
 
-    fun getLocalReference(variable: IrValueDeclaration): IrExpression? {
-        return localReferences[variable]?.load()
-    }
+    fun getLocalReference(variable: IrValueDeclaration): IrVariable? = localReferences[variable]
 
     fun addLocalReference(variable: IrValueDeclaration, address: IrVariable) {
         require(variable !in localReferences) { "Local reference for ${variable.dump()} already exists" }
         localReferences[variable] = address
     }
 
-    fun getStack(): IrGetValue = stackVariable.load()
-
     fun allocate(size: IrExpression, alignment: IrExpression): IrExpression {
         return context.memoryStack.allocate( // @formatter:off
             size = size,
             alignment = alignment,
-            dispatchReceiver = getStack()
+            dispatchReceiver = loadStack()
         ) // @formatter:on
     }
 
@@ -101,43 +92,5 @@ internal data class AllocationScope( // @formatter:off
         ) // @formatter:on
     }
 
-    /**
-     * If the memory stack was used in the current scope,
-     * we need to emit the generated stack instance variable
-     * and wrap everything in a try-finally so we can safely pop it.
-     */
-    fun injectIfNeeded() {
-        if (!hasAllocations) return // We don't need to inject if this scope doesn't have any allocations
-        val body = when (function) {
-            is IrFunction -> function.body
-            is IrAnonymousInitializer -> function.body
-            else -> return
-        } ?: return
-        val returnType = when (function) {
-            is IrFunction -> function.returnType
-            is IrAnonymousInitializer -> context.irBuiltIns.unitType
-            else -> return
-        }
-        val tryExpression = IrTryImpl(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET,
-            type = returnType,
-            tryResult = (localReferences.values + body.statements).toBlock(returnType, statementOrigin),
-            catches = emptyList(),
-            finallyExpression = context.memoryStack.pop(getStack())
-        )
-        when (function) {
-            is IrFunction -> function.body = context.irFactory.createExpressionBody( // @formatter:off
-                startOffset = SYNTHETIC_OFFSET,
-                endOffset = SYNTHETIC_OFFSET,
-                expression = listOf(stackVariable, tryExpression).toBlock(returnType)
-            )
-            is IrAnonymousInitializer -> {
-                val statements = function.body.statements
-                statements.clear()
-                statements += stackVariable
-                statements += tryExpression
-            }
-        }
-    }
+    abstract fun injectIfNeeded(element: IrElement)
 }

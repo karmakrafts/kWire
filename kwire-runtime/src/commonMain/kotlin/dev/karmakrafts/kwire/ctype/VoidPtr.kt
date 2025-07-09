@@ -59,13 +59,6 @@ value class VoidPtr @PublishedApi internal constructor(
     inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
 
     /**
-     * Reinterprets this void pointer as another void pointer.
-     *
-     * @return A void pointer to the same address
-     */
-    inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
-
-    /**
      * Reinterprets this void pointer as a function pointer.
      *
      * @param F The function type that this pointer will point to

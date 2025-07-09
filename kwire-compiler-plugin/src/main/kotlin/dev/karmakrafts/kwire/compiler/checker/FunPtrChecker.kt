@@ -17,8 +17,8 @@
 package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.isFunPtr
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration

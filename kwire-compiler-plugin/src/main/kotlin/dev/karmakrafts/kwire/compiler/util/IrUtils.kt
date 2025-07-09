@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -51,12 +52,14 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
+import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
@@ -431,16 +434,30 @@ internal fun List<IrVarargElement>.toVararg(context: KWirePluginContext, type: I
 )
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrValueSymbol.load(): IrGetValue = IrGetValueImpl(
-    startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET, type = owner.type, symbol = this
-)
+internal fun IrValueSymbol.load(): IrGetValue = IrGetValueImpl( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    type = owner.type,
+    symbol = this
+) // @formatter:on
 
 internal fun IrVariable.load(): IrGetValue = symbol.load()
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrFieldSymbol.load(receiver: IrExpression? = null): IrGetField = IrGetFieldImpl( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    symbol = this,
+    type = owner.type,
+    receiver = receiver
+) // @formatter:on
+
+internal fun IrField.load(): IrGetField = symbol.load()
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off
     return type.getClass()?.properties
-        ?.single { it.name.asString() == "rawAddress" }
+        ?.firstOrNull { it.name.asString() == "rawAddress" }
         ?.getter
         ?.call(dispatchReceiver = this)
 } // @formatter:on
@@ -452,24 +469,33 @@ internal fun IrFunction.getFunctionType(context: KWirePluginContext): IrType {
 
 internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType): IrExpression {
     if (this.type == type) return this
-    val rawAddress = getRawAddress() ?: error("Could not retrieve raw address for generated reinterpret cast")
+    val isNumericExpr = this.type.getNativeType() == NativeType.NUINT
     return when {
+        type.getNativeType() == NativeType.NUINT -> getRawAddress()!!
+
         type.isFunPtr() -> {
             val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type for FunPtr" }
-            context.createFunPtr(rawAddress, pointedType)
+            if (isNumericExpr) context.createFunPtr(this, pointedType)
+            else context.createFunPtr(getRawAddress()!!, pointedType)
         }
 
         type.isPtr() -> {
             val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
-            context.createPtr(rawAddress, pointedType)
+            if (isNumericExpr) context.createPtr(this, pointedType)
+            else context.createPtr(getRawAddress()!!, pointedType)
         }
 
         type.isNumPtr() -> {
             val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
-            context.createNumPtr(rawAddress, pointedType)
+            if (isNumericExpr) context.createNumPtr(this, pointedType)
+            else context.createNumPtr(getRawAddress()!!, pointedType)
         }
 
-        type.isVoidPtr() || type.isAddress(context) -> context.createVoidPtr(rawAddress)
+        type.isVoidPtr() || type.isAddress(context) -> {
+            if (isNumericExpr) context.createVoidPtr(this)
+            else context.createVoidPtr(getRawAddress()!!)
+        }
+
         else -> error("Unsupported type for generated reinterpretation: ${type.render()}")
     }
 }

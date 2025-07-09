@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.memory
+package dev.karmakrafts.kwire.compiler.memory.layout
 
 import com.ensarsarajcic.kotlinx.serialization.msgpack.MsgPack
 import dev.karmakrafts.kwire.compiler.KWirePluginContext

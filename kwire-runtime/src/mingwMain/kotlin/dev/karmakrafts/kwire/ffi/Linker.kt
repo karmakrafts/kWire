@@ -28,7 +28,8 @@ import platform.windows.LoadLibraryW
 
 @OptIn(ExperimentalForeignApi::class)
 private data class WindowsSharedLibraryHandle(
-    override val name: String, val handle: HMODULE
+    override val name: String,
+    val handle: HMODULE
 ) : SharedLibraryHandle {
     override fun close() {
         FreeLibrary(handle)

@@ -17,23 +17,35 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.AllocationScope
-import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
+import dev.karmakrafts.kwire.compiler.memory.scope.AbstractAllocationScope
+import dev.karmakrafts.kwire.compiler.memory.scope.BlockAllocationScope
+import dev.karmakrafts.kwire.compiler.memory.scope.FunctionAllocationScope
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrScript
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import java.util.*
 
 internal class IntrinsicContext(  // @formatter:off
     val context: KWirePluginContext
 ) { // @formatter:on
-    private val allocationScopeStack: Stack<AllocationScope> = Stack()
-    inline val allocationScope: AllocationScope get() = allocationScopeStack.peek()
+    private val allocationScopeStack: Stack<AbstractAllocationScope> = Stack()
+    inline val allocationScope: AbstractAllocationScope get() = allocationScopeStack.peek()
 
     private val parentStack: Stack<IrDeclarationParent> = Stack()
     inline val parent: IrDeclarationParent get() = parentStack.peek()
+
+    fun findLocalReference(variable: IrValueDeclaration): IrVariable? {
+        for (scope in allocationScopeStack.reversed()) {
+            val ref = scope.getLocalReference(variable) ?: continue
+            return ref
+        }
+        return null
+    }
 
     fun pushScript(script: IrScript) {
         parentStack.push(script)
@@ -59,27 +71,32 @@ internal class IntrinsicContext(  // @formatter:off
         parentStack.pop()
     }
 
-    fun pushAnonInitializer(initializer: IrAnonymousInitializer): AllocationScope {
-        val scope = AllocationScope(context, initializer, parent)
-        allocationScopeStack.push(scope)
-        return scope
+    fun pushAnonInitializer() {
+        allocationScopeStack.push(FunctionAllocationScope(context, parent))
     }
 
-    fun popAnonInitializer() {
-        allocationScope.injectIfNeeded()
+    fun popAnonInitializer(initializer: IrElement) {
+        allocationScope.injectIfNeeded(initializer)
         allocationScopeStack.pop()
     }
 
-    fun pushFunction(function: IrFunction): AllocationScope {
-        val scope = AllocationScope(context, function, parent)
-        allocationScopeStack.push(scope)
+    fun pushFunction(function: IrFunction) {
+        allocationScopeStack.push(FunctionAllocationScope(context, parent))
         parentStack.push(function)
-        return scope
     }
 
-    fun popFunction() {
-        allocationScope.injectIfNeeded()
+    fun popFunction(function: IrElement) {
+        allocationScope.injectIfNeeded(function)
         allocationScopeStack.pop()
         parentStack.pop()
+    }
+
+    fun pushNestedAllocationScope() {
+        allocationScopeStack.push(BlockAllocationScope(allocationScope))
+    }
+
+    fun popNestedAllocationScope(block: IrElement) {
+        allocationScope.injectIfNeeded(block)
+        allocationScopeStack.pop()
     }
 }

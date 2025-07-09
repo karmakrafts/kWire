@@ -18,8 +18,8 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.Memory
-import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
+import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.call

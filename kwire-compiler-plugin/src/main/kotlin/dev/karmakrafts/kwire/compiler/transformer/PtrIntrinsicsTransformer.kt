@@ -19,8 +19,8 @@ package dev.karmakrafts.kwire.compiler.transformer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.ffi.CallingConvention
 import dev.karmakrafts.kwire.compiler.ffi.FFI
-import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constNUInt
@@ -28,12 +28,7 @@ import dev.karmakrafts.kwire.compiler.util.getFunctionType
 import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.getRawAddress
-import dev.karmakrafts.kwire.compiler.util.isAddress
-import dev.karmakrafts.kwire.compiler.util.isFunPtr
-import dev.karmakrafts.kwire.compiler.util.isNumPtr
 import dev.karmakrafts.kwire.compiler.util.isPointed
-import dev.karmakrafts.kwire.compiler.util.isPtr
-import dev.karmakrafts.kwire.compiler.util.isVoidPtr
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.minus
 import dev.karmakrafts.kwire.compiler.util.plus
@@ -75,8 +70,9 @@ import org.jetbrains.kotlin.ir.types.isUnsignedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
-import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.Name
 
@@ -99,44 +95,13 @@ internal class PtrIntrinsicsTransformer(
     KWireIntrinsicType.PTR_PLUS,
     KWireIntrinsicType.PTR_MINUS
 )) {
-    private fun emitTypedPointer(
-        errorExpr: IrExpression,
-        type: IrType,
-        value: IrExpression
-    ): IrExpression {
-        return when {
-            type.isNumPtr() -> {
-                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
-                context.createNumPtr(value, pointedType)
-            }
-            type.isFunPtr() -> {
-                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
-                context.createFunPtr(value, pointedType)
-            }
-            type.isPtr() -> {
-                val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type" }
-                context.createPtr(value, pointedType)
-            }
-            type.isVoidPtr() || type.isAddress(context) -> context.createVoidPtr(value)
-            else -> {
-                reportError("Unrecognized pointer type ${type.render()}", errorExpr)
-                return errorExpr
-            }
-        }
-    }
-
-    private fun emitTypedNull(
-        call: IrCall,
-        type: IrType
-    ): IrExpression = emitTypedPointer(call, type, constNUInt(context, 0UL))
-
     private fun emitNull(call: IrCall): IrExpression {
         val type = call.typeArguments.first()
         if (type == null) {
             reportError("Could not determine pointer type for nullptr", call)
             return call
         }
-        return emitTypedNull(call, type)
+        return constNUInt(context, 0UL).reinterpret(context, type)
     }
 
     private fun createUpcallTrampoline(
@@ -152,7 +117,7 @@ internal class PtrIntrinsicsTransformer(
             namedArguments[parameters[argumentIndex].name.asString()] = arguments[argumentIndex]
         }
         val returnType = function.returnType
-        // If the call doesn't have a reuslt, simply make the call
+        // If the call doesn't have a result, simply make the call
         if(returnType.isUnit() || returnType.isNothing()) {
             return function.call( // @formatter:off
                 dispatchReceiver = reference.dispatchReceiver,
@@ -241,8 +206,8 @@ internal class PtrIntrinsicsTransformer(
         when (reference) {
             is IrGetValue -> {
                 val variable = reference.symbol.owner
-                val ref = allocationScope.getLocalReference(variable)
-                if (ref != null) return ref
+                val ref = data.findLocalReference(variable)
+                if (ref != null) return ref.load()
             }
         }
 
@@ -310,12 +275,12 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not resolve reference type for dereference", call)
             return call
         }
-        val dispatchReceiver = call.dispatchReceiver
-        if (dispatchReceiver == null) {
+        val address = call.dispatchReceiver
+        if (address == null) {
             reportError("Could not retrieve dispatch receiver for pointer dereference", call)
             return call
         }
-        val pointerType = dispatchReceiver.type
+        val pointerType = address.type
         val layout = type.computeMemoryLayout(context)
 
         val function = call.target
@@ -324,16 +289,16 @@ internal class PtrIntrinsicsTransformer(
 
         // Handle subscript-operator memory offsets
         if (index != null) {
-            val rawAddress = dispatchReceiver.getRawAddress()
+            val rawAddress = address.getRawAddress()
             if (rawAddress == null) {
                 reportError("Could not retrieve raw address of pointer in dereference", call)
                 return call
             }
             val offset = context.toNUInt(layout.emitSize(context)).times(context.toNUInt(index))
-            return layout.emitRead(context, emitTypedPointer(call, pointerType, rawAddress.plus(offset)))
+            return layout.emitRead(context, rawAddress.plus(offset).reinterpret(context, pointerType))
         }
 
-        return layout.emitRead(context, dispatchReceiver)
+        return layout.emitRead(context, address)
     }
 
     private fun emitSet(call: IrCall): IrExpression {
@@ -370,18 +335,64 @@ internal class PtrIntrinsicsTransformer(
                 return call
             }
             val offset = context.toNUInt(layout.emitSize(context)).times(context.toNUInt(index))
-            return layout.emitWrite(context, emitTypedPointer(call, pointerType, rawAddress.plus(offset)), value)
+            return layout.emitWrite(context, rawAddress.plus(offset).reinterpret(context, pointerType), value)
         }
 
         return layout.emitWrite(context, dispatchReceiver, value)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun getPtrArrayValue(instance: IrExpression): IrExpression? {
+        val clazz = instance.type.getClass() ?: return null
+        val property = clazz.properties.firstOrNull { it.name.asString() == "value" }
+        return property?.getter?.call(dispatchReceiver = instance)
+    }
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun emitArrayGet(call: IrCall): IrExpression {
-        TODO("Implement this")
+        val type = call.type.resolveFromReceiver(call)
+        if (type == null) {
+            reportError("Could not reify type for pointer array get intrinsic", call)
+            return call
+        }
+        val dispatchReceiver = call.dispatchReceiver
+        if (dispatchReceiver == null) {
+            reportError("Could not retrieve dispatch receiver for array get intrinsic", call)
+            return call
+        }
+        val delegate = getPtrArrayValue(dispatchReceiver)
+        if (delegate == null) {
+            reportError("Could not retrieve array delegate for array get intrinsic", call)
+            return call
+        }
+        val function = call.target
+        val indexParam = function.parameters.single { it.name.asString() == "index" }
+        val index = call.arguments[indexParam]
+        if (index == null) {
+            reportError("Could not retrieve index parameter for array get intrinsic", call)
+            return call
+        }
+        val delegateType = delegate.type
+        val delegateClass = delegateType.getClass()
+        if (delegateClass == null) {
+            reportError("Could not determine pointer array delegate class for array get intrinsic", call)
+            return call
+        }
+        val getOperator = delegateClass.functions.single { it.name.asString() == "get" }
+        return getOperator.call(
+            dispatchReceiver = delegate, valueArguments = mapOf("index" to index)
+        ).reinterpret(context, type)
     }
 
     private fun emitArraySet(call: IrCall): IrExpression {
-        TODO("Implement this")
+        val function = call.target
+        val valueParam = function.parameters.single { it.name.asString() == "value" }
+        val value = call.arguments[valueParam]
+        if (value == null) {
+            reportError("Could not retrieve value for array set intrinsic", call)
+            return call
+        }
+        TODO("Implement meeeeee")
     }
 
     private fun emitInvoke(call: IrCall): IrExpression {
@@ -473,9 +484,8 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not retrieve right hand side expression for pointer arithmetic intrinsic", call)
             return call
         }
-        return emitTypedPointer(
-            call, pointerType, lhs.op(context.toNUInt(rhs).times(context.toNUInt(layout.emitSize(context))))
-        )
+        return lhs.op(context.toNUInt(rhs).times(context.toNUInt(layout.emitSize(context))))
+            .reinterpret(context, pointerType)
     }
 
     private fun emitPlus(call: IrCall): IrElement {
