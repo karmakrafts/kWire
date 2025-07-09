@@ -32,7 +32,12 @@ import kotlin.jvm.JvmInline
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class VoidPtr @PublishedApi internal constructor(
+value class VoidPtr
+@KWireCompilerApi
+@PublishedApi
+internal constructor(
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
     override val rawAddress: NUInt
 ) : Address {
     companion object {

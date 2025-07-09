@@ -36,7 +36,9 @@ value class PtrArray<P : Address> @PublishedApi internal constructor(
     /**
      * The underlying array of native unsigned integers that store the raw addresses.
      */
-    @KWireCompilerApi val value: NUIntArray
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
+    val value: NUIntArray
 ) {
     /**
      * Creates a new pointer array with the specified size and initializer function.

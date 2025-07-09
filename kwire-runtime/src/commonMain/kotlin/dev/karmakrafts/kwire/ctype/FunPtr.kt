@@ -36,7 +36,12 @@ import kotlin.jvm.JvmInline
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class FunPtr<F : Function<*>> @PublishedApi internal constructor(
+value class FunPtr<F : Function<*>>
+@KWireCompilerApi
+@PublishedApi
+internal constructor(
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
     override val rawAddress: NUInt
 ) : Address {
     /**

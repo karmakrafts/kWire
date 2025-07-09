@@ -33,11 +33,16 @@ import kotlin.jvm.JvmInline
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class NumPtr<N : Comparable<N>> @PublishedApi internal constructor(
+value class NumPtr<N : Comparable<N>>
+@KWireCompilerApi
+@PublishedApi
+internal constructor(
     /**
      * The raw numeric value of this address.
      */
-    @KWireCompilerApi override val rawAddress: NUInt
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
+    override val rawAddress: NUInt
 ) : Address {
     /**
      * Reinterprets this numeric pointer as a pointer to a specific type.

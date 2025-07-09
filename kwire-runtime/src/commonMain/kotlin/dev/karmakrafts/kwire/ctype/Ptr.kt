@@ -36,8 +36,13 @@ import kotlin.jvm.JvmInline
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
-value class Ptr<T : Pointed> @PublishedApi internal constructor(
-    @KWireCompilerApi override val rawAddress: NUInt
+value class Ptr<T : Pointed>
+@KWireCompilerApi
+@PublishedApi
+internal constructor(
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
+    override val rawAddress: NUInt
 ) : Address {
     /**
      * Reinterprets this pointer as a pointer to a different type.
