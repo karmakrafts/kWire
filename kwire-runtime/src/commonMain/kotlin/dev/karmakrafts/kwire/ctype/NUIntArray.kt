@@ -18,6 +18,7 @@
 
 package dev.karmakrafts.kwire.ctype
 
+import dev.karmakrafts.kwire.KWireCompilerApi
 import kotlin.jvm.JvmInline
 
 /**
@@ -51,6 +52,7 @@ value class NUIntArray @PublishedApi internal constructor(
      * @return The element at the specified index.
      * @throws IndexOutOfBoundsException if the index is out of bounds of this array.
      */
+    @KWireCompilerApi
     inline operator fun get(index: Int): NUInt = NUInt(value[index])
 
     /**
@@ -60,6 +62,7 @@ value class NUIntArray @PublishedApi internal constructor(
      * @param value The value to set.
      * @throws IndexOutOfBoundsException if the index is out of bounds of this array.
      */
+    @KWireCompilerApi
     inline operator fun set(index: Int, value: NUInt) {
         this.value[index] = value.value
     }

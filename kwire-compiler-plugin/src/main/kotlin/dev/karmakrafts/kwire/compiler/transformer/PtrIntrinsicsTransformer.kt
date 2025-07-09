@@ -75,6 +75,8 @@ import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.Name
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal object PtrIntrinsicKey : GeneratedDeclarationKey() {
     val origin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
@@ -82,6 +84,7 @@ internal object PtrIntrinsicKey : GeneratedDeclarationKey() {
 
 internal val ptrIntrinsicOrigin: IrStatementOrigin = IrStatementOriginImpl("kWire-PtrIntrinsicsTransformer")
 
+@OptIn(ExperimentalUuidApi::class)
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
 ) : IntrinsicTransformer(context, setOf( // @formatter:off
@@ -200,7 +203,6 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not retrieve extension reciver for NumPtr reference", call)
             return call
         }
-        val allocationScope = data.allocationScope
 
         // Check if there's already a ref to the same local var, and if so, load it instead
         when (reference) {
@@ -210,6 +212,8 @@ internal class PtrIntrinsicsTransformer(
                 if (ref != null) return ref.load()
             }
         }
+
+        val allocationScope = data.allocationScope
 
         val pointerType = call.type
         val pointedType = pointerType.getPointedType()
@@ -223,7 +227,7 @@ internal class PtrIntrinsicsTransformer(
             endOffset = SYNTHETIC_OFFSET,
             origin = PtrIntrinsicKey.origin,
             symbol = IrVariableSymbolImpl(),
-            name = Name.identifier("__kwire_ref_address_${call.hashCode()}__"),
+            name = Name.identifier("__kwire_ref_address_${Uuid.random().toHexString()}__"),
             type = pointerType,
             isVar = false,
             isConst = false,
@@ -430,7 +434,7 @@ internal class PtrIntrinsicsTransformer(
             endOffset = SYNTHETIC_OFFSET,
             origin = FFI.declOrigin,
             symbol = IrVariableSymbolImpl(),
-            name = Name.identifier("__kwire_result_${call.hashCode()}__"),
+            name = Name.identifier("__kwire_result_${Uuid.random().toHexString()}__"),
             type = returnType,
             isVar = false,
             isConst = false,

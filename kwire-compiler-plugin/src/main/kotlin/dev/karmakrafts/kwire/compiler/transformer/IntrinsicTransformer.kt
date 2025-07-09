@@ -79,9 +79,9 @@ internal abstract class IntrinsicTransformer( // @formatter:off
     }
 
     override fun visitBlock(expression: IrBlock, data: IntrinsicContext): IrExpression {
-        data.pushNestedAllocationScope()
+        data.pushBlock()
         val transformedBlock = super.visitBlock(expression, data)
-        data.popNestedAllocationScope(expression)
+        data.popBlock(expression)
         return transformedBlock
     }
 

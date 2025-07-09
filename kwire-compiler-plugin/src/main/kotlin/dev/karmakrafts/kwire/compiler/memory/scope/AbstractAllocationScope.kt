@@ -36,7 +36,10 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.name.Name
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 internal abstract class AbstractAllocationScope( // @formatter:off
     val context: KWirePluginContext,
     val parent: IrDeclarationParent
@@ -52,7 +55,7 @@ internal abstract class AbstractAllocationScope( // @formatter:off
             endOffset = SYNTHETIC_OFFSET,
             origin = declOrigin,
             symbol = IrVariableSymbolImpl(),
-            name = Name.identifier("__kwire_stack_frame_${parent.hashCode()}__"),
+            name = Name.identifier("__kwire_stack_frame_${Uuid.random().toHexString()}__"),
             type = context.memoryStack.memoryStackType.defaultType,
             isVar = false,
             isConst = false,

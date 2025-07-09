@@ -91,11 +91,11 @@ internal class IntrinsicContext(  // @formatter:off
         parentStack.pop()
     }
 
-    fun pushNestedAllocationScope() {
+    fun pushBlock() {
         allocationScopeStack.push(BlockAllocationScope(allocationScope))
     }
 
-    fun popNestedAllocationScope(block: IrElement) {
+    fun popBlock(block: IrElement) {
         allocationScope.injectIfNeeded(block)
         allocationScopeStack.pop()
     }

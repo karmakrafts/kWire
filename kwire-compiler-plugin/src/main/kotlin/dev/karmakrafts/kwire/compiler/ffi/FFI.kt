@@ -43,6 +43,8 @@ import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.name.Name
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal data object FFIGenerationKey : GeneratedDeclarationKey()
 
@@ -52,6 +54,7 @@ internal data class ExtractedFFIArgBuffer(
     val bufferVariable: IrVariable? = null
 )
 
+@OptIn(ExperimentalUuidApi::class)
 internal class FFI(
     private val context: KWirePluginContext
 ) {
@@ -176,7 +179,7 @@ internal class FFI(
             endOffset = SYNTHETIC_OFFSET,
             origin = declOrigin,
             symbol = IrVariableSymbolImpl(),
-            name = Name.identifier("__kwire_arg_buffer_${args.hashCode()}__"),
+            name = Name.identifier("__kwire_arg_buffer_${Uuid.random().toHexString()}__"),
             type = ffiArgBufferType.defaultType,
             isVar = false,
             isConst = false,
