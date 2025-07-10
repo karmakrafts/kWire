@@ -39,21 +39,27 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         for (file in moduleFragment.files) {
             val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file)
+
             // Validation
             file.acceptVoid(StructChecker(kwireContext))
             file.acceptVoid(NumPtrChecker(kwireContext))
             file.acceptVoid(FunPtrChecker(kwireContext))
             if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
+
             // Generation
             file.acceptVoid(SharedImportTransformer(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))
+
+            // Optimization pre-processing passes
+            file.transform(PtrOptimizer(kwireContext), kwireContext)
+
             // Intrinsics lowering
             val intrinsicContext = IntrinsicContext(kwireContext)
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(AllocatorIntrinsicsTransformer(kwireContext), intrinsicContext)
-            // Optimization passes
-            file.transform(PtrOptimizer(), kwireContext)
+
+            // Optimization post-processing passes
             when (pluginContext.platform) {
                 in JvmPlatforms.allJvmPlatforms -> {
                     file.transform(JvmDowncallOptimizer(), kwireContext)

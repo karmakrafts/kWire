@@ -18,11 +18,11 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.kwire.compiler.memory.BuiltinMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.MemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.StructMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.BuiltinMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.StructMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType

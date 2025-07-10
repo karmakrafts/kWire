@@ -61,7 +61,7 @@ internal abstract class AbstractAllocationScope( // @formatter:off
             isConst = false,
             isLateinit = false
         ).apply {
-            this.parent = this@AbstractAllocationScope.parent // Stack frame variable is contained in scope parentt
+            this.parent = this@AbstractAllocationScope.parent // Stack frame variable is contained in scope parent
             initializer = context.memoryStack.push(context.memoryStack.get())
         }
     }
