@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler
 
+import dev.karmakrafts.kwire.compiler.checker.ConstChecker
 import dev.karmakrafts.kwire.compiler.checker.FunPtrChecker
 import dev.karmakrafts.kwire.compiler.checker.NumPtrChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
@@ -44,6 +45,7 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             file.acceptVoid(StructChecker(kwireContext))
             file.acceptVoid(NumPtrChecker(kwireContext))
             file.acceptVoid(FunPtrChecker(kwireContext))
+            file.acceptVoid(ConstChecker(kwireContext))
             if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
 
             // Generation

@@ -22,6 +22,7 @@ package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
@@ -138,7 +139,7 @@ internal object PanamaFFI : FFI {
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         function: (FFIArgBuffer) -> Unit
-    ): VoidPtr { // @formatter:on
+    ): @Const VoidPtr { // @formatter:on
         return upcallStubs.getOrPut(function) {
             LWJGLMemoryStack.stackPush().use { stackFrame ->
                 val cif = FFICIF.create()
@@ -178,7 +179,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun call( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -187,7 +188,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callByte( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -196,7 +197,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callShort( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -205,7 +206,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -214,7 +215,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callLong( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -223,7 +224,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -237,7 +238,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUByte( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -246,7 +247,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUShort( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -255,7 +256,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -264,7 +265,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callULong( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -273,7 +274,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNUInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -287,7 +288,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callFloat( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -296,7 +297,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callDouble( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -305,7 +306,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNFloat( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -319,7 +320,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callPointer( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer

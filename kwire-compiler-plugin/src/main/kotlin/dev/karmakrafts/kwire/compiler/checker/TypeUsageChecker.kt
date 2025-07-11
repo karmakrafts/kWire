@@ -17,36 +17,17 @@
 package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
 internal abstract class TypeUsageChecker(
-    protected val context: KWirePluginContext
-) : IrVisitorVoid(), MessageCollectorExtensions by context {
+    context: KWirePluginContext
+) : AbstractChecker(context) {
     abstract fun checkType(declaration: IrDeclaration, type: IrType)
-
-    override fun reportError(message: String, location: CompilerMessageLocation?) {
-        super.reportError(message, location)
-        context.checkerFailed = true
-    }
-
-    override fun reportError(message: String, element: IrElement) {
-        super.reportError(message, element)
-        context.checkerFailed = true
-    }
-
-    override fun visitElement(element: IrElement) {
-        element.acceptChildrenVoid(this)
-    }
 
     override fun visitTypeAlias(declaration: IrTypeAlias) {
         super.visitTypeAlias(declaration)

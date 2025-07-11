@@ -47,13 +47,18 @@ internal constructor(
         val nullptr: VoidPtr = VoidPtr(0U.toNUInt())
     }
 
+    @PermitsConst
+    @DiscardsConstness
+    inline fun discardConst(): VoidPtr = this
+
     /**
      * Reinterprets this void pointer as a pointer to a specific type.
      *
      * @param R The type that this pointer will point to
      * @return A typed pointer to the same address
      */
-    inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
+    @PermitsConst
+    inline fun <R : Pointed> reinterpret(): @ReceiverConstness Ptr<R> = Ptr(rawAddress)
 
     /**
      * Reinterprets this void pointer as a pointer to a numeric type.
@@ -61,7 +66,8 @@ internal constructor(
      * @param N The numeric type that this pointer will point to
      * @return A numeric pointer to the same address
      */
-    inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    @PermitsConst
+    inline fun <N : Comparable<N>> reinterpretNum(): @ReceiverConstness NumPtr<N> = NumPtr(rawAddress)
 
     /**
      * Reinterprets this void pointer as a function pointer.
@@ -69,7 +75,8 @@ internal constructor(
      * @param F The function type that this pointer will point to
      * @return A function pointer to the same address
      */
-    inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
+    @PermitsConst
+    inline fun <F : Function<*>> reinterpretFun(): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress)
 
     /**
      * Aligns this pointer to the specified alignment.
@@ -77,13 +84,15 @@ internal constructor(
      * @param alignment The alignment boundary in bytes
      * @return A void pointer to the aligned address
      */
-    inline fun align(alignment: NUInt): VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
+    @PermitsConst
+    inline fun align(alignment: NUInt): @ReceiverConstness VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
 
     /**
      * Converts this pointer to a native unsigned integer.
      *
      * @return The pointer address as a native unsigned integer
      */
+    @PermitsConst
     inline fun asNUInt(): NUInt = rawAddress
 
     /**
@@ -91,6 +100,7 @@ internal constructor(
      *
      * @return The pointer address as a native signed integer
      */
+    @PermitsConst
     inline fun asNInt(): NInt = rawAddress.value
 
     /**
@@ -98,6 +108,7 @@ internal constructor(
      *
      * @return The pointer address as an unsigned integer
      */
+    @PermitsConst
     inline fun asUInt(): UInt = rawAddress.toUInt()
 
     /**
@@ -105,6 +116,7 @@ internal constructor(
      *
      * @return The pointer address as a signed integer
      */
+    @PermitsConst
     inline fun asInt(): Int = rawAddress.value.toInt()
 
     /**
@@ -112,6 +124,7 @@ internal constructor(
      *
      * @return The pointer address as an unsigned long
      */
+    @PermitsConst
     inline fun asULong(): ULong = rawAddress.toULong()
 
     /**
@@ -119,6 +132,7 @@ internal constructor(
      *
      * @return The pointer address as a signed long
      */
+    @PermitsConst
     inline fun asLong(): Long = rawAddress.value.toLong()
 
     /**
@@ -127,7 +141,8 @@ internal constructor(
      * @param other The offset to add in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun plus(other: NUInt): VoidPtr = VoidPtr(rawAddress + other)
+    @PermitsConst
+    inline operator fun plus(other: NUInt): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other)
 
     /**
      * Adds an integer offset to this pointer.
@@ -135,7 +150,8 @@ internal constructor(
      * @param other The offset to add in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun plus(other: Int): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+    @PermitsConst
+    inline operator fun plus(other: Int): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
 
     /**
      * Adds a long offset to this pointer.
@@ -143,7 +159,8 @@ internal constructor(
      * @param other The offset to add in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun plus(other: Long): VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+    @PermitsConst
+    inline operator fun plus(other: Long): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
 
     /**
      * Subtracts a native unsigned integer offset from this pointer.
@@ -151,7 +168,8 @@ internal constructor(
      * @param other The offset to subtract in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun minus(other: NUInt): VoidPtr = VoidPtr(rawAddress - other)
+    @PermitsConst
+    inline operator fun minus(other: NUInt): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other)
 
     /**
      * Subtracts an integer offset from this pointer.
@@ -159,7 +177,8 @@ internal constructor(
      * @param other The offset to subtract in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun minus(other: Int): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+    @PermitsConst
+    inline operator fun minus(other: Int): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())
 
     /**
      * Subtracts a long offset from this pointer.
@@ -167,13 +186,15 @@ internal constructor(
      * @param other The offset to subtract in bytes
      * @return A void pointer to the resulting address
      */
-    inline operator fun minus(other: Long): VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+    @PermitsConst
+    inline operator fun minus(other: Long): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())
 
     /**
      * Returns a string representation of this pointer.
      *
      * @return A hexadecimal string representation of the pointer address
      */
+    @PermitsConst
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }
 

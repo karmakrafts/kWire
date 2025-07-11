@@ -22,6 +22,7 @@ import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.karmakrafts.kwire.Platform
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ffi.SharedLibrary.Companion.open
 import dev.karmakrafts.kwire.ffi.SharedLibrary.Companion.tryOpen
 import kotlin.contracts.ExperimentalContracts
@@ -198,7 +199,7 @@ class SharedLibrary internal constructor(
      * @param name The name of the function to find
      * @return The memory address of the function, or null if the function was not found
      */
-    fun findFunctionAddress(name: String): Address? {
+    fun findFunctionAddress(name: String): @Const Address? {
         return with(Linker) { handle.findSymbol(name) }
     }
 
@@ -212,7 +213,7 @@ class SharedLibrary internal constructor(
      * @return The memory address of the function
      * @throws IllegalArgumentException if the function was not found in the library
      */
-    fun getFunctionAddress(name: String): Address =
+    fun getFunctionAddress(name: String): @Const Address =
         requireNotNull(findFunctionAddress(name)) { "Could not find function '$name' in library ${handle.name}" }
 
     /**

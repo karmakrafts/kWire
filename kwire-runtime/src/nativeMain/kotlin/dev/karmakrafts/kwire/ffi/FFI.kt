@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
@@ -67,12 +68,12 @@ private object NativeFFI : FFI {
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         function: (FFIArgBuffer) -> Unit
-    ): VoidPtr { // @formatter:on
+    ): @Const VoidPtr { // @formatter:on
         TODO("Not yet implemented")
     }
 
     override fun call( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -81,7 +82,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callByte( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -94,7 +95,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callShort( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -107,7 +108,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -120,7 +121,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callLong( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -134,7 +135,7 @@ private object NativeFFI : FFI {
 
     @OptIn(UnsafeNumber::class)
     override fun callNInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -147,7 +148,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callUByte( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -160,7 +161,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callUShort( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -173,7 +174,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callUInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -186,7 +187,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callULong( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -200,7 +201,7 @@ private object NativeFFI : FFI {
 
     @OptIn(UnsafeNumber::class)
     override fun callNUInt( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -213,7 +214,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callFloat( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -226,7 +227,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callDouble( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -240,7 +241,7 @@ private object NativeFFI : FFI {
 
     @OptIn(UnsafeNumber::class)
     override fun callNFloat( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -253,7 +254,7 @@ private object NativeFFI : FFI {
     }
 
     override fun callPointer( // @formatter:off
-        address: Address,
+        address: @Const Address,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer

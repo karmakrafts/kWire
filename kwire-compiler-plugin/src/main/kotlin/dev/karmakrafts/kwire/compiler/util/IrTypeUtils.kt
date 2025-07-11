@@ -111,3 +111,5 @@ internal fun IrType.isCDecl(): Boolean = hasAnnotation(KWireNames.CDecl.id)
 internal fun IrType.isStdCall(): Boolean = hasAnnotation(KWireNames.StdCall.id)
 internal fun IrType.isThisCall(): Boolean = hasAnnotation(KWireNames.ThisCall.id)
 internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id)
+
+internal fun IrType.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)

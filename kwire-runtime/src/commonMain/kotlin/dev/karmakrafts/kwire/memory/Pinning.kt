@@ -19,6 +19,7 @@
 package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.reinterpretVoid
@@ -35,20 +36,20 @@ annotation class DelicatePinningApi
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun acquireStableAddress(value: Any): VoidPtr
+internal expect fun acquireStableAddress(value: Any): @Const VoidPtr
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun <T : Any> derefStableAddress(address: Address): T
+internal expect fun <T : Any> derefStableAddress(address: @Const Address): T
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun releaseStableAddress(address: Address)
+internal expect fun releaseStableAddress(address: @Const Address)
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(DelicatePinningApi::class)
 @JvmInline
-value class StableRef<T : Any> @PublishedApi internal constructor(val address: VoidPtr) {
+value class StableRef<T : Any> @PublishedApi internal constructor(val address: @Const VoidPtr) {
     companion object {
         inline fun <T : Any> create(value: T): StableRef<T> = StableRef(acquireStableAddress(value))
 

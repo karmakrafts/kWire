@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.toPtr
 import kotlinx.cinterop.COpaque
@@ -46,7 +47,7 @@ private object PosixLinker : Linker {
         return null
     }
 
-    override fun SharedLibraryHandle.findSymbol(name: String): VoidPtr? {
+    override fun SharedLibraryHandle.findSymbol(name: String): @Const VoidPtr? {
         checkHandle<PosixSharedLibraryHandle>()
         return dlsym(handle, name)?.reinterpret<COpaque>()?.toPtr()
     }

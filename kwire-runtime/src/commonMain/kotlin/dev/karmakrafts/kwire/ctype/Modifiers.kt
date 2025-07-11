@@ -19,14 +19,48 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
- * A marker annotation which, when applied to a type
- * which represents a pointer, omits readbacks from unmanaged memory to
- * the source (variable or field) of the pointer reference.
+ * A marker annotation for pointer types.
+ *
+ * This annotation may be applied to [FunPtr], [NumPtr] or [Ptr] types
+ * to indicate that whatever they are pointing to may not be mutated.
+ *  - For [FunPtr], constness only exists for static analysis purposes and to allow smooth interop
+ *  - For [NumPtr], constness restrictions apply to any mutating operation like [NumPtr.set] or
+ *    other member functions of [NumPtr] which are not annotated with [Const]
+ *  - For [Ptr], constness restrictions apply to any mutating operation like [Ptr.set] or
+ *    other member functions of [Ptr] which are not annotated with [Const]
  */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
 annotation class Const
+
+/**
+ * Marker annotation for member functions of subtypes of [Pointed]
+ * which permit calls when the aforementioned type is marked with [Const].
+ * This also includes extension receivers of that type.
+ */
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.FUNCTION)
+annotation class PermitsConst
+
+/**
+ * Marker annotation for types which may be used within
+ * subtypes [Pointed]. This also includes extension receivers
+ * of that type.
+ */
+@KWireCompilerApi
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE)
+annotation class ReceiverConstness
+
+/**
+ * Marker annotation for functions which are or use const discard semantics.
+ */
+@RequiresOptIn("Discarding constness on a pointer requires explicit opt-in as it may cause undefined behaviour if used wrong")
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.FUNCTION)
+annotation class DiscardsConstness
 
 // Calling convention modifiers applicable to FunPtr<*> types
 

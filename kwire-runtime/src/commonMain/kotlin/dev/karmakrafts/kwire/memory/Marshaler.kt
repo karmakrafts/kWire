@@ -16,8 +16,10 @@
 
 package dev.karmakrafts.kwire.memory
 
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NumPtr
+import dev.karmakrafts.kwire.ctype.PermitsConst
 import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.toNUInt
 
@@ -25,9 +27,9 @@ object Marshaler {
     // Utils
 
     @Suppress("NOTHING_TO_INLINE")
-    inline fun lengthUtf8(address: NumPtr<Byte>): NUInt = Memory.strlen(address)
+    inline fun lengthUtf8(address: @Const NumPtr<Byte>): NUInt = Memory.strlen(address)
 
-    fun lengthUtf16(address: NumPtr<Short>): NUInt {
+    fun lengthUtf16(address: @Const NumPtr<Short>): NUInt {
         var index = 0.toNUInt()
         while (Memory.readShort(address.reinterpretVoid() + (index * Short.SIZE_BYTES.toNUInt())) != 0.toShort()) {
             ++index
@@ -76,6 +78,7 @@ object Marshaler {
 
     // Native -> Kotlin conversions
 
+    @PermitsConst
     fun NumPtr<Byte>.toKStringFromUtf8(): String {
         val length = lengthUtf8(this)
         val data = ByteArray(length.toInt())
@@ -85,6 +88,7 @@ object Marshaler {
         return data.decodeToString()
     }
 
+    @PermitsConst
     fun NumPtr<Short>.toKStringFromUtf16(): String {
         val length = lengthUtf16(this)
         val data = CharArray(length.toInt())

@@ -44,13 +44,18 @@ internal constructor(
     @property:KWireCompilerApi
     override val rawAddress: NUInt
 ) : Address {
+    @PermitsConst
+    @DiscardsConstness
+    inline fun discardConst(): NumPtr<N> = this
+
     /**
      * Reinterprets this numeric pointer as a pointer to a specific type.
      *
      * @param R The type that this pointer will point to
      * @return A typed pointer to the same address
      */
-    inline fun <R : Pointed> reinterpret(): Ptr<R> = Ptr(rawAddress)
+    @PermitsConst
+    inline fun <R : Pointed> reinterpret(): @ReceiverConstness Ptr<R> = Ptr(rawAddress)
 
     /**
      * Reinterprets this numeric pointer as a pointer to a different numeric type.
@@ -58,14 +63,16 @@ internal constructor(
      * @param N The numeric type that this pointer will point to
      * @return A numeric pointer to the same address
      */
-    inline fun <N : Comparable<N>> reinterpretNum(): NumPtr<N> = NumPtr(rawAddress)
+    @PermitsConst
+    inline fun <N : Comparable<N>> reinterpretNum(): @ReceiverConstness NumPtr<N> = NumPtr(rawAddress)
 
     /**
      * Reinterprets this numeric pointer as a void pointer.
      *
      * @return A void pointer to the same address
      */
-    inline fun reinterpretVoid(): VoidPtr = VoidPtr(rawAddress)
+    @PermitsConst
+    inline fun reinterpretVoid(): @ReceiverConstness VoidPtr = VoidPtr(rawAddress)
 
     /**
      * Reinterprets this numeric pointer as a function pointer.
@@ -73,7 +80,8 @@ internal constructor(
      * @param F The function type that this pointer will point to
      * @return A function pointer to the same address
      */
-    inline fun <F : Function<*>> reinterpretFun(): FunPtr<F> = FunPtr(rawAddress)
+    @PermitsConst
+    inline fun <F : Function<*>> reinterpretFun(): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress)
 
     /**
      * Aligns this numeric pointer to the specified alignment.
@@ -81,13 +89,15 @@ internal constructor(
      * @param alignment The alignment boundary in bytes
      * @return A numeric pointer to the aligned address
      */
-    inline fun align(alignment: NUInt): NumPtr<N> = NumPtr(Memory.align(rawAddress, alignment))
+    @PermitsConst
+    inline fun align(alignment: NUInt): @ReceiverConstness NumPtr<N> = NumPtr(Memory.align(rawAddress, alignment))
 
     /**
      * Converts this numeric pointer to a native unsigned integer.
      *
      * @return The address as a native unsigned integer
      */
+    @PermitsConst
     inline fun asNUInt(): NUInt = rawAddress
 
     /**
@@ -95,6 +105,7 @@ internal constructor(
      *
      * @return The address as a native signed integer
      */
+    @PermitsConst
     inline fun asNInt(): NInt = rawAddress.value
 
     /**
@@ -102,6 +113,7 @@ internal constructor(
      *
      * @return The address as an unsigned integer
      */
+    @PermitsConst
     inline fun asUInt(): UInt = rawAddress.toUInt()
 
     /**
@@ -109,6 +121,7 @@ internal constructor(
      *
      * @return The address as a signed integer
      */
+    @PermitsConst
     inline fun asInt(): Int = rawAddress.value.toInt()
 
     /**
@@ -116,6 +129,7 @@ internal constructor(
      *
      * @return The address as an unsigned long
      */
+    @PermitsConst
     inline fun asULong(): ULong = rawAddress.toULong()
 
     /**
@@ -123,6 +137,7 @@ internal constructor(
      *
      * @return The address as a signed long
      */
+    @PermitsConst
     inline fun asLong(): Long = rawAddress.value.toLong()
 
     /**
@@ -131,8 +146,9 @@ internal constructor(
      * @param other The offset to add
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: NUInt): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Adds an integer offset to this pointer.
@@ -140,8 +156,9 @@ internal constructor(
      * @param other The offset to add
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: Int): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: Int): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Adds a long offset to this pointer.
@@ -149,8 +166,9 @@ internal constructor(
      * @param other The offset to add
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: Long): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: Long): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts a native unsigned integer offset from this pointer.
@@ -158,8 +176,9 @@ internal constructor(
      * @param other The offset to subtract
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: NUInt): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: NUInt): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts an integer offset from this pointer.
@@ -167,8 +186,9 @@ internal constructor(
      * @param other The offset to subtract
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: Int): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: Int): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts a long offset from this pointer.
@@ -176,14 +196,16 @@ internal constructor(
      * @param other The offset to subtract
      * @return A numeric pointer to the resulting address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: Long): NumPtr<N> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: Long): @ReceiverConstness NumPtr<N> = throw KWirePluginNotAppliedException()
 
     /**
      * Dereferences this pointer to get the value it points to.
      *
      * @return The value at the address pointed to by this pointer
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): N = throw KWirePluginNotAppliedException()
 
@@ -193,6 +215,7 @@ internal constructor(
      * @param index The index to access, in elements (not bytes)
      * @return The value at the calculated address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: NUInt): N = throw KWirePluginNotAppliedException()
 
@@ -202,6 +225,7 @@ internal constructor(
      * @param index The index to access, in elements (not bytes)
      * @return The value at the calculated address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: Int): N = throw KWirePluginNotAppliedException()
 
@@ -211,6 +235,7 @@ internal constructor(
      * @param index The index to access, in elements (not bytes)
      * @return The value at the calculated address
      */
+    @PermitsConst
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: Long): N = throw KWirePluginNotAppliedException()
 
@@ -254,6 +279,7 @@ internal constructor(
      *
      * @return A string in the format "0xXXXXXXXX" where X is a hexadecimal digit
      */
+    @PermitsConst
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }
 
@@ -306,3 +332,13 @@ inline fun <N : Comparable<N>> Int.asNumPtr(): NumPtr<N> = NumPtr(toNUInt())
  */
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
 fun <N : Comparable<N>> N.ref(): NumPtr<N> = throw KWirePluginNotAppliedException()
+
+/**
+ * Creates a const pointer to this numeric value.
+ * This is equivalent to the C/C++ address-of operator (&).
+ *
+ * @param N The numeric type of the value
+ * @return A pointer to this value
+ */
+@KWireIntrinsic(KWireIntrinsic.Type.PTR_REF)
+fun <N : Comparable<N>> N.constRef(): @Const NumPtr<N> = throw KWirePluginNotAppliedException()

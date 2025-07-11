@@ -19,6 +19,7 @@
 package dev.karmakrafts.kwire.memory
 
 import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NumPtr
 import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.asLong
@@ -30,17 +31,17 @@ import dev.karmakrafts.kwire.util.NativePlatform
 
 @PublishedApi
 @DelicatePinningApi
-internal actual fun acquireStableAddress(value: Any): VoidPtr = NativePlatform.pin(value).asVoidPtr()
+internal actual fun acquireStableAddress(value: Any): @Const VoidPtr = NativePlatform.pin(value).asVoidPtr()
 
 @PublishedApi
 @Suppress("UNCHECKED_CAST")
 @DelicatePinningApi
-internal actual fun <T : Any> derefStableAddress(address: Address): T =
+internal actual fun <T : Any> derefStableAddress(address: @Const Address): T =
     NativePlatform.derefObject(address.asLong()) as T
 
 @PublishedApi
 @DelicatePinningApi
-internal actual fun releaseStableAddress(address: Address) = NativePlatform.unpin(address.asLong())
+internal actual fun releaseStableAddress(address: @Const Address) = NativePlatform.unpin(address.asLong())
 
 // Arrays
 
