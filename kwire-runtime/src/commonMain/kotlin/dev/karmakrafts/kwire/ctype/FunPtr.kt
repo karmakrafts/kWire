@@ -44,7 +44,7 @@ internal constructor(
     @property:KWireCompilerApi
     override val rawAddress: NUInt
 ) : Address {
-    @PermitsConst
+    @ConstCallable
     @DiscardsConstness
     inline fun discardConst(): FunPtr<F> = this
 
@@ -54,8 +54,8 @@ internal constructor(
      * @param R The pointed type to reinterpret to
      * @return A pointer to the pointed type
      */
-    @PermitsConst
-    inline fun <R : Pointed> reinterpret(): @ReceiverConstness Ptr<R> = Ptr(rawAddress)
+    @ConstCallable
+    inline fun <R : Pointed> reinterpret(): @InheritsConstness Ptr<R> = Ptr(rawAddress)
 
     /**
      * Reinterprets this function pointer as a numeric pointer.
@@ -63,16 +63,16 @@ internal constructor(
      * @param N The numeric type to reinterpret to
      * @return A numeric pointer
      */
-    @PermitsConst
-    inline fun <N : Comparable<N>> reinterpretNum(): @ReceiverConstness NumPtr<N> = NumPtr(rawAddress)
+    @ConstCallable
+    inline fun <N : Comparable<N>> reinterpretNum(): @InheritsConstness NumPtr<N> = NumPtr(rawAddress)
 
     /**
      * Reinterprets this function pointer as a void pointer.
      *
      * @return A void pointer
      */
-    @PermitsConst
-    inline fun reinterpretVoid(): @ReceiverConstness VoidPtr = VoidPtr(rawAddress)
+    @ConstCallable
+    inline fun reinterpretVoid(): @InheritsConstness VoidPtr = VoidPtr(rawAddress)
 
     /**
      * Reinterprets this function pointer as another function pointer type.
@@ -80,8 +80,8 @@ internal constructor(
      * @param F The function type to reinterpret to
      * @return A function pointer of the specified type
      */
-    @PermitsConst
-    inline fun <F : Function<*>> reinterpretFun(): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress)
+    @ConstCallable
+    inline fun <F : Function<*>> reinterpretFun(): @InheritsConstness FunPtr<F> = FunPtr(rawAddress)
 
     /**
      * Aligns this function pointer to the specified alignment.
@@ -89,15 +89,15 @@ internal constructor(
      * @param alignment The alignment to align to
      * @return An aligned function pointer
      */
-    @PermitsConst
-    inline fun align(alignment: NUInt): @ReceiverConstness FunPtr<F> = FunPtr(Memory.align(rawAddress, alignment))
+    @ConstCallable
+    inline fun align(alignment: NUInt): @InheritsConstness FunPtr<F> = FunPtr(Memory.align(rawAddress, alignment))
 
     /**
      * Converts this function pointer to a native unsigned integer.
      *
      * @return The raw address as a native unsigned integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asNUInt(): NUInt = rawAddress
 
     /**
@@ -105,7 +105,7 @@ internal constructor(
      *
      * @return The raw address as a native signed integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asNInt(): NInt = rawAddress.value
 
     /**
@@ -113,7 +113,7 @@ internal constructor(
      *
      * @return The raw address as an unsigned integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asUInt(): UInt = rawAddress.toUInt()
 
     /**
@@ -121,7 +121,7 @@ internal constructor(
      *
      * @return The raw address as a signed integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asInt(): Int = rawAddress.value.toInt()
 
     /**
@@ -129,7 +129,7 @@ internal constructor(
      *
      * @return The raw address as an unsigned long
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asULong(): ULong = rawAddress.toULong()
 
     /**
@@ -137,7 +137,7 @@ internal constructor(
      *
      * @return The raw address as a signed long
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asLong(): Long = rawAddress.value.toLong()
 
     /**
@@ -146,8 +146,8 @@ internal constructor(
      * @param other The offset to add as a native unsigned integer
      * @return A new function pointer with the offset added
      */
-    @PermitsConst
-    inline operator fun plus(other: NUInt): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress + other)
+    @ConstCallable
+    inline operator fun plus(other: NUInt): @InheritsConstness FunPtr<F> = FunPtr(rawAddress + other)
 
     /**
      * Adds the specified offset to this function pointer.
@@ -155,8 +155,8 @@ internal constructor(
      * @param other The offset to add as an integer
      * @return A new function pointer with the offset added
      */
-    @PermitsConst
-    inline operator fun plus(other: Int): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
+    @ConstCallable
+    inline operator fun plus(other: Int): @InheritsConstness FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
 
     /**
      * Adds the specified offset to this function pointer.
@@ -164,8 +164,8 @@ internal constructor(
      * @param other The offset to add as a long
      * @return A new function pointer with the offset added
      */
-    @PermitsConst
-    inline operator fun plus(other: Long): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
+    @ConstCallable
+    inline operator fun plus(other: Long): @InheritsConstness FunPtr<F> = FunPtr(rawAddress + other.toNUInt())
 
     /**
      * Subtracts the specified offset from this function pointer.
@@ -173,8 +173,8 @@ internal constructor(
      * @param other The offset to subtract as a native unsigned integer
      * @return A new function pointer with the offset subtracted
      */
-    @PermitsConst
-    inline operator fun minus(other: NUInt): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress - other)
+    @ConstCallable
+    inline operator fun minus(other: NUInt): @InheritsConstness FunPtr<F> = FunPtr(rawAddress - other)
 
     /**
      * Subtracts the specified offset from this function pointer.
@@ -182,8 +182,8 @@ internal constructor(
      * @param other The offset to subtract as an integer
      * @return A new function pointer with the offset subtracted
      */
-    @PermitsConst
-    inline operator fun minus(other: Int): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
+    @ConstCallable
+    inline operator fun minus(other: Int): @InheritsConstness FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
 
     /**
      * Subtracts the specified offset from this function pointer.
@@ -191,15 +191,15 @@ internal constructor(
      * @param other The offset to subtract as a long
      * @return A new function pointer with the offset subtracted
      */
-    @PermitsConst
-    inline operator fun minus(other: Long): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
+    @ConstCallable
+    inline operator fun minus(other: Long): @InheritsConstness FunPtr<F> = FunPtr(rawAddress - other.toNUInt())
 
     /**
      * Returns a string representation of this function pointer.
      *
      * @return A hexadecimal string representation of the raw address
      */
-    @PermitsConst
+    @ConstCallable
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }
 
@@ -215,7 +215,7 @@ internal constructor(
  * @return The result of the function call
  * @throws KWirePluginNotAppliedException if the KWire compiler plugin is not applied
  */
-@PermitsConst
+@ConstCallable
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_INVOKE)
 operator fun <R, F : Function<R>> FunPtr<F>.invoke(vararg args: Any?): R = throw KWirePluginNotAppliedException()
 

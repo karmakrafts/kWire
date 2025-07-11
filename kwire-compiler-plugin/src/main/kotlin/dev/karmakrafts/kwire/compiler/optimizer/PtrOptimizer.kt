@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.plus
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -56,9 +57,23 @@ internal class PtrOptimizer(
                 val derefReceiver = refReceiver.dispatchReceiver
                 if (derefReceiver == null) {
                     reportWarn("Could not optimize double-reference", transformedCall)
-                    transformedCall
+                    return transformedCall
                 }
-                else derefReceiver
+                val derefFunction = refReceiver.target
+                val derefParams = derefFunction.parameters.filter { it.kind == IrParameterKind.Regular }
+                // If the invoked dereference has an index, we pre-calculate the memory offset and transform the
+                // dereference into a pointer arithmetic operation
+                val indexParam = derefParams.firstOrNull { it.name.asString() == "index" }
+                if (indexParam != null) {
+                    // derefReceiver is the base-address in this case
+                    val index = refReceiver.arguments[indexParam]
+                    if (index == null) {
+                        reportWarn("Could not optimize double-reference with offset", transformedCall)
+                        return transformedCall
+                    }
+                    return derefReceiver.plus(index)
+                }
+                derefReceiver
             }
 
             else -> transformedCall

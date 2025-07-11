@@ -47,7 +47,7 @@ sealed interface Address : Pointed {
      *
      * @return true if this address is null (0), false otherwise
      */
-    @PermitsConst
+    @ConstCallable
     fun isNull(): Boolean = rawAddress == 0U.toNUInt()
 
     /**
@@ -55,7 +55,7 @@ sealed interface Address : Pointed {
      *
      * @return true if this address is not null (not 0), false otherwise
      */
-    @PermitsConst
+    @ConstCallable
     fun isNotNull(): Boolean = rawAddress != 0U.toNUInt()
 }
 
@@ -65,8 +65,8 @@ sealed interface Address : Pointed {
  * @param R The type that this pointer points to
  * @return A typed pointer to the address
  */
-@PermitsConst
-inline fun <R : Pointed> Address.reinterpret(): @ReceiverConstness Ptr<R> = Ptr(rawAddress)
+@ConstCallable
+inline fun <R : Pointed> Address.reinterpret(): @InheritsConstness Ptr<R> = Ptr(rawAddress)
 
 /**
  * Reinterprets this address as a pointer to a numeric type.
@@ -74,8 +74,8 @@ inline fun <R : Pointed> Address.reinterpret(): @ReceiverConstness Ptr<R> = Ptr(
  * @param N The numeric type that this pointer points to
  * @return A numeric pointer to the address
  */
-@PermitsConst
-inline fun <N : Comparable<N>> Address.reinterpretNum(): @ReceiverConstness NumPtr<N> = NumPtr(rawAddress)
+@ConstCallable
+inline fun <N : Comparable<N>> Address.reinterpretNum(): @InheritsConstness NumPtr<N> = NumPtr(rawAddress)
 
 /**
  * Reinterprets this address as a function pointer.
@@ -83,16 +83,16 @@ inline fun <N : Comparable<N>> Address.reinterpretNum(): @ReceiverConstness NumP
  * @param F The function type that this pointer points to
  * @return A function pointer to the address
  */
-@PermitsConst
-inline fun <F : Function<*>> Address.reinterpretFun(): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress)
+@ConstCallable
+inline fun <F : Function<*>> Address.reinterpretFun(): @InheritsConstness FunPtr<F> = FunPtr(rawAddress)
 
 /**
  * Reinterprets this address as a void pointer.
  *
  * @return A void pointer to the address
  */
-@PermitsConst
-inline fun Address.reinterpretVoid(): @ReceiverConstness VoidPtr = VoidPtr(rawAddress)
+@ConstCallable
+inline fun Address.reinterpretVoid(): @InheritsConstness VoidPtr = VoidPtr(rawAddress)
 
 /**
  * Aligns this address to the specified alignment.
@@ -100,15 +100,15 @@ inline fun Address.reinterpretVoid(): @ReceiverConstness VoidPtr = VoidPtr(rawAd
  * @param alignment The alignment boundary in bytes
  * @return A void pointer to the aligned address
  */
-@PermitsConst
-inline fun Address.align(alignment: NUInt): @ReceiverConstness VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
+@ConstCallable
+inline fun Address.align(alignment: NUInt): @InheritsConstness VoidPtr = VoidPtr(Memory.align(rawAddress, alignment))
 
 /**
  * Converts this address to a native unsigned integer.
  *
  * @return The address as a native unsigned integer
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asNUInt(): NUInt = rawAddress
 
 /**
@@ -116,7 +116,7 @@ inline fun Address.asNUInt(): NUInt = rawAddress
  *
  * @return The address as a native signed integer
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asNInt(): NInt = rawAddress.value
 
 /**
@@ -124,7 +124,7 @@ inline fun Address.asNInt(): NInt = rawAddress.value
  *
  * @return The address as an unsigned integer
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asUInt(): UInt = rawAddress.toUInt()
 
 /**
@@ -132,7 +132,7 @@ inline fun Address.asUInt(): UInt = rawAddress.toUInt()
  *
  * @return The address as a signed integer
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asInt(): Int = rawAddress.value.toInt()
 
 /**
@@ -140,7 +140,7 @@ inline fun Address.asInt(): Int = rawAddress.value.toInt()
  *
  * @return The address as an unsigned long
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asULong(): ULong = rawAddress.toULong()
 
 /**
@@ -148,7 +148,7 @@ inline fun Address.asULong(): ULong = rawAddress.toULong()
  *
  * @return The address as a signed long
  */
-@PermitsConst
+@ConstCallable
 inline fun Address.asLong(): Long = rawAddress.value.toLong()
 
 /**
@@ -157,8 +157,8 @@ inline fun Address.asLong(): Long = rawAddress.value.toLong()
  * @param other The offset to add
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.plus(other: NUInt): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other)
+@ConstCallable
+inline operator fun Address.plus(other: NUInt): @InheritsConstness VoidPtr = VoidPtr(rawAddress + other)
 
 /**
  * Adds an integer offset to this address.
@@ -166,8 +166,8 @@ inline operator fun Address.plus(other: NUInt): @ReceiverConstness VoidPtr = Voi
  * @param other The offset to add
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.plus(other: Int): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+@ConstCallable
+inline operator fun Address.plus(other: Int): @InheritsConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
 
 /**
  * Adds a long offset to this address.
@@ -175,8 +175,8 @@ inline operator fun Address.plus(other: Int): @ReceiverConstness VoidPtr = VoidP
  * @param other The offset to add
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.plus(other: Long): @ReceiverConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
+@ConstCallable
+inline operator fun Address.plus(other: Long): @InheritsConstness VoidPtr = VoidPtr(rawAddress + other.toNUInt())
 
 /**
  * Subtracts a native unsigned integer offset from this address.
@@ -184,8 +184,8 @@ inline operator fun Address.plus(other: Long): @ReceiverConstness VoidPtr = Void
  * @param other The offset to subtract
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.minus(other: NUInt): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other)
+@ConstCallable
+inline operator fun Address.minus(other: NUInt): @InheritsConstness VoidPtr = VoidPtr(rawAddress - other)
 
 /**
  * Subtracts an integer offset from this address.
@@ -193,8 +193,8 @@ inline operator fun Address.minus(other: NUInt): @ReceiverConstness VoidPtr = Vo
  * @param other The offset to subtract
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.minus(other: Int): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+@ConstCallable
+inline operator fun Address.minus(other: Int): @InheritsConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())
 
 /**
  * Subtracts a long offset from this address.
@@ -202,5 +202,5 @@ inline operator fun Address.minus(other: Int): @ReceiverConstness VoidPtr = Void
  * @param other The offset to subtract
  * @return A void pointer to the resulting address
  */
-@PermitsConst
-inline operator fun Address.minus(other: Long): @ReceiverConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())
+@ConstCallable
+inline operator fun Address.minus(other: Long): @InheritsConstness VoidPtr = VoidPtr(rawAddress - other.toNUInt())

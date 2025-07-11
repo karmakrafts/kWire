@@ -44,7 +44,7 @@ internal constructor(
     @property:KWireCompilerApi
     override val rawAddress: NUInt
 ) : Address {
-    @PermitsConst
+    @ConstCallable
     @DiscardsConstness
     inline fun discardConst(): Ptr<T> = this
 
@@ -54,8 +54,8 @@ internal constructor(
      * @param R The new type that this pointer will point to
      * @return A pointer to the same address but with a different pointed type
      */
-    @PermitsConst
-    inline fun <R : Pointed> reinterpret(): @ReceiverConstness Ptr<R> = Ptr(rawAddress)
+    @ConstCallable
+    inline fun <R : Pointed> reinterpret(): @InheritsConstness Ptr<R> = Ptr(rawAddress)
 
     /**
      * Reinterprets this pointer as a pointer to a numeric type.
@@ -63,16 +63,16 @@ internal constructor(
      * @param N The numeric type that this pointer will point to
      * @return A numeric pointer to the same address
      */
-    @PermitsConst
-    inline fun <N : Comparable<N>> reinterpretNum(): @ReceiverConstness NumPtr<N> = NumPtr(rawAddress)
+    @ConstCallable
+    inline fun <N : Comparable<N>> reinterpretNum(): @InheritsConstness NumPtr<N> = NumPtr(rawAddress)
 
     /**
      * Reinterprets this pointer as a void pointer.
      *
      * @return A void pointer to the same address
      */
-    @PermitsConst
-    inline fun reinterpretVoid(): @ReceiverConstness VoidPtr = VoidPtr(rawAddress)
+    @ConstCallable
+    inline fun reinterpretVoid(): @InheritsConstness VoidPtr = VoidPtr(rawAddress)
 
     /**
      * Reinterprets this pointer as a function pointer.
@@ -80,8 +80,8 @@ internal constructor(
      * @param F The function type that this pointer will point to
      * @return A function pointer to the same address
      */
-    @PermitsConst
-    inline fun <F : Function<*>> reinterpretFun(): @ReceiverConstness FunPtr<F> = FunPtr(rawAddress)
+    @ConstCallable
+    inline fun <F : Function<*>> reinterpretFun(): @InheritsConstness FunPtr<F> = FunPtr(rawAddress)
 
     /**
      * Aligns this pointer to the specified alignment.
@@ -89,15 +89,15 @@ internal constructor(
      * @param alignment The alignment boundary in bytes
      * @return A pointer to the aligned address with the same pointed type
      */
-    @PermitsConst
-    inline fun align(alignment: NUInt): @ReceiverConstness Ptr<T> = Ptr(Memory.align(rawAddress, alignment))
+    @ConstCallable
+    inline fun align(alignment: NUInt): @InheritsConstness Ptr<T> = Ptr(Memory.align(rawAddress, alignment))
 
     /**
      * Converts this pointer to a native unsigned integer.
      *
      * @return The pointer address as a native unsigned integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asNUInt(): NUInt = rawAddress
 
     /**
@@ -105,7 +105,7 @@ internal constructor(
      *
      * @return The pointer address as a native signed integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asNInt(): NInt = rawAddress.value
 
     /**
@@ -113,7 +113,7 @@ internal constructor(
      *
      * @return The pointer address as an unsigned integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asUInt(): UInt = rawAddress.toUInt()
 
     /**
@@ -121,7 +121,7 @@ internal constructor(
      *
      * @return The pointer address as a signed integer
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asInt(): Int = rawAddress.value.toInt()
 
     /**
@@ -129,7 +129,7 @@ internal constructor(
      *
      * @return The pointer address as an unsigned long
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asULong(): ULong = rawAddress.toULong()
 
     /**
@@ -137,7 +137,7 @@ internal constructor(
      *
      * @return The pointer address as a signed long
      */
-    @PermitsConst
+    @ConstCallable
     inline fun asLong(): Long = rawAddress.value.toLong()
 
     /**
@@ -146,9 +146,9 @@ internal constructor(
      * @param other The offset to add in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: NUInt): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: NUInt): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Adds an integer offset to this pointer.
@@ -156,9 +156,9 @@ internal constructor(
      * @param other The offset to add in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: Int): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: Int): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Adds a long offset to this pointer.
@@ -166,9 +166,9 @@ internal constructor(
      * @param other The offset to add in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_PLUS)
-    operator fun plus(other: Long): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun plus(other: Long): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts a native unsigned integer offset from this pointer.
@@ -176,9 +176,9 @@ internal constructor(
      * @param other The offset to subtract in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: NUInt): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: NUInt): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts an integer offset from this pointer.
@@ -186,9 +186,9 @@ internal constructor(
      * @param other The offset to subtract in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: Int): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: Int): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Subtracts a long offset from this pointer.
@@ -196,16 +196,16 @@ internal constructor(
      * @param other The offset to subtract in units of the pointed type size
      * @return A pointer to the resulting address with the same pointed type
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_MINUS)
-    operator fun minus(other: Long): @ReceiverConstness Ptr<T> = throw KWirePluginNotAppliedException()
+    operator fun minus(other: Long): @InheritsConstness Ptr<T> = throw KWirePluginNotAppliedException()
 
     /**
      * Dereferences this pointer to access the value it points to.
      *
      * @return The value at the memory location pointed to by this pointer
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     fun deref(): T = throw KWirePluginNotAppliedException()
 
@@ -215,7 +215,7 @@ internal constructor(
      * @param index The index to access, in units of the pointed type size
      * @return The value at the memory location (pointer + index)
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: NUInt): T = throw KWirePluginNotAppliedException()
 
@@ -225,7 +225,7 @@ internal constructor(
      * @param index The index to access, in units of the pointed type size
      * @return The value at the memory location (pointer + index)
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: Int): T = throw KWirePluginNotAppliedException()
 
@@ -235,7 +235,7 @@ internal constructor(
      * @param index The index to access, in units of the pointed type size
      * @return The value at the memory location (pointer + index)
      */
-    @PermitsConst
+    @ConstCallable
     @KWireIntrinsic(KWireIntrinsic.Type.PTR_DEREF)
     operator fun get(index: Long): T = throw KWirePluginNotAppliedException()
 
@@ -279,7 +279,7 @@ internal constructor(
      *
      * @return A string representation of the pointer address in hexadecimal format
      */
-    @PermitsConst
+    @ConstCallable
     override fun toString(): String = "0x${rawAddress.toHexString()}"
 }
 

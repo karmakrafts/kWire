@@ -113,3 +113,4 @@ internal fun IrType.isThisCall(): Boolean = hasAnnotation(KWireNames.ThisCall.id
 internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id)
 
 internal fun IrType.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)
+internal fun IrType.isInheritsConstness(): Boolean = hasAnnotation(KWireNames.InheritsConstness.id)

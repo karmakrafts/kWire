@@ -42,7 +42,7 @@ annotation class Const
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.FUNCTION)
-annotation class PermitsConst
+annotation class ConstCallable
 
 /**
  * Marker annotation for types which may be used within
@@ -52,7 +52,7 @@ annotation class PermitsConst
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.TYPE)
-annotation class ReceiverConstness
+annotation class InheritsConstness
 
 /**
  * Marker annotation for functions which are or use const discard semantics.

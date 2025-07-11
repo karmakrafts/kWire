@@ -39,7 +39,6 @@ import kotlinx.cinterop.UShortVar
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toCPointer
-import platform.posix.nfloat_t
 import platform.posix.nfloat_tVar
 import platform.posix.ptrdiff_tVar
 import platform.posix.size_tVar
@@ -51,56 +50,71 @@ inline fun CPointer<ByteVar>.toPtr(): NumPtr<Byte> = rawValue.toLong().asNumPtr(
 inline fun CPointer<ShortVar>.toPtr(): NumPtr<Short> = rawValue.toLong().asNumPtr()
 inline fun CPointer<IntVar>.toPtr(): NumPtr<Int> = rawValue.toLong().asNumPtr()
 inline fun CPointer<LongVar>.toPtr(): NumPtr<Long> = rawValue.toLong().asNumPtr()
+
+@OptIn(UnsafeNumber::class)
+inline fun CPointer<ptrdiff_tVar>.toPtrN(): NumPtr<NInt> = rawValue.toLong().asNumPtr()
+
+inline fun CPointer<UByteVar>.toPtr(): NumPtr<UByte> = rawValue.toLong().asNumPtr()
+inline fun CPointer<UShortVar>.toPtr(): NumPtr<UShort> = rawValue.toLong().asNumPtr()
+inline fun CPointer<UIntVar>.toPtr(): NumPtr<UInt> = rawValue.toLong().asNumPtr()
+inline fun CPointer<ULongVar>.toPtr(): NumPtr<ULong> = rawValue.toLong().asNumPtr()
+
+@OptIn(UnsafeNumber::class)
+inline fun CPointer<size_tVar>.toPtrN(): NumPtr<NUInt> = rawValue.toLong().asNumPtr()
+
 inline fun CPointer<FloatVar>.toPtr(): NumPtr<Float> = rawValue.toLong().asNumPtr()
 inline fun CPointer<DoubleVar>.toPtr(): NumPtr<Double> = rawValue.toLong().asNumPtr()
 
-@PermitsConst
+@OptIn(UnsafeNumber::class)
+inline fun CPointer<nfloat_tVar>.toPtrN(): NumPtr<NFloat> = rawValue.toLong().asNumPtr()
+
+@ConstCallable
 inline fun VoidPtr.toCPointer(): CPointer<COpaque> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun Address.toCPointer(): CPointer<COpaque> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun <F : Function<*>> Address.toCFunctionPointer(): CPointer<CFunction<F>> = toCPointer().reinterpret()
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Byte>.toCPointer(): CPointer<ByteVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Short>.toCPointer(): CPointer<ShortVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Int>.toCPointer(): CPointer<IntVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Long>.toCPointer(): CPointer<LongVar> = asLong().toCPointer()!!
 
 @OptIn(UnsafeNumber::class)
-@PermitsConst
-inline fun NumPtr<NInt>.toCPointer(): CPointer<ptrdiff_tVar> = asLong().toCPointer()!!
+@ConstCallable
+inline fun NumPtr<NInt>.toCPointerN(): CPointer<ptrdiff_tVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<UByte>.toCPointer(): CPointer<UByteVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<UShort>.toCPointer(): CPointer<UShortVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<UInt>.toCPointer(): CPointer<UIntVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<ULong>.toCPointer(): CPointer<ULongVar> = asLong().toCPointer()!!
 
 @OptIn(UnsafeNumber::class)
-@PermitsConst
-inline fun NumPtr<NUInt>.toCPointer(): CPointer<size_tVar> = asLong().toCPointer()!!
+@ConstCallable
+inline fun NumPtr<NUInt>.toCPointerN(): CPointer<size_tVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Float>.toCPointer(): CPointer<FloatVar> = asLong().toCPointer()!!
 
-@PermitsConst
+@ConstCallable
 inline fun NumPtr<Double>.toCPointer(): CPointer<DoubleVar> = asLong().toCPointer()!!
 
 @OptIn(UnsafeNumber::class)
-@PermitsConst
-inline fun NumPtr<NFloat>.toCPointer(): CPointer<nfloat_tVar> = asLong().toCPointer()!!
+@ConstCallable
+inline fun NumPtr<NFloat>.toCPointerN(): CPointer<nfloat_tVar> = asLong().toCPointer()!!

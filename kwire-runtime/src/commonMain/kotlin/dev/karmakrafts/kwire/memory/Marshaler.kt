@@ -19,7 +19,7 @@ package dev.karmakrafts.kwire.memory
 import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NumPtr
-import dev.karmakrafts.kwire.ctype.PermitsConst
+import dev.karmakrafts.kwire.ctype.ConstCallable
 import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.toNUInt
 
@@ -78,7 +78,7 @@ object Marshaler {
 
     // Native -> Kotlin conversions
 
-    @PermitsConst
+    @ConstCallable
     fun NumPtr<Byte>.toKStringFromUtf8(): String {
         val length = lengthUtf8(this)
         val data = ByteArray(length.toInt())
@@ -88,7 +88,7 @@ object Marshaler {
         return data.decodeToString()
     }
 
-    @PermitsConst
+    @ConstCallable
     fun NumPtr<Short>.toKStringFromUtf16(): String {
         val length = lengthUtf16(this)
         val data = CharArray(length.toInt())

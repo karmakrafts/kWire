@@ -149,6 +149,11 @@ internal object KWireNames {
         val id: ClassId = ClassId(ctypePackageName, name)
     }
 
+    object InheritsConstness {
+        val name: Name = Name.identifier("InheritsConstness")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
     object CDecl {
         val name: Name = Name.identifier("CDecl")
         val id: ClassId = ClassId(ctypePackageName, name)
