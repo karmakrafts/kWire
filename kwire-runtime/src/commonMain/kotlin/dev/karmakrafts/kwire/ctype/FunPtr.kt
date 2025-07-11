@@ -215,6 +215,7 @@ internal constructor(
  * @return The result of the function call
  * @throws KWirePluginNotAppliedException if the KWire compiler plugin is not applied
  */
+@PermitsConst
 @KWireIntrinsic(KWireIntrinsic.Type.PTR_INVOKE)
 operator fun <R, F : Function<R>> FunPtr<F>.invoke(vararg args: Any?): R = throw KWirePluginNotAppliedException()
 
