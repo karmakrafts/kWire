@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
+@file:JvmName("PtrImpl")
+
 package dev.karmakrafts.kwire.ctype
 
-import dev.karmakrafts.kwire.KWireCompilerApi
-
-/**
- * A marker interface for types that can be pointed to in the C type system.
- *
- * This interface serves as the base for all types that can be referenced by pointers
- * in the KWire FFI system. It is extended by [Address], which is the base interface
- * for all pointer types, and is used as a type parameter constraint in [Ptr].
- *
- * Implementations of this interface represent C-compatible types that can be
- * allocated in memory and accessed via pointers.
- */
-@KWireCompilerApi
-sealed interface Pointed
+internal actual val pointerSize: Int by lazy {
+    System.getProperty("sun.arch.data.model")?.toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
+}

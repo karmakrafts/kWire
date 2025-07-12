@@ -21,7 +21,7 @@ internal enum class KWireIntrinsicType {
     SIZE_OF,
     ALIGN_OF,
     OFFSET_OF,
-    PTR_NULL,
+    DEFAULT,
     PTR_REF,
     PTR_DEREF,
     PTR_SET,

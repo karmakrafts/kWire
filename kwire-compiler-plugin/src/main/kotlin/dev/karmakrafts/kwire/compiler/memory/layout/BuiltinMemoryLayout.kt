@@ -20,8 +20,12 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constInt
+import dev.karmakrafts.kwire.compiler.util.constNFloat
+import dev.karmakrafts.kwire.compiler.util.constNInt
+import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.reinterpret
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -34,7 +38,11 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
+import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.toIrConst
 
 // This code gets its own object because of initialization order. See KT-74926
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -175,10 +183,10 @@ internal enum class BuiltinMemoryLayout(
 
     // Pointer types
 
-    ADDRESS("dev.karmakrafts.kwire.ctype.Address",
-        { kwireSymbols.addressType.defaultType },
+    PTR("dev.karmakrafts.kwire.ctype.Ptr",
+        { kwireSymbols.ptrType.starProjectedType },
         { it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.voidPtrType.defaultType } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.ptrType.typeWith(it.irBuiltIns.unitType) } },
         BuiltinMemoryOps::write);
     // @formatter:on
 
@@ -198,6 +206,28 @@ internal enum class BuiltinMemoryLayout(
         return constInt(context, 0) // Offset for scalars is always 0
     }
 
+    override fun emitDefault(context: KWirePluginContext): IrExpression {
+        return when (this) {
+            VOID -> context.irBuiltIns.unitClass.getObjectInstance()
+            BYTE -> 0.toByte().toIrConst(context.irBuiltIns.byteType)
+            SHORT -> 0.toShort().toIrConst(context.irBuiltIns.shortType)
+            INT -> 0.toIrConst(context.irBuiltIns.intType)
+            LONG -> 0L.toIrConst(context.irBuiltIns.longType)
+            NINT -> constNInt(context, 0L)
+            UBYTE -> 0U.toUByte().toIrConst(context.irBuiltIns.ubyteType)
+            USHORT -> 0U.toUShort().toIrConst(context.irBuiltIns.ushortType)
+            UINT -> 0U.toIrConst(context.irBuiltIns.uintType)
+            ULONG -> 0UL.toIrConst(context.irBuiltIns.ulongType)
+            NUINT -> constNUInt(context, 0UL)
+            FLOAT -> 0F.toIrConst(context.irBuiltIns.floatType)
+            DOUBLE -> 0.0.toIrConst(context.irBuiltIns.doubleType)
+            NFLOAT -> constNFloat(context, 0.0)
+            PTR -> constNUInt(context, 0UL).reinterpret(
+                context, context.kwireSymbols.ptrType.typeWith(context.irBuiltIns.unitType)
+            )
+        }
+    }
+
     override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression =
         readEmitter(context, address)
 
@@ -206,7 +236,8 @@ internal enum class BuiltinMemoryLayout(
 }
 
 internal fun IrType.getBuiltinMemoryLayout(): BuiltinMemoryLayout? {
-// Handle signed integer types and IEEE-754 types
+    if (isUnit()) return BuiltinMemoryLayout.VOID
+    // Handle signed integer types and IEEE-754 types
     val primitiveType = type.getPrimitiveType()
     if (primitiveType != null) return when (primitiveType) {
         PrimitiveType.BYTE -> BuiltinMemoryLayout.BYTE
@@ -231,7 +262,7 @@ internal fun IrType.getBuiltinMemoryLayout(): BuiltinMemoryLayout? {
         NativeType.NINT -> BuiltinMemoryLayout.NINT
         NativeType.NUINT -> BuiltinMemoryLayout.NUINT
         NativeType.NFLOAT -> BuiltinMemoryLayout.NFLOAT
-        NativeType.PTR -> BuiltinMemoryLayout.ADDRESS
+        NativeType.PTR -> BuiltinMemoryLayout.PTR
     }
     return null
 }

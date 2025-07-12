@@ -17,9 +17,9 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.KWireCompilerApi
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Ptr
 
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION)
-annotation class Marshal<T : Address>
+annotation class Marshal<T : Ptr<*>>

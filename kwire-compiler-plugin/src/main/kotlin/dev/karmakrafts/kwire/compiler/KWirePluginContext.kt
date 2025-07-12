@@ -90,25 +90,8 @@ internal class KWirePluginContext( // @formatter:off
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createNumPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.numPtrConstructor.new( // @formatter:off
-        typeArguments = mapOf("N" to pointedType),
-        valueArguments = mapOf("rawAddress" to address)
-    ) // @formatter:on
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun createPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.ptrConstructor.new( // @formatter:off
         typeArguments = mapOf("T" to pointedType),
-        valueArguments = mapOf("rawAddress" to address)
-    ) // @formatter:on
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createFunPtr(address: IrExpression, pointedType: IrType): IrConstructorCall = kwireSymbols.funPtrConstructor.new( // @formatter:off
-        typeArguments = mapOf("F" to pointedType),
-        valueArguments = mapOf("rawAddress" to address)
-    ) // @formatter:on
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun createVoidPtr(address: IrExpression): IrConstructorCall = kwireSymbols.voidPtrConstructor.new( // @formatter:off
         valueArguments = mapOf("rawAddress" to address)
     ) // @formatter:on
 
@@ -127,8 +110,8 @@ internal class KWirePluginContext( // @formatter:off
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun emitPointerSize(): IrExpression = kwireSymbols.addressSizeBytes.owner.getter!!.call(
-        dispatchReceiver = kwireSymbols.addressCompanionType.getObjectInstance()
+    fun emitPointerSize(): IrExpression = kwireSymbols.ptrSizeBytes.owner.getter!!.call(
+        dispatchReceiver = kwireSymbols.ptrCompanionType.getObjectInstance()
     )
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)

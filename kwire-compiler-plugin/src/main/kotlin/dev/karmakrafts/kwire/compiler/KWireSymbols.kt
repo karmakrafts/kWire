@@ -39,13 +39,6 @@ internal class KWireSymbols(
     val sizeOf: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.MemoryPkg.sizeOf).first()
     val alignOf: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.MemoryPkg.alignOf).first()
 
-    val pointedType: IrClassSymbol = context.referenceClass(KWireNames.Pointed.id)!!
-
-    val addressType: IrClassSymbol = context.referenceClass(KWireNames.Address.id)!!
-    val addressCompanionType: IrClassSymbol = context.referenceClass(KWireNames.Address.Companion.id)!!
-    val addressSizeBytes: IrPropertySymbol =
-        context.referenceProperties(KWireNames.Address.Companion.SIZE_BYTES).first()
-
     val memoryType: IrClassSymbol = context.referenceClass(KWireNames.Memory.id)!!
     val memoryCompanionType: IrClassSymbol = context.referenceClass(KWireNames.Memory.Companion.id)!!
     val allocatorType: IrClassSymbol = context.referenceClass(KWireNames.Allocator.id)!!
@@ -60,21 +53,12 @@ internal class KWireSymbols(
     val alignAsType: IrClassSymbol = context.referenceClass(KWireNames.AlignAs.id)!!
     val alignAsConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.AlignAs.id).first()
 
-    val numPtrType: IrClassSymbol = context.referenceClass(KWireNames.NumPtr.id)!!
-    val numPtrConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.NumPtr.id).first()
-    val numPtrPlus: Collection<IrSimpleFunctionSymbol> = context.referenceFunctions(KWireNames.NumPtr.plus)
-    val numPtrMinus: Collection<IrSimpleFunctionSymbol> = context.referenceFunctions(KWireNames.NumPtr.minus)
-
     val ptrType: IrClassSymbol = context.referenceClass(KWireNames.Ptr.id)!!
+    val ptrCompanionType: IrClassSymbol = context.referenceClass(KWireNames.Ptr.Companion.id)!!
+    val ptrSizeBytes: IrPropertySymbol = context.referenceProperties(KWireNames.Ptr.Companion.SIZE_BYTES).first()
     val ptrConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.Ptr.id).first()
     val ptrPlus: Collection<IrSimpleFunctionSymbol> = context.referenceFunctions(KWireNames.Ptr.plus)
     val ptrMinus: Collection<IrSimpleFunctionSymbol> = context.referenceFunctions(KWireNames.Ptr.minus)
-
-    val funPtrType: IrClassSymbol = context.referenceClass(KWireNames.FunPtr.id)!!
-    val funPtrConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.FunPtr.id).first()
-
-    val voidPtrType: IrClassSymbol = context.referenceClass(KWireNames.VoidPtr.id)!!
-    val voidPtrConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.VoidPtr.id).first()
 
     val nIntType: IrTypeAliasSymbol = context.referenceTypeAlias(KWireNames.NInt.id)!!
     val nUIntType: IrClassSymbol = context.referenceClass(KWireNames.NUInt.id)!!

@@ -20,7 +20,15 @@ import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.Struct
+import dev.karmakrafts.kwire.ctype.ValueType
 import kotlin.reflect.KProperty1
+
+/**
+ * Create an instance of the given value type and
+ * zero-initialize it.
+ */
+@KWireIntrinsic(KWireIntrinsic.Type.DEFAULT)
+fun <@ValueType T> default(): T = throw KWirePluginNotAppliedException()
 
 /**
  * This will calculate the size of the given type in bytes.
@@ -31,7 +39,7 @@ import kotlin.reflect.KProperty1
  * @return The size in memory of the given type in bytes.
  */
 @KWireIntrinsic(KWireIntrinsic.Type.SIZE_OF)
-fun <T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
+fun <@ValueType T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
 
 /**
  * This will calculate the alignment of the given type in bytes.
@@ -42,7 +50,7 @@ fun <T> sizeOf(): NUInt = throw KWirePluginNotAppliedException()
  * @return The alignment in memory of the given type in bytes.
  */
 @KWireIntrinsic(KWireIntrinsic.Type.ALIGN_OF)
-fun <T> alignOf(): NUInt = throw KWirePluginNotAppliedException()
+fun <@ValueType T> alignOf(): NUInt = throw KWirePluginNotAppliedException()
 
 /**
  * This will calculate the offset of the given field within

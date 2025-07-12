@@ -473,27 +473,10 @@ internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType)
     return when {
         type.getNativeType() == NativeType.NUINT -> getRawAddress()!!
 
-        type.isFunPtr() -> {
-            val pointedType = requireNotNull(type.getPointedType()) { "Could not retrieve pointed type for FunPtr" }
-            if (isNumericExpr) context.createFunPtr(this, pointedType)
-            else context.createFunPtr(getRawAddress()!!, pointedType)
-        }
-
         type.isPtr() -> {
             val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
             if (isNumericExpr) context.createPtr(this, pointedType)
             else context.createPtr(getRawAddress()!!, pointedType)
-        }
-
-        type.isNumPtr() -> {
-            val pointedType = requireNotNull(type.getPointedType()) { "Could not determine pointed type for Ptr" }
-            if (isNumericExpr) context.createNumPtr(this, pointedType)
-            else context.createNumPtr(getRawAddress()!!, pointedType)
-        }
-
-        type.isVoidPtr() || type.isAddress(context) -> {
-            if (isNumericExpr) context.createVoidPtr(this)
-            else context.createVoidPtr(getRawAddress()!!)
         }
 
         else -> error("Unsupported type for generated reinterpretation: ${type.render()}")

@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-@file:JvmName("AddressImpl")
-
 package dev.karmakrafts.kwire.ctype
 
-internal actual val pointerSize: Int by lazy {
-    System.getProperty("sun.arch.data.model")?.toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
-}
+typealias CVoid = Unit

@@ -57,6 +57,7 @@ internal sealed interface MemoryLayout {
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
     fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression
+    fun emitDefault(context: KWirePluginContext): IrExpression
 
     fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression

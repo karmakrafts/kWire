@@ -23,12 +23,10 @@ import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.call
-import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getFunctionType
-import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.getRawAddress
-import dev.karmakrafts.kwire.compiler.util.isPointed
+import dev.karmakrafts.kwire.compiler.util.isValueType
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.minus
 import dev.karmakrafts.kwire.compiler.util.plus
@@ -64,9 +62,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNothing
-import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.types.isUnsignedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
@@ -88,7 +84,6 @@ internal val ptrIntrinsicOrigin: IrStatementOrigin = IrStatementOriginImpl("kWir
 internal class PtrIntrinsicsTransformer(
     context: KWirePluginContext
 ) : IntrinsicTransformer(context, setOf( // @formatter:off
-    KWireIntrinsicType.PTR_NULL,
     KWireIntrinsicType.PTR_REF,
     KWireIntrinsicType.PTR_DEREF,
     KWireIntrinsicType.PTR_SET,
@@ -98,15 +93,6 @@ internal class PtrIntrinsicsTransformer(
     KWireIntrinsicType.PTR_PLUS,
     KWireIntrinsicType.PTR_MINUS
 )) {
-    private fun emitNull(call: IrCall): IrExpression {
-        val type = call.typeArguments.first()
-        if (type == null) {
-            reportError("Could not determine pointer type for nullptr", call)
-            return call
-        }
-        return constNUInt(context, 0UL).reinterpret(context, type)
-    }
-
     private fun createUpcallTrampoline(
         reference: IrFunctionReference,
         bufferParam: IrValueParameter,
@@ -263,9 +249,7 @@ internal class PtrIntrinsicsTransformer(
         }
         return when { // @formatter:off
             type.isFunctionTypeOrSubtype() -> emitFunctionRef(call, data)
-            type.isPrimitiveType(false) || type.isUnsignedType(false) || type.getNativeType() != null ->
-                emitLocalRef(call, data)
-            type.isPointed(context) -> emitLocalRef(call, data)
+            type.isValueType(context) -> emitLocalRef(call, data)
             else -> {
                 reportError("Incompatible reference type for reference", call)
                 call
@@ -502,7 +486,6 @@ internal class PtrIntrinsicsTransformer(
 
     override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {
         return when (type) {
-            KWireIntrinsicType.PTR_NULL -> emitNull(expression)
             KWireIntrinsicType.PTR_REF -> emitRef(expression, data)
             KWireIntrinsicType.PTR_DEREF -> emitDeref(expression)
             KWireIntrinsicType.PTR_SET -> emitSet(expression)

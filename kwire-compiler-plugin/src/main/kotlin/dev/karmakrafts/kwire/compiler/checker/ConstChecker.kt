@@ -20,6 +20,4 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 
 internal class ConstChecker(
     context: KWirePluginContext
-) : AbstractChecker(context) {
-
-}
+) : AbstractChecker(context)

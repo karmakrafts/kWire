@@ -21,13 +21,13 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.ShutdownHandler
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
-import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.asVoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.asPtr
 import dev.karmakrafts.kwire.ctype.toMemorySegment
 import dev.karmakrafts.kwire.ctype.toNFloat
 import dev.karmakrafts.kwire.ctype.toNInt
@@ -52,7 +52,7 @@ import java.lang.foreign.Linker as JvmLinker
 private data class UpcallStub( // @formatter:off
     val cif: FFICIF,
     val closure: FFIClosure,
-    val address: VoidPtr,
+    val address: Ptr<CVoid>,
     val trampolineRef: StableRef<(FFIArgBuffer) -> Unit>
 ) : AutoCloseable { // @formatter:on
     override fun close() {
@@ -98,7 +98,7 @@ internal object PanamaFFI : FFI {
     }
 
     internal fun getDowncallHandle(
-        address: Address, descriptor: FFIDescriptor, useSegments: Boolean = true
+        address: Ptr<*>, descriptor: FFIDescriptor, useSegments: Boolean = true
     ): MethodHandle {
         return JvmLinker.nativeLinker()
             .downcallHandle(address.toMemorySegment(), descriptor.toFunctionDescriptor(useSegments))
@@ -139,7 +139,7 @@ internal object PanamaFFI : FFI {
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         function: (FFIArgBuffer) -> Unit
-    ): @Const VoidPtr { // @formatter:on
+    ): @Const Ptr<CVoid> { // @formatter:on
         return upcallStubs.getOrPut(function) {
             LWJGLMemoryStack.stackPush().use { stackFrame ->
                 val cif = FFICIF.create()
@@ -173,13 +173,13 @@ internal object PanamaFFI : FFI {
                     "Could not prepare FFI closure for upcall stub: ${getFFIError(result)}"
                 }
 
-                UpcallStub(cif, closure, codeAddress.asVoidPtr(), trampolineRef)
+                UpcallStub(cif, closure, codeAddress.asPtr<CVoid>(), trampolineRef)
             }
         }.address
     }
 
     override fun call( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -188,7 +188,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callByte( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -197,7 +197,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callShort( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -206,7 +206,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callInt( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -215,7 +215,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callLong( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -224,12 +224,12 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNInt( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
     ): NInt { // @formatter:on
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNInt()
         }
         else {
@@ -238,7 +238,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUByte( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -247,7 +247,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUShort( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -256,7 +256,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callUInt( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -265,7 +265,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callULong( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -274,12 +274,12 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNUInt( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
     ): NUInt { // @formatter:on
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Int).toNUInt()
         }
         else {
@@ -288,7 +288,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callFloat( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -297,7 +297,7 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callDouble( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
@@ -306,12 +306,12 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callNFloat( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
     ): NFloat { // @formatter:on
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as Float).toNFloat()
         }
         else {
@@ -320,11 +320,11 @@ internal object PanamaFFI : FFI {
     }
 
     override fun callPointer( // @formatter:off
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention,
         args: FFIArgBuffer
-    ): VoidPtr { // @formatter:on
+    ): Ptr<CVoid> { // @formatter:on
         return (getDowncallHandle(address, descriptor).invokeWithArguments(*args.toArray()) as MemorySegment).toPtr()
     }
 }

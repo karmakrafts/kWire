@@ -144,6 +144,17 @@ internal object KWireNames {
         val toNFloat: CallableId = CallableId(ctypePackageName, Functions.toNFloat)
     }
 
+    object ValueType {
+        val name: Name = Name.identifier("ValueType")
+        val id: ClassId = ClassId(ctypePackageName, name)
+    }
+
+    object CFn {
+        val name: Name = Name.identifier("CFn")
+        val id: ClassId = ClassId(ctypePackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
     object Const {
         val name: Name = Name.identifier("Const")
         val id: ClassId = ClassId(ctypePackageName, name)
@@ -174,25 +185,6 @@ internal object KWireNames {
         val id: ClassId = ClassId(ctypePackageName, name)
     }
 
-    object Address {
-        val name: Name = Name.identifier("Address")
-        val id: ClassId = ClassId(ctypePackageName, name)
-        val fqName: FqName = id.asSingleFqName()
-
-        object Companion {
-            val name: FqName = FqName("Address.Companion")
-            val id: ClassId = ClassId(ctypePackageName, name, false)
-            val fqName: FqName = id.asSingleFqName()
-            val SIZE_BYTES: CallableId = CallableId(ctypePackageName, name, Functions.SIZE_BYTES)
-        }
-    }
-
-    object Pointed {
-        val name: Name = Name.identifier("Pointed")
-        val id: ClassId = ClassId(ctypePackageName, name)
-        val fqName: FqName = id.asSingleFqName()
-    }
-
     object NInt {
         val name: Name = Name.identifier("NInt")
         val id: ClassId = ClassId(ctypePackageName, name)
@@ -211,32 +203,19 @@ internal object KWireNames {
         val fqName: FqName = id.asSingleFqName()
     }
 
-    object NumPtr {
-        val name: Name = Name.identifier("NumPtr")
-        val id: ClassId = ClassId(ctypePackageName, name)
-        val fqName: FqName = id.asSingleFqName()
-        val plus: CallableId = CallableId(id, Functions.plus)
-        val minus: CallableId = CallableId(id, Functions.minus)
-    }
-
     object Ptr {
         val name: Name = Name.identifier("Ptr")
         val id: ClassId = ClassId(ctypePackageName, name)
         val fqName: FqName = id.asSingleFqName()
         val plus: CallableId = CallableId(id, Functions.plus)
         val minus: CallableId = CallableId(id, Functions.minus)
-    }
 
-    object FunPtr {
-        val name: Name = Name.identifier("FunPtr")
-        val id: ClassId = ClassId(ctypePackageName, name)
-        val fqName: FqName = id.asSingleFqName()
-    }
-
-    object VoidPtr {
-        val name: Name = Name.identifier("VoidPtr")
-        val id: ClassId = ClassId(ctypePackageName, name)
-        val fqName: FqName = id.asSingleFqName()
+        object Companion {
+            val name: FqName = FqName("Ptr.Companion")
+            val id: ClassId = ClassId(ctypePackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+            val SIZE_BYTES: CallableId = CallableId(ctypePackageName, name, Functions.SIZE_BYTES)
+        }
     }
 
     object Struct {

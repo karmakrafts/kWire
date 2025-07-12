@@ -44,9 +44,9 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.NumPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
             import dev.karmakrafts.kwire.ctype.nullptr
-            val test: NumPtr<Byte> = nullptr<NumPtr<Byte>>() + 42
+            val test: Ptr<Byte> = nullptr<Byte>() + 42
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -64,7 +64,7 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.nullptr
             class Test(val x: Int = 0) : Struct
-            val test: Ptr<Test> = nullptr<Ptr<Test>>() + 42
+            val test: Ptr<Test> = nullptr<Test>() + 42
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -78,9 +78,9 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.NumPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
             import dev.karmakrafts.kwire.ctype.nullptr
-            val test: NumPtr<Byte> = nullptr<NumPtr<Byte>>() - 42
+            val test: Ptr<Byte> = nullptr<Byte>() - 42
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -98,7 +98,7 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.nullptr
             class Test(val x: Int = 0) : Struct
-            val test: Ptr<Test> = nullptr<Ptr<Test>>() - 42
+            val test: Ptr<Test> = nullptr<Test>() - 42
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -142,7 +142,6 @@ class PtrIntrinsicsTest {
             compiler shouldNotReport { error() }
         }
         for (type in primitiveTypes) {
-            println("Testing $type")
             resetAssertions()
             // @formatter:off
             source("""
@@ -160,7 +159,7 @@ class PtrIntrinsicsTest {
             """.trimIndent())
             // @formatter:on
             result irMatches {
-                println(element.dump())
+                // TODO: implement this
             }
             evaluate()
         }
@@ -171,10 +170,11 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.ref
             fun foo(x: Float, y: Float): Int = 42
-            val test: FunPtr<(Float, Float) -> Int> = ::foo.ref()
+            val test: Ptr<CFn<(Float, Float) -> Int>> = ::foo.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -192,14 +192,15 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.ref
             class Foo(val x: Int = 0) : Struct {
                 fun test(y: Float) = println("Hello, World!")
             }
             val foo: Foo = Foo()
-            val test: FunPtr<(Float) -> Unit> = foo::test.ref()
+            val test: Ptr<CFn<(Float) -> Unit>> = foo::test.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -216,11 +217,12 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             fun test() {
-                val ptr = nullptr<FunPtr<(Int, Float) -> Double>>()
+                val ptr = nullptr<CFn<(Int, Float) -> Double>>()
                 val foo = ptr(42, 2F)
             }
         """.trimIndent())
@@ -243,13 +245,14 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             import dev.karmakrafts.kwire.ctype.StdCall
-            typealias MyFuncPtr = @StdCall FunPtr<(Int, Float) -> Double>
+            typealias MyFuncPtr = @StdCall Ptr<CFn<(Int, Float) -> Double>>
             fun test() {          
-                val ptr = nullptr<MyFuncPtr>()
+                val ptr: MyFuncPtr = nullptr()
                 val foo = ptr(42, 2F)
             }
         """.trimIndent())
@@ -272,12 +275,13 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             fun test() {
                 val args = arrayOf<Any>(42, 2F)
-                val ptr = nullptr<FunPtr<(Int, Float, Int) -> Double>>()
+                val ptr = nullptr<CFn<(Int, Float, Int) -> Double>>()
                 val foo = ptr(*args, 10)
             }
         """.trimIndent())
@@ -300,14 +304,15 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.FunPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.nullptr
             import dev.karmakrafts.kwire.ctype.invoke
             import dev.karmakrafts.kwire.ctype.StdCall
-            typealias MyFuncPtr = @StdCall FunPtr<(Int, Float, Int) -> Double>
+            typealias MyFuncPtr = @StdCall Ptr<CFn<(Int, Float, Int) -> Double>>
             fun test() {
                 val args = arrayOf<Any>(42, 2F)
-                val ptr = nullptr<MyFuncPtr>()
+                val ptr: MyFuncPtr = nullptr()
                 val foo = ptr(*args, 10)
             }
         """.trimIndent())
@@ -330,9 +335,10 @@ class PtrIntrinsicsTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
-            import dev.karmakrafts.kwire.ctype.VoidPtr
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.CVoid
             import dev.karmakrafts.kwire.ctype.nullptr
-            val test: VoidPtr = nullptr()
+            val test: Ptr<CVoid> = nullptr()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -341,13 +347,7 @@ class PtrIntrinsicsTest {
                 val field = getChild<IrField>()
                 val initializer = field.initializer?.expression
                 initializer shouldNotBe null
-                initializer!!::class shouldBe IrConstructorCallImpl::class
-
-                val arg = (initializer as IrConstructorCall).arguments.first()
-                arg shouldNotBe null
-                arg!!::class shouldBe IrCallImpl::class
-
-                arg.unwrapConstValue<Number>()!!.toLong() shouldBe 0
+                initializer!!::class shouldBe IrCallImpl::class
             }
         }
     }
@@ -362,11 +362,11 @@ class PtrIntrinsicsTest {
             resetAssertions()
             // @formatter:off
             source("""
-                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.Ptr
                 import dev.karmakrafts.kwire.ctype.nullptr
                 import dev.karmakrafts.kwire.ctype.NInt
                 import dev.karmakrafts.kwire.ctype.NFloat
-                val test: NumPtr<$type> = nullptr()
+                val test: Ptr<$type> = nullptr()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -374,13 +374,7 @@ class PtrIntrinsicsTest {
                     val field = getChild<IrField>()
                     val initializer = field.initializer?.expression
                     initializer shouldNotBe null
-                    initializer!!::class shouldBe IrConstructorCallImpl::class
-
-                    val arg = (initializer as IrConstructorCall).arguments.first()
-                    arg shouldNotBe null
-                    arg!!::class shouldBe IrCallImpl::class
-
-                    arg.unwrapConstValue<Number>()!!.toLong() shouldBe 0
+                    initializer!!::class shouldBe IrCallImpl::class
                 }
             }
             evaluate()
@@ -405,40 +399,7 @@ class PtrIntrinsicsTest {
                 val field = getChild<IrField>()
                 val initializer = field.initializer?.expression
                 initializer shouldNotBe null
-                initializer!!::class shouldBe IrConstructorCallImpl::class
-
-                val arg = (initializer as IrConstructorCall).arguments.first()
-                arg shouldNotBe null
-                arg!!::class shouldBe IrCallImpl::class
-
-                arg.unwrapConstValue<Number>()!!.toLong() shouldBe 0
-            }
-        }
-    }
-
-    @Test
-    fun `Obtain nullptr of raw address`() = runCompilerTest {
-        kwireTransformerPipeline()
-        // @formatter:off
-        source("""
-            import dev.karmakrafts.kwire.ctype.Address
-            import dev.karmakrafts.kwire.ctype.nullptr
-            val test: Address = nullptr()
-        """.trimIndent())
-        // @formatter:on
-        compiler shouldNotReport { error() }
-        result irMatches {
-            getChild<IrProperty> { it.name.asString() == "test" } matches {
-                val field = getChild<IrField>()
-                val initializer = field.initializer?.expression
-                initializer shouldNotBe null
-                initializer!!::class shouldBe IrConstructorCallImpl::class
-
-                val arg = (initializer as IrConstructorCall).arguments.first()
-                arg shouldNotBe null
-                arg!!::class shouldBe IrCallImpl::class
-
-                arg.unwrapConstValue<Number>()!!.toLong() shouldBe 0
+                initializer!!::class shouldBe IrCallImpl::class
             }
         }
     }
@@ -455,13 +416,13 @@ class PtrIntrinsicsTest {
             resetAssertions()
             // @formatter:off
             source("""
-                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.Ptr
                 import dev.karmakrafts.kwire.ctype.nullptr
                 import dev.karmakrafts.kwire.ctype.NInt
                 import dev.karmakrafts.kwire.ctype.NFloat
                 import dev.karmakrafts.kwire.ctype.toNInt
                 import dev.karmakrafts.kwire.ctype.toNFloat
-                val test: $type = nullptr<NumPtr<$type>>().deref()
+                val test: $type = nullptr<$type>().deref()
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -492,13 +453,13 @@ class PtrIntrinsicsTest {
             resetAssertions()
             // @formatter:off
             source("""
-                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.Ptr
                 import dev.karmakrafts.kwire.ctype.nullptr
                 import dev.karmakrafts.kwire.ctype.NInt
                 import dev.karmakrafts.kwire.ctype.NFloat
                 import dev.karmakrafts.kwire.ctype.toNInt
                 import dev.karmakrafts.kwire.ctype.toNFloat
-                val test: $type = nullptr<NumPtr<$type>>()[2]
+                val test: $type = nullptr<$type>()[2]
             """.trimIndent())
             // @formatter:on
             result irMatches {
@@ -529,13 +490,13 @@ class PtrIntrinsicsTest {
             resetAssertions()
             // @formatter:off
             source("""
-                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.Ptr
                 import dev.karmakrafts.kwire.ctype.nullptr
                 import dev.karmakrafts.kwire.ctype.NInt
                 import dev.karmakrafts.kwire.ctype.NFloat
                 import dev.karmakrafts.kwire.ctype.toNInt
                 import dev.karmakrafts.kwire.ctype.toNFloat
-                val value: NumPtr<$type> = nullptr<NumPtr<$type>>()
+                val value: Ptr<$type> = nullptr<$type>()
                 fun test() {
                     value.set(0.to$type())
                 }
@@ -562,13 +523,13 @@ class PtrIntrinsicsTest {
             resetAssertions()
             // @formatter:off
             source("""
-                import dev.karmakrafts.kwire.ctype.NumPtr
+                import dev.karmakrafts.kwire.ctype.Ptr
                 import dev.karmakrafts.kwire.ctype.nullptr
                 import dev.karmakrafts.kwire.ctype.NInt
                 import dev.karmakrafts.kwire.ctype.NFloat
                 import dev.karmakrafts.kwire.ctype.toNInt
                 import dev.karmakrafts.kwire.ctype.toNFloat
-                val value: NumPtr<$type> = nullptr<NumPtr<$type>>()
+                val value: Ptr<$type> = nullptr<$type>()
                 fun test() {
                     value[2] = 0.to$type()
                 }

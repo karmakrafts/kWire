@@ -21,34 +21,51 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.typeOrNull
 
 internal abstract class TypeUsageChecker(
     context: KWirePluginContext
 ) : AbstractChecker(context) {
     abstract fun checkType(declaration: IrDeclaration, type: IrType)
 
+    private fun checkTypeRecursively(declaration: IrDeclaration, type: IrType) {
+        checkType(declaration, type)
+        if (type !is IrSimpleType) return
+        for (typeArgument in type.arguments) {
+            val argument = typeArgument.typeOrNull ?: continue
+            checkTypeRecursively(declaration, argument)
+        }
+    }
+
+    override fun visitValueParameter(declaration: IrValueParameter) {
+        super.visitValueParameter(declaration)
+        checkTypeRecursively(declaration, declaration.type)
+    }
+
     override fun visitTypeAlias(declaration: IrTypeAlias) {
         super.visitTypeAlias(declaration)
-        checkType(declaration, declaration.expandedType)
+        checkTypeRecursively(declaration, declaration.expandedType)
     }
 
     override fun visitField(declaration: IrField) {
         super.visitField(declaration)
-        checkType(declaration, declaration.type)
+        checkTypeRecursively(declaration, declaration.type)
     }
 
     override fun visitVariable(declaration: IrVariable) {
         super.visitVariable(declaration)
-        checkType(declaration, declaration.type)
+        checkTypeRecursively(declaration, declaration.type)
     }
 
     override fun visitFunction(declaration: IrFunction) {
         super.visitFunction(declaration)
-        checkType(declaration, declaration.returnType)
+        checkTypeRecursively(declaration, declaration.returnType)
         for (parameter in declaration.parameters) {
-            checkType(parameter, parameter.type)
+            checkTypeRecursively(parameter, parameter.type)
         }
     }
 }

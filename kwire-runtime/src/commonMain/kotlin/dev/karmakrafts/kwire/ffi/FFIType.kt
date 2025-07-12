@@ -19,7 +19,7 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.KWireCompilerApi
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Ptr
 
 @KWireCompilerApi
 enum class FFIType(val size: Int) {
@@ -29,15 +29,15 @@ enum class FFIType(val size: Int) {
     SHORT   (Short.SIZE_BYTES),
     INT     (Int.SIZE_BYTES),
     LONG    (Long.SIZE_BYTES),
-    NINT    (Address.SIZE_BYTES),
+    NINT    (Ptr.SIZE_BYTES),
     UBYTE   (UByte.SIZE_BYTES),
     USHORT  (UShort.SIZE_BYTES),
     UINT    (UInt.SIZE_BYTES),
     ULONG   (ULong.SIZE_BYTES),
-    NUINT   (Address.SIZE_BYTES),
+    NUINT   (Ptr.SIZE_BYTES),
     FLOAT   (Float.SIZE_BYTES),
     DOUBLE  (Double.SIZE_BYTES),
-    NFLOAT  (Address.SIZE_BYTES),
-    PTR     (Address.SIZE_BYTES)
+    NFLOAT  (Ptr.SIZE_BYTES),
+    PTR     (Ptr.SIZE_BYTES)
     // @formatter:on
 }

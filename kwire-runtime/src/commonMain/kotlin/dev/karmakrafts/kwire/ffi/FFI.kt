@@ -19,12 +19,12 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.KWireCompilerApi
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
-import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -62,7 +62,7 @@ interface FFI {
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         function: (FFIArgBuffer) -> Unit
-    ): @Const VoidPtr
+    ): @Const Ptr<CVoid>
 
     /**
      * Calls a native function at the specified address with void return type.
@@ -73,7 +73,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun call(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -89,7 +89,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callByte(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -105,7 +105,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callShort(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -121,7 +121,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callInt(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -137,7 +137,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callLong(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -153,7 +153,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callNInt(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -169,7 +169,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callFloat(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -185,7 +185,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callDouble(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -201,7 +201,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callNFloat(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -217,11 +217,11 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callPointer(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
-    ): VoidPtr
+    ): Ptr<*>
 
     /**
      * Calls a native function at the specified address with unsigned byte return type.
@@ -233,7 +233,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callUByte(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -249,7 +249,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callUShort(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -265,7 +265,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callUInt(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -281,7 +281,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callULong(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -297,7 +297,7 @@ interface FFI {
      */
     @KWireCompilerApi
     fun callNUInt(
-        address: @Const Address,
+        address: @Const Ptr<*>,
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
@@ -312,7 +312,7 @@ interface FFI {
  * @param args A lambda with receiver for specifying function arguments
  */
 inline fun FFI.call(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -339,7 +339,7 @@ inline fun FFI.call(
  * @return The byte value returned by the native function
  */
 inline fun FFI.callByte(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -366,7 +366,7 @@ inline fun FFI.callByte(
  * @return The short value returned by the native function
  */
 inline fun FFI.callShort(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -393,7 +393,7 @@ inline fun FFI.callShort(
  * @return The int value returned by the native function
  */
 inline fun FFI.callInt(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -420,7 +420,7 @@ inline fun FFI.callInt(
  * @return The long value returned by the native function
  */
 inline fun FFI.callLong(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -447,7 +447,7 @@ inline fun FFI.callLong(
  * @return The native integer value returned by the native function
  */
 inline fun FFI.callNInt(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -474,7 +474,7 @@ inline fun FFI.callNInt(
  * @return The float value returned by the native function
  */
 inline fun FFI.callFloat(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -501,7 +501,7 @@ inline fun FFI.callFloat(
  * @return The double value returned by the native function
  */
 inline fun FFI.callDouble(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -528,7 +528,7 @@ inline fun FFI.callDouble(
  * @return The native float value returned by the native function
  */
 inline fun FFI.callNFloat(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -555,11 +555,11 @@ inline fun FFI.callNFloat(
  * @return The pointer value returned by the native function
  */
 inline fun FFI.callPointer(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
-): VoidPtr {
+): Ptr<*> {
     contract {
         callsInPlace(args, InvocationKind.EXACTLY_ONCE)
     }
@@ -582,7 +582,7 @@ inline fun FFI.callPointer(
  * @return The unsigned byte value returned by the native function
  */
 inline fun FFI.callUByte(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -609,7 +609,7 @@ inline fun FFI.callUByte(
  * @return The unsigned short value returned by the native function
  */
 inline fun FFI.callUShort(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -636,7 +636,7 @@ inline fun FFI.callUShort(
  * @return The unsigned int value returned by the native function
  */
 inline fun FFI.callUInt(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -663,7 +663,7 @@ inline fun FFI.callUInt(
  * @return The unsigned long value returned by the native function
  */
 inline fun FFI.callULong(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
@@ -690,7 +690,7 @@ inline fun FFI.callULong(
  * @return The native unsigned integer value returned by the native function
  */
 inline fun FFI.callNUInt(
-    address: @Const Address,
+    address: @Const Ptr<*>,
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}

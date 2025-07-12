@@ -16,7 +16,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Ptr
 import kotlinx.cinterop.ExperimentalForeignApi
 
 /**
@@ -51,12 +51,12 @@ fun FFIType.getFFITypeAddress(): ffi_type {
         FFIType.SHORT -> ffi_type_sint16
         FFIType.INT -> ffi_type_sint32
         FFIType.LONG -> ffi_type_sint64
-        FFIType.NINT -> if (Address.SIZE_BYTES == Int.SIZE_BYTES) ffi_type_sint32 else ffi_type_sint64
+        FFIType.NINT -> if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) ffi_type_sint32 else ffi_type_sint64
         FFIType.UBYTE -> ffi_type_uint8
         FFIType.USHORT -> ffi_type_uint16
         FFIType.UINT -> ffi_type_uint32
         FFIType.ULONG -> ffi_type_uint64
-        FFIType.NUINT -> if (Address.SIZE_BYTES == Int.SIZE_BYTES) ffi_type_uint32 else ffi_type_uint64
+        FFIType.NUINT -> if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) ffi_type_uint32 else ffi_type_uint64
         FFIType.FLOAT -> ffi_type_float
         FFIType.DOUBLE -> ffi_type_double
         FFIType.PTR -> ffi_type_pointer
@@ -96,12 +96,12 @@ fun FFIType.getFFITypeIndex(): Int {
         FFIType.SHORT -> FFI_TYPE_SINT16
         FFIType.INT -> FFI_TYPE_SINT32
         FFIType.LONG -> FFI_TYPE_SINT64
-        FFIType.NINT -> if (Address.SIZE_BYTES == Int.SIZE_BYTES) FFI_TYPE_SINT32 else FFI_TYPE_SINT64
+        FFIType.NINT -> if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) FFI_TYPE_SINT32 else FFI_TYPE_SINT64
         FFIType.UBYTE -> FFI_TYPE_UINT8
         FFIType.USHORT -> FFI_TYPE_UINT16
         FFIType.UINT -> FFI_TYPE_UINT32
         FFIType.ULONG -> FFI_TYPE_UINT64
-        FFIType.NUINT -> if (Address.SIZE_BYTES == Int.SIZE_BYTES) FFI_TYPE_UINT32 else FFI_TYPE_UINT64
+        FFIType.NUINT -> if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) FFI_TYPE_UINT32 else FFI_TYPE_UINT64
         FFIType.FLOAT -> FFI_TYPE_FLOAT
         FFIType.DOUBLE -> FFI_TYPE_DOUBLE
         FFIType.PTR -> FFI_TYPE_POINTER

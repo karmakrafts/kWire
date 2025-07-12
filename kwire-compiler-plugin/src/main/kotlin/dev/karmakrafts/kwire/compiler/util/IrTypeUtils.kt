@@ -17,22 +17,19 @@
 package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
-import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrNull
-import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
@@ -44,16 +41,6 @@ internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType):
     return this == inType || inType.isSubtypeOf(type, context.typeSystemContext)
 }
 
-internal fun IrType.toClassReference(context: IrPluginContext): IrClassReferenceImpl = with(context) {
-    IrClassReferenceImpl(
-        startOffset = SYNTHETIC_OFFSET,
-        endOffset = SYNTHETIC_OFFSET,
-        type = irBuiltIns.kClassClass.starProjectedType,
-        symbol = classOrFail,
-        classType = this@toClassReference
-    )
-}
-
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrClass.isStruct(context: KWirePluginContext): Boolean =
     isSubclassOf(context.kwireSymbols.structType.owner)
@@ -62,33 +49,15 @@ internal fun IrType.isStruct(context: KWirePluginContext): Boolean = getClass()?
 internal fun IrType.hasCustomAlignment(): Boolean = getClass()?.hasAnnotation(KWireNames.AlignAs.fqName) == true
 internal fun IrType.getCustomAlignment(): Int? = getClass()?.getAnnotationValue<Int>(KWireNames.AlignAs.fqName, "value")
 
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isAddress(context: KWirePluginContext): Boolean =
-    isSubclassOf(context.kwireSymbols.addressType.owner)
-
-internal fun IrType.isAddress(context: KWirePluginContext): Boolean = getClass()?.isAddress(context) == true
-
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrClass.isPointed(context: KWirePluginContext): Boolean =
-    isSubclassOf(context.kwireSymbols.pointedType.owner)
-
-internal fun IrType.isPointed(context: KWirePluginContext): Boolean = getClass()?.isPointed(context) == true
-
-internal fun IrClass.isNumPtr(): Boolean = isClassWithFqName(KWireNames.NumPtr.fqName)
-internal fun IrType.isNumPtr(): Boolean = getClass()?.isNumPtr() == true
-
 internal fun IrClass.isPtr(): Boolean = isClassWithFqName(KWireNames.Ptr.fqName)
 internal fun IrType.isPtr(): Boolean = getClass()?.isPtr() == true
 
-internal fun IrClass.isFunPtr(): Boolean = isClassWithFqName(KWireNames.FunPtr.fqName)
-internal fun IrType.isFunPtr(): Boolean = getClass()?.isFunPtr() == true
-
-internal fun IrClass.isVoidPtr(): Boolean = isClassWithFqName(KWireNames.VoidPtr.fqName)
-internal fun IrType.isVoidPtr(): Boolean = getClass()?.isVoidPtr() == true
+internal fun IrClass.isCFn(): Boolean = isClassWithFqName(KWireNames.CFn.fqName)
+internal fun IrType.isCFn(): Boolean = getClass()?.isCFn() == true
 
 internal fun IrType.getPointedType(): IrType? {
     if (this !is IrSimpleType) return null
-    return arguments.first().typeOrNull
+    return arguments.firstOrNull()?.typeOrNull
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -114,3 +83,11 @@ internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id
 
 internal fun IrType.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)
 internal fun IrType.isInheritsConstness(): Boolean = hasAnnotation(KWireNames.InheritsConstness.id)
+
+internal fun IrType.isValueType(context: KWirePluginContext): Boolean {
+    if (isTypeParameter()) {
+        // If the type parameter has the @ValueType annotation, any non value type would fail the checker stage
+        return hasAnnotation(KWireNames.ValueType.id)
+    }
+    return computeMemoryLayout(context) !is ReferenceMemoryLayout || isCFn()
+}

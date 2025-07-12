@@ -19,14 +19,13 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
- * Represents a C struct in the KWire FFI system.
+ * Represents a C struct in the KWire type system.
  *
  * This interface serves as a marker for classes that represent C struct types.
  * Structs are composite data types that can contain multiple fields of different types.
- * They extend [Pointed], meaning they can be referenced by pointers in the C type system.
  */
 @KWireCompilerApi
-interface Struct : Pointed
+interface Struct
 
 /**
  * Specifies a custom alignment for a struct type.

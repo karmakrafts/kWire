@@ -22,11 +22,13 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.KWireCompilerApi
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NUInt
-import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.asPtr
+import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory
 import dev.karmakrafts.kwire.memory.MemoryStack
 import dev.karmakrafts.kwire.memory.byte
@@ -59,13 +61,13 @@ interface FFIArgBuffer {
     /**
      * The base memory address of the buffer.
      */
-    val address: VoidPtr
+    val address: Ptr<CVoid>
 
     /**
      * The current address within the stack frame of this argument buffer.
      * This is incremented/decremented with every write/read to/from the buffer.
      */
-    val currentAddress: VoidPtr
+    val currentAddress: Ptr<CVoid>
 
     /**
      * List of types of arguments stored in the buffer.
@@ -130,7 +132,7 @@ interface FFIArgBuffer {
      * @param value The pointer value to store
      */
     @KWireCompilerApi
-    fun putPointer(value: Address)
+    fun putPointer(value: Ptr<CVoid>)
 
     /**
      * Puts a float value into the buffer.
@@ -236,19 +238,19 @@ interface FFIArgBuffer {
     fun getNFloat(): NFloat
 
     @KWireCompilerApi
-    fun getPointer(): VoidPtr
+    fun getPointer(): Ptr<CVoid>
 }
 
 @PublishedApi
 internal class FFIArgBufferImpl @PublishedApi internal constructor(
     private val stackFrame: MemoryStack
 ) : FFIArgBuffer {
-    override val address: VoidPtr = stackFrame.frameAddress // Capture base pointer of argument frame
+    override val address: Ptr<CVoid> = stackFrame.frameAddress // Capture base pointer of argument frame
     override val types: ArrayList<FFIType> = ArrayList()
     private var index: Int = 0
 
-    override val currentAddress: VoidPtr
-        get() = address + types.take(index).sumOf { it.size }
+    override val currentAddress: Ptr<CVoid>
+        get() = (address.asNUInt() + types.take(index).sumOf { it.size }.toNUInt()).asPtr()
 
     override fun rewindToLast() {
         index = types.lastIndex
@@ -271,7 +273,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
             is NUInt -> putNUInt(argument)
             is Float -> putFloat(argument)
             is Double -> putDouble(argument)
-            is Address -> putPointer(argument)
+            is Ptr<*> -> putPointer(argument.reinterpret())
         }
     }
 
@@ -300,7 +302,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
         types += FFIType.NINT
     }
 
-    override fun putPointer(value: Address) {
+    override fun putPointer(value: Ptr<CVoid>) {
         stackFrame.pointer(value)
         types += FFIType.PTR
     }
@@ -346,7 +348,8 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun getNextReadAddress(): VoidPtr = address + types.take(index++).sumOf { it.size }
+    private inline fun getNextReadAddress(): Ptr<CVoid> =
+        (address.asNUInt() + types.take(index++).sumOf { it.size }.toNUInt()).asPtr()
 
     override fun getByte(): Byte = Memory.readByte(getNextReadAddress())
     override fun getShort(): Short = Memory.readShort(getNextReadAddress())
@@ -364,5 +367,5 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
     override fun getDouble(): Double = Memory.readDouble(getNextReadAddress())
     override fun getNFloat(): NFloat = Memory.readNFloat(getNextReadAddress())
 
-    override fun getPointer(): VoidPtr = Memory.readPointer(getNextReadAddress())
+    override fun getPointer(): Ptr<CVoid> = Memory.readPointer(getNextReadAddress())
 }

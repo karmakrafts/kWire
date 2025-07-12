@@ -16,8 +16,9 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
-import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.toPtr
 import kotlinx.cinterop.COpaque
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -29,8 +30,7 @@ import platform.windows.LoadLibraryW
 
 @OptIn(ExperimentalForeignApi::class)
 private data class WindowsSharedLibraryHandle(
-    override val name: String,
-    val handle: HMODULE
+    override val name: String, val handle: HMODULE
 ) : SharedLibraryHandle {
     override fun close() {
         FreeLibrary(handle)
@@ -47,9 +47,9 @@ private object WindowsLinker : Linker {
         return null
     }
 
-    override fun SharedLibraryHandle.findSymbol(name: String): @Const VoidPtr? {
+    override fun SharedLibraryHandle.findSymbol(name: String): @Const Ptr<CVoid> {
         checkHandle<WindowsSharedLibraryHandle>()
-        return GetProcAddress(handle, name)?.reinterpret<COpaque>()?.toPtr()
+        return GetProcAddress(handle, name)?.reinterpret<COpaque>().toPtr()
     }
 }
 

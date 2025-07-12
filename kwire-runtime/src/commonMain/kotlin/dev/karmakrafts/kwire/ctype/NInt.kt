@@ -317,5 +317,5 @@ inline fun NInt.toULong(): ULong = toLong().toULong()
  * @return A string containing the hexadecimal representation of this native integer
  */
 @ExperimentalStdlibApi
-inline fun NInt.toHexString(): String = if (Address.SIZE_BYTES == Int.SIZE_BYTES) toInt().toHexString()
+inline fun NInt.toHexString(): String = if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) toInt().toHexString()
 else toLong().toHexString()

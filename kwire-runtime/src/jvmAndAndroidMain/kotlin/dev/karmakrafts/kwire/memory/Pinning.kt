@@ -18,30 +18,27 @@
 
 package dev.karmakrafts.kwire.memory
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
-import dev.karmakrafts.kwire.ctype.NumPtr
-import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.asLong
-import dev.karmakrafts.kwire.ctype.asNumPtr
-import dev.karmakrafts.kwire.ctype.asVoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.asPtr
 import dev.karmakrafts.kwire.util.NativePlatform
 
 // Objects
 
 @PublishedApi
 @DelicatePinningApi
-internal actual fun acquireStableAddress(value: Any): @Const VoidPtr = NativePlatform.pin(value).asVoidPtr()
+internal actual fun acquireStableAddress(value: Any): @Const Ptr<CVoid> = NativePlatform.pin(value).asPtr()
 
 @PublishedApi
 @Suppress("UNCHECKED_CAST")
 @DelicatePinningApi
-internal actual fun <T : Any> derefStableAddress(address: @Const Address): T =
+internal actual fun <T : Any> derefStableAddress(address: @Const Ptr<*>): T =
     NativePlatform.derefObject(address.asLong()) as T
 
 @PublishedApi
 @DelicatePinningApi
-internal actual fun releaseStableAddress(address: @Const Address) = NativePlatform.unpin(address.asLong())
+internal actual fun releaseStableAddress(address: @Const Ptr<*>) = NativePlatform.unpin(address.asLong())
 
 // Arrays
 
@@ -55,53 +52,50 @@ actual fun <T : Any> T.pin(): Pinned<T> = Pinned(this)
 actual fun unpin(pinned: Pinned<out Any>) = Unit
 
 @DelicatePinningApi
-actual fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte> = NativePlatform.getByteArrayAddress(value).asNumPtr()
+actual fun Pinned<ByteArray>.acquireByteAddress(): Ptr<Byte> = NativePlatform.getByteArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short> =
-    NativePlatform.getShortArrayAddress(value).asNumPtr()
+actual fun Pinned<ShortArray>.acquireShortAddress(): Ptr<Short> = NativePlatform.getShortArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int> = NativePlatform.getIntArrayAddress(value).asNumPtr()
+actual fun Pinned<IntArray>.acquireIntAddress(): Ptr<Int> = NativePlatform.getIntArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long> = NativePlatform.getLongArrayAddress(value).asNumPtr()
+actual fun Pinned<LongArray>.acquireLongAddress(): Ptr<Long> = NativePlatform.getLongArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float> =
-    NativePlatform.getFloatArrayAddress(value).asNumPtr()
+actual fun Pinned<FloatArray>.acquireFloatAddress(): Ptr<Float> = NativePlatform.getFloatArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double> =
-    NativePlatform.getDoubleArrayAddress(value).asNumPtr()
+actual fun Pinned<DoubleArray>.acquireDoubleAddress(): Ptr<Double> = NativePlatform.getDoubleArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<CharArray>.acquireCharAddress(): NumPtr<Char> = NativePlatform.getCharArrayAddress(value).asNumPtr()
+actual fun Pinned<CharArray>.acquireCharAddress(): Ptr<Char> = NativePlatform.getCharArrayAddress(value).asPtr()
 
 @DelicatePinningApi
-actual fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>) =
+actual fun Pinned<ByteArray>.releasePinnedByteAddress(address: Ptr<Byte>) =
     NativePlatform.releaseByteArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<ShortArray>.releasePinnedShortAddress(address: NumPtr<Short>) =
+actual fun Pinned<ShortArray>.releasePinnedShortAddress(address: Ptr<Short>) =
     NativePlatform.releaseShortArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<IntArray>.releasePinnedIntAddress(address: NumPtr<Int>) =
+actual fun Pinned<IntArray>.releasePinnedIntAddress(address: Ptr<Int>) =
     NativePlatform.releaseIntArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<LongArray>.releasePinnedLongAddress(address: NumPtr<Long>) =
+actual fun Pinned<LongArray>.releasePinnedLongAddress(address: Ptr<Long>) =
     NativePlatform.releaseLongArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>) =
+actual fun Pinned<FloatArray>.releasePinnedFloatAddress(address: Ptr<Float>) =
     NativePlatform.releaseFloatArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>) =
+actual fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: Ptr<Double>) =
     NativePlatform.releaseDoubleArrayAddress(value, address.asLong())
 
 @DelicatePinningApi
-actual fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>) =
+actual fun Pinned<CharArray>.releasePinnedCharAddress(address: Ptr<Char>) =
     NativePlatform.releaseCharArrayAddress(value, address.asLong())

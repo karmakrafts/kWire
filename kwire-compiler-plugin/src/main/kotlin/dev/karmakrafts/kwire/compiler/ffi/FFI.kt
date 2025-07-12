@@ -21,7 +21,9 @@ import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.load
+import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.toVararg
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.IrStatement
@@ -144,12 +146,17 @@ internal class FFI(
     )
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun getArgument(buffer: IrExpression, type: IrType): IrCall {
+    fun getArgument(buffer: IrExpression, type: IrType): IrExpression {
         val function = ffiArgBufferType.owner.functions.first { function ->
             if (!function.name.asString().startsWith("get")) return@first false
-            function.returnType == type
+            val returnType = function.returnType
+            returnType == type || (returnType.isPtr() && type.isPtr())
         }
-        return function.call(dispatchReceiver = buffer)
+        val result = function.call(dispatchReceiver = buffer)
+        if (result.type.isPtr()) {
+            return result.reinterpret(context, type)
+        }
+        return result
     }
 
     fun putArguments(buffer: IrExpression, argumentArray: IrExpression): IrCall {

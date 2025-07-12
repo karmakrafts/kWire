@@ -16,14 +16,14 @@
 
 package dev.karmakrafts.kwire.memory
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NFloatArray
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NIntArray
 import dev.karmakrafts.kwire.ctype.NUInt
+import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.PtrArray
-import dev.karmakrafts.kwire.ctype.VoidPtr
 import dev.karmakrafts.kwire.ctype.toCPointer
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.ctype.toPtr
@@ -58,294 +58,298 @@ import platform.posix.free as posixFree
 private object NativeMemory : Memory {
     override val defaultAlignment: NUInt = 16U.toNUInt()
 
-    override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {
+    override fun allocate(size: NUInt, alignment: NUInt): Ptr<CVoid> {
         return malloc(Memory.align(size, alignment).value.convert())!!.reinterpret<COpaque>().toPtr().align(alignment)
     }
 
-    override fun reallocate(address: Address, size: NUInt, alignment: NUInt): VoidPtr {
-        return realloc(address.toCPointer(), Memory.align(size, alignment).value.convert())!!.reinterpret<COpaque>()
+    override fun reallocate(address: Ptr<*>, size: NUInt, alignment: NUInt): Ptr<CVoid> {
+        return realloc(
+            address.reinterpret<CVoid>().toCPointer(), Memory.align(size, alignment).value.convert()
+        )!!.reinterpret<COpaque>().toPtr().align(alignment)
+    }
+
+    override fun free(address: Ptr<*>) {
+        posixFree(address.reinterpret<CVoid>().toCPointer())
+    }
+
+    override fun set(address: Ptr<*>, value: Byte, size: NUInt) {
+        memset(address.reinterpret<CVoid>().toCPointer(), value.toInt(), size.value.convert())
+    }
+
+    override fun copy(source: Ptr<*>, dest: Ptr<*>, size: NUInt) {
+        memcpy(dest.reinterpret<CVoid>().toCPointer(), source.reinterpret<CVoid>().toCPointer(), size.value.convert())
+    }
+
+    override fun copyOverlapping(source: Ptr<*>, dest: Ptr<*>, size: NUInt) {
+        memmove(dest.reinterpret<CVoid>().toCPointer(), source.reinterpret<CVoid>().toCPointer(), size.value.convert())
+    }
+
+    override fun compare(first: Ptr<*>, second: Ptr<*>, size: NUInt): Int {
+        return memcmp(
+            first.reinterpret<CVoid>().toCPointer(), second.reinterpret<CVoid>().toCPointer(), size.value.convert()
+        )
+    }
+
+    override fun strlen(address: Ptr<*>): NUInt {
+        return strlen_with_address(address.reinterpret<CVoid>().toCPointer()).toInt().toNUInt()
+    }
+
+    override fun strcpy(source: Ptr<*>, dest: Ptr<*>) {
+        strcpy_with_address(dest.reinterpret<CVoid>().toCPointer(), source.reinterpret<CVoid>().toCPointer())
+    }
+
+    override fun strcmp(first: Ptr<*>, second: Ptr<*>): Int {
+        return strcmp_with_address(first.reinterpret<CVoid>().toCPointer(), second.reinterpret<CVoid>().toCPointer())
+    }
+
+    override fun readByte(address: Ptr<*>): Byte {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<ByteVar>()[0]
+    }
+
+    override fun readShort(address: Ptr<*>): Short {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<ShortVar>()[0]
+    }
+
+    override fun readInt(address: Ptr<*>): Int {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<IntVar>()[0]
+    }
+
+    override fun readLong(address: Ptr<*>): Long {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<LongVar>()[0]
+    }
+
+    override fun readNInt(address: Ptr<*>): NInt {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<LongVar>()[0]
+    }
+
+    override fun readPointer(address: Ptr<*>): Ptr<CVoid> {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<COpaquePointerVar>()[0]!!.reinterpret<COpaque>()
             .toPtr()
-            .align(alignment)
     }
 
-    override fun free(address: Address) {
-        posixFree(address.toCPointer())
+    override fun readFloat(address: Ptr<*>): Float {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<FloatVar>()[0]
     }
 
-    override fun set(address: Address, value: Byte, size: NUInt) {
-        memset(address.toCPointer(), value.toInt(), size.value.convert())
+    override fun readDouble(address: Ptr<*>): Double {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<DoubleVar>()[0]
     }
 
-    override fun copy(source: Address, dest: Address, size: NUInt) {
-        memcpy(dest.toCPointer(), source.toCPointer(), size.value.convert())
+    override fun readNFloat(address: Ptr<*>): NFloat {
+        return address.reinterpret<CVoid>().toCPointer().reinterpret<DoubleVar>()[0]
     }
 
-    override fun copyOverlapping(source: Address, dest: Address, size: NUInt) {
-        memmove(dest.toCPointer(), source.toCPointer(), size.value.convert())
-    }
-
-    override fun compare(first: Address, second: Address, size: NUInt): Int {
-        return memcmp(first.toCPointer(), second.toCPointer(), size.value.convert())
-    }
-
-    override fun strlen(address: Address): NUInt {
-        return strlen_with_address(address.toCPointer()).toInt().toNUInt()
-    }
-
-    override fun strcpy(source: Address, dest: Address) {
-        strcpy_with_address(dest.toCPointer(), source.toCPointer())
-    }
-
-    override fun strcmp(first: Address, second: Address): Int {
-        return strcmp_with_address(first.toCPointer(), second.toCPointer())
-    }
-
-    override fun readByte(address: Address): Byte {
-        return address.toCPointer().reinterpret<ByteVar>()[0]
-    }
-
-    override fun readShort(address: Address): Short {
-        return address.toCPointer().reinterpret<ShortVar>()[0]
-    }
-
-    override fun readInt(address: Address): Int {
-        return address.toCPointer().reinterpret<IntVar>()[0]
-    }
-
-    override fun readLong(address: Address): Long {
-        return address.toCPointer().reinterpret<LongVar>()[0]
-    }
-
-    override fun readNInt(address: Address): NInt {
-        return address.toCPointer().reinterpret<LongVar>()[0]
-    }
-
-    override fun readPointer(address: Address): VoidPtr {
-        return address.toCPointer().reinterpret<COpaquePointerVar>()[0]!!.reinterpret<COpaque>().toPtr()
-    }
-
-    override fun readFloat(address: Address): Float {
-        return address.toCPointer().reinterpret<FloatVar>()[0]
-    }
-
-    override fun readDouble(address: Address): Double {
-        return address.toCPointer().reinterpret<DoubleVar>()[0]
-    }
-
-    override fun readNFloat(address: Address): NFloat {
-        return address.toCPointer().reinterpret<DoubleVar>()[0]
-    }
-
-    override fun readBytes(address: Address, data: ByteArray, dataStart: Int, dataEnd: Int) {
+    override fun readBytes(address: Ptr<*>, data: ByteArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Byte.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readShorts(address: Address, data: ShortArray, dataStart: Int, dataEnd: Int) {
+    override fun readShorts(address: Ptr<*>, data: ShortArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Short.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readInts(address: Address, data: IntArray, dataStart: Int, dataEnd: Int) {
+    override fun readInts(address: Ptr<*>, data: IntArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Int.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readLongs(address: Address, data: LongArray, dataStart: Int, dataEnd: Int) {
+    override fun readLongs(address: Ptr<*>, data: LongArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readNInts(address: Address, data: NIntArray, dataStart: Int, dataEnd: Int) {
+    override fun readNInts(address: Ptr<*>, data: NIntArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readFloats(address: Address, data: FloatArray, dataStart: Int, dataEnd: Int) {
+    override fun readFloats(address: Ptr<*>, data: FloatArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Float.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readDoubles(address: Address, data: DoubleArray, dataStart: Int, dataEnd: Int) {
+    override fun readDoubles(address: Ptr<*>, data: DoubleArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Double.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readNFloats(address: Address, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+    override fun readNFloats(address: Ptr<*>, data: NFloatArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Double.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun readPointers(address: Address, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
+    override fun readPointers(address: Ptr<*>, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
         data.value.value.usePinned { pinnedArray ->
             memcpy(
                 pinnedArray.addressOf(dataStart),
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeByte(address: Address, value: Byte) {
-        address.toCPointer().reinterpret<ByteVar>()[0] = value
+    override fun writeByte(address: Ptr<*>, value: Byte) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<ByteVar>()[0] = value
     }
 
-    override fun writeShort(address: Address, value: Short) {
-        address.toCPointer().reinterpret<ShortVar>()[0] = value
+    override fun writeShort(address: Ptr<*>, value: Short) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<ShortVar>()[0] = value
     }
 
-    override fun writeInt(address: Address, value: Int) {
-        address.toCPointer().reinterpret<IntVar>()[0] = value
+    override fun writeInt(address: Ptr<*>, value: Int) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<IntVar>()[0] = value
     }
 
-    override fun writeLong(address: Address, value: Long) {
-        address.toCPointer().reinterpret<LongVar>()[0] = value
+    override fun writeLong(address: Ptr<*>, value: Long) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<LongVar>()[0] = value
     }
 
-    override fun writeNInt(address: Address, value: NInt) {
-        address.toCPointer().reinterpret<LongVar>()[0] = value
+    override fun writeNInt(address: Ptr<*>, value: NInt) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<LongVar>()[0] = value
     }
 
-    override fun writePointer(address: Address, value: Address) {
-        address.toCPointer().reinterpret<COpaquePointerVar>()[0] = value.toCPointer()
+    override fun writePointer(address: Ptr<*>, value: Ptr<*>) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<COpaquePointerVar>()[0] =
+            value.reinterpret<CVoid>().toCPointer()
     }
 
-    override fun writeFloat(address: Address, value: Float) {
-        address.toCPointer().reinterpret<FloatVar>()[0] = value
+    override fun writeFloat(address: Ptr<*>, value: Float) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<FloatVar>()[0] = value
     }
 
-    override fun writeDouble(address: Address, value: Double) {
-        address.toCPointer().reinterpret<DoubleVar>()[0] = value
+    override fun writeDouble(address: Ptr<*>, value: Double) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<DoubleVar>()[0] = value
     }
 
-    override fun writeNFloat(address: Address, value: NFloat) {
-        address.toCPointer().reinterpret<DoubleVar>()[0] = value
+    override fun writeNFloat(address: Ptr<*>, value: NFloat) {
+        address.reinterpret<CVoid>().toCPointer().reinterpret<DoubleVar>()[0] = value
     }
 
-    override fun writeBytes(address: Address, data: ByteArray, dataStart: Int, dataEnd: Int) {
+    override fun writeBytes(address: Ptr<*>, data: ByteArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Byte.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeShorts(address: Address, data: ShortArray, dataStart: Int, dataEnd: Int) {
+    override fun writeShorts(address: Ptr<*>, data: ShortArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Short.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeInts(address: Address, data: IntArray, dataStart: Int, dataEnd: Int) {
+    override fun writeInts(address: Ptr<*>, data: IntArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Int.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeLongs(address: Address, data: LongArray, dataStart: Int, dataEnd: Int) {
+    override fun writeLongs(address: Ptr<*>, data: LongArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeNInts(address: Address, data: NIntArray, dataStart: Int, dataEnd: Int) {
+    override fun writeNInts(address: Ptr<*>, data: NIntArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeFloats(address: Address, data: FloatArray, dataStart: Int, dataEnd: Int) {
+    override fun writeFloats(address: Ptr<*>, data: FloatArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Float.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeDoubles(address: Address, data: DoubleArray, dataStart: Int, dataEnd: Int) {
+    override fun writeDoubles(address: Ptr<*>, data: DoubleArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Double.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writeNFloats(address: Address, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+    override fun writeNFloats(address: Ptr<*>, data: NFloatArray, dataStart: Int, dataEnd: Int) {
         data.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Double.SIZE_BYTES).convert()
             )
         }
     }
 
-    override fun writePointers(address: Address, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
+    override fun writePointers(address: Ptr<*>, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
         data.value.value.usePinned { pinnedArray ->
             memcpy(
-                address.toCPointer(),
+                address.reinterpret<CVoid>().toCPointer(),
                 pinnedArray.addressOf(dataStart),
                 ((dataEnd - dataStart) * Long.SIZE_BYTES).convert()
             )

@@ -37,9 +37,19 @@ internal class MemoryIntrinsicsTransformer(
 ) : IntrinsicTransformer(context, setOf( // @formatter:off
     KWireIntrinsicType.SIZE_OF,
     KWireIntrinsicType.ALIGN_OF,
-    KWireIntrinsicType.OFFSET_OF
+    KWireIntrinsicType.OFFSET_OF,
+    KWireIntrinsicType.DEFAULT
 )) {
     // @formatter:on
+    private fun emitDefault(call: IrCall): IrExpression {
+        val type = call.typeArguments.firstOrNull()
+        if (type == null) {
+            reportError("Could not determine type for default intrinsic", call)
+            return call
+        }
+        return type.computeMemoryLayout(context).emitDefault(context)
+    }
+
     private fun emitSizeOf(call: IrCall): IrExpression {
         val type = call.typeArguments.first() ?: return constNUInt(context, 0UL)
         val layout = type.computeMemoryLayout(context)
@@ -83,6 +93,7 @@ internal class MemoryIntrinsicsTransformer(
             KWireIntrinsicType.SIZE_OF -> emitSizeOf(expression)
             KWireIntrinsicType.ALIGN_OF -> emitAlignOf(expression)
             KWireIntrinsicType.OFFSET_OF -> emitOffsetOf(expression)
+            KWireIntrinsicType.DEFAULT -> emitDefault(expression)
             else -> error("Unsupported intrinsic type $type for MemoryIntrinsicTransformer")
         }
     }

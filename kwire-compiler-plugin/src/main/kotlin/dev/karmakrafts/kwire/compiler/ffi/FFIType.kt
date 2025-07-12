@@ -20,17 +20,21 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
+import dev.karmakrafts.kwire.compiler.util.isPtr
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.starProjectedType
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal enum class FFIType(
-    private val typeGetter: KWirePluginContext.() -> IrType
+    private val typeGetter: KWirePluginContext.() -> IrType,
+    private val typePredicate: KWirePluginContext.(IrType) -> Boolean
 ) {
     // @formatter:off
-    VOID    ({ irBuiltIns.unitType }),
+    VOID    ({ irBuiltIns.unitType }, { it.isUnit() }),
     BYTE    ({ irBuiltIns.byteType }),
     SHORT   ({ irBuiltIns.shortType }),
     INT     ({ irBuiltIns.intType }),
@@ -44,11 +48,16 @@ internal enum class FFIType(
     FLOAT   ({ irBuiltIns.floatType }),
     DOUBLE  ({ irBuiltIns.doubleType }),
     NFLOAT  ({ kwireSymbols.nFloatType.owner.expandedType }),
-    PTR     ({ kwireSymbols.addressType.defaultType });
+    PTR     ({ kwireSymbols.ptrType.starProjectedType }, { it.isPtr() });
     // @formatter:on
+
+    constructor(typeGetter: KWirePluginContext.() -> IrType) : this(
+        typeGetter, { it == typeGetter() })
 
     internal operator fun invoke(context: KWirePluginContext): IrExpression =
         getEnumValue(context.ffi.ffiTypeType) { name }
+
+    internal fun isType(context: KWirePluginContext, type: IrType): Boolean = context.typePredicate(type)
 
     internal fun getType(context: KWirePluginContext): IrType = context.typeGetter()
 
@@ -57,4 +66,4 @@ internal enum class FFIType(
 }
 
 internal fun IrType.getFFIType(context: KWirePluginContext): FFIType? =
-    FFIType.entries.find { it.getType(context) == this }
+    FFIType.entries.find { it.isType(context, this) }

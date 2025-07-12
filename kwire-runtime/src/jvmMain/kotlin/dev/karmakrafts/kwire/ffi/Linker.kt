@@ -19,8 +19,11 @@
 package dev.karmakrafts.kwire.ffi
 
 import dev.karmakrafts.kwire.Platform
-import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.toNUInt
+import dev.karmakrafts.kwire.ctype.CVoid
+import dev.karmakrafts.kwire.ctype.Const
+import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.nullptr
+import dev.karmakrafts.kwire.ctype.toPtr
 import java.lang.foreign.Arena
 import java.lang.foreign.SymbolLookup
 import java.nio.file.Path
@@ -28,7 +31,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.readSymbolicLink
-import kotlin.jvm.optionals.getOrNull
+import kotlin.jvm.optionals.getOrDefault
 
 private data class PanamaSharedLibraryHandle( // @formatter:off
     override val name: String,
@@ -86,9 +89,9 @@ private object PanamaLinker : Linker {
         return null
     }
 
-    override fun SharedLibraryHandle.findSymbol(name: String): VoidPtr? {
+    override fun SharedLibraryHandle.findSymbol(name: String): @Const Ptr<CVoid> {
         checkHandle<PanamaSharedLibraryHandle>()
-        return lookup.find(name).map { VoidPtr(it.address().toNUInt()) }.getOrNull()
+        return lookup.find(name).map { it.toPtr() }.getOrDefault(nullptr())
     }
 }
 

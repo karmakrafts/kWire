@@ -21,27 +21,27 @@ package dev.karmakrafts.kwire.ctype
 import java.lang.foreign.MemorySegment
 
 /**
- * Converts this [MemorySegment] to a [Address].
+ * Converts this [MemorySegment] to a [Ptr].
  *
  * This extension function creates a pointer that points to the same memory address as this memory segment.
  *
- * @return A [Address] that points to the same memory address as this memory segment.
+ * @return A [Ptr] that points to the same memory address as this memory segment.
  */
-inline fun MemorySegment.toPtr(): VoidPtr = address().asVoidPtr()
+inline fun MemorySegment.toPtr(): Ptr<CVoid> = address().asPtr()
 
 /**
- * Converts this [Address] to a [MemorySegment].
+ * Converts this [Ptr] to a [MemorySegment].
  *
  * This extension function creates a memory segment that points to the same memory address as this pointer.
  *
  * @return A [MemorySegment] that points to the same memory address as this pointer.
  */
-inline fun Address.toMemorySegment(): MemorySegment {
+inline fun Ptr<*>.toMemorySegment(): MemorySegment {
     return MemorySegment.ofAddress(rawAddress.value)
 }
 
 /**
- * Converts this [Address] to a [MemorySegment] with a specified size.
+ * Converts this [Ptr] to a [MemorySegment] with a specified size.
  *
  * This extension function creates a memory segment that points to the same memory address as this pointer
  * and has the specified size in bytes.
@@ -49,12 +49,12 @@ inline fun Address.toMemorySegment(): MemorySegment {
  * @param size The size of the memory segment in bytes as an [NUInt].
  * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
  */
-inline fun Address.toMemorySegment(size: NUInt): MemorySegment {
+inline fun Ptr<*>.toMemorySegment(size: NUInt): MemorySegment {
     return MemorySegment.ofAddress(rawAddress.value).reinterpret(size.value)
 }
 
 /**
- * Converts this [Address] to a [MemorySegment] with a specified size.
+ * Converts this [Ptr] to a [MemorySegment] with a specified size.
  *
  * This extension function creates a memory segment that points to the same memory address as this pointer
  * and has the specified size in bytes.
@@ -62,12 +62,12 @@ inline fun Address.toMemorySegment(size: NUInt): MemorySegment {
  * @param size The size of the memory segment in bytes as a [Long].
  * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
  */
-inline fun Address.toMemorySegment(size: Long): MemorySegment {
+inline fun Ptr<*>.toMemorySegment(size: Long): MemorySegment {
     return MemorySegment.ofAddress(rawAddress.value).reinterpret(size)
 }
 
 /**
- * Converts this [Address] to a [MemorySegment] with a specified size.
+ * Converts this [Ptr] to a [MemorySegment] with a specified size.
  *
  * This extension function creates a memory segment that points to the same memory address as this pointer
  * and has the specified size in bytes.
@@ -75,6 +75,6 @@ inline fun Address.toMemorySegment(size: Long): MemorySegment {
  * @param size The size of the memory segment in bytes as an [Int].
  * @return A [MemorySegment] that points to the same memory address as this pointer and has the specified size.
  */
-inline fun Address.toMemorySegment(size: Int): MemorySegment {
+inline fun Ptr<*>.toMemorySegment(size: Int): MemorySegment {
     return MemorySegment.ofAddress(rawAddress.value).reinterpret(size.toLong())
 }

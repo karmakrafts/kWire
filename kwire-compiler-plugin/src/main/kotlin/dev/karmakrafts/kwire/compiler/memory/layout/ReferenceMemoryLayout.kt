@@ -54,6 +54,10 @@ constructor(
         return constInt(context, 0) // Offset for references is always 0
     }
 
+    override fun emitDefault(context: KWirePluginContext): IrExpression {
+        error("Cannot create default value for reference")
+    }
+
     override fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression {
         error("Reading references from memory is not supported")
     }

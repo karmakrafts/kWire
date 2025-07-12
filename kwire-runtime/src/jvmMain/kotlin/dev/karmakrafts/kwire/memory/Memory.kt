@@ -18,15 +18,15 @@
 
 package dev.karmakrafts.kwire.memory
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.NFloat
 import dev.karmakrafts.kwire.ctype.NFloatArray
 import dev.karmakrafts.kwire.ctype.NInt
 import dev.karmakrafts.kwire.ctype.NIntArray
 import dev.karmakrafts.kwire.ctype.NUInt
+import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.PtrArray
-import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.asVoidPtr
+import dev.karmakrafts.kwire.ctype.asPtr
 import dev.karmakrafts.kwire.ctype.doubleArrayValue
 import dev.karmakrafts.kwire.ctype.floatArrayValue
 import dev.karmakrafts.kwire.ctype.toMemorySegment
@@ -43,7 +43,7 @@ import java.lang.foreign.ValueLayout
 import java.lang.invoke.MethodHandle
 
 private object PanamaMemory : Memory {
-    override val defaultAlignment: NUInt = if (Address.SIZE_BYTES == Int.SIZE_BYTES) 4U.toNUInt() else 16U.toNUInt()
+    override val defaultAlignment: NUInt = if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) 4U.toNUInt() else 16U.toNUInt()
 
     // @formatter:off
     private val malloc: MethodHandle =
@@ -67,40 +67,40 @@ private object PanamaMemory : Memory {
         SharedLibrary.cRuntime.getFunction("strcmp", FFIType.INT, FFIType.PTR, FFIType.PTR)
     // @formatter:on
 
-    override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {
+    override fun allocate(size: NUInt, alignment: NUInt): Ptr<CVoid> {
         return (malloc.invokeExact(Memory.align(size, alignment).value) as MemorySegment).toPtr().align(alignment)
     }
 
-    override fun reallocate(address: Address, size: NUInt, alignment: NUInt): VoidPtr {
+    override fun reallocate(address: Ptr<*>, size: NUInt, alignment: NUInt): Ptr<CVoid> {
         return (realloc.invokeExact(
             address.toMemorySegment(), Memory.align(size, alignment).value
         ) as MemorySegment).toPtr().align(alignment)
     }
 
-    override fun free(address: Address) {
+    override fun free(address: Ptr<*>) {
         free.invokeExact(address.toMemorySegment())
     }
 
-    override fun set(address: Address, value: Byte, size: NUInt) {
+    override fun set(address: Ptr<*>, value: Byte, size: NUInt) {
         address.toMemorySegment(size).fill(value)
     }
 
-    override fun copy(source: Address, dest: Address, size: NUInt) {
+    override fun copy(source: Ptr<*>, dest: Ptr<*>, size: NUInt) {
         // Discarding cast is required because of @PolymorphicSignature on invokeExact
         memcpy.invokeExact(dest.toMemorySegment(), source.toMemorySegment(), size.value) as MemorySegment
     }
 
-    override fun copyOverlapping(source: Address, dest: Address, size: NUInt) {
+    override fun copyOverlapping(source: Ptr<*>, dest: Ptr<*>, size: NUInt) {
         // Discarding cast is required because of @PolymorphicSignature on invokeExact
         memmove.invokeExact(dest.toMemorySegment(), source.toMemorySegment(), size.value) as MemorySegment
     }
 
-    override fun compare(first: Address, second: Address, size: NUInt): Int {
+    override fun compare(first: Ptr<*>, second: Ptr<*>, size: NUInt): Int {
         return memcmp.invokeExact(first.toMemorySegment(), second.toMemorySegment(), size.value) as Int
     }
 
-    override fun strlen(address: Address): NUInt {
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+    override fun strlen(address: Ptr<*>): NUInt {
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             (strlen.invokeExact(address.toMemorySegment()) as Int).toNUInt()
         }
         else {
@@ -108,51 +108,51 @@ private object PanamaMemory : Memory {
         }
     }
 
-    override fun strcpy(source: Address, dest: Address) {
+    override fun strcpy(source: Ptr<*>, dest: Ptr<*>) {
         // Discarding cast is required because of @PolymorphicSignature on invokeExact
         strcpy.invokeExact(dest.toMemorySegment(), source.toMemorySegment()) as MemorySegment
     }
 
-    override fun strcmp(first: Address, second: Address): Int {
+    override fun strcmp(first: Ptr<*>, second: Ptr<*>): Int {
         return strcmp.invokeExact(first.toMemorySegment(), second.toMemorySegment()) as Int
     }
 
-    override fun readByte(address: Address): Byte {
+    override fun readByte(address: Ptr<*>): Byte {
         return address.toMemorySegment(Byte.SIZE_BYTES).get(ValueLayout.JAVA_BYTE, 0L)
     }
 
-    override fun readShort(address: Address): Short {
+    override fun readShort(address: Ptr<*>): Short {
         return address.toMemorySegment(Short.SIZE_BYTES).get(ValueLayout.JAVA_SHORT_UNALIGNED, 0L)
     }
 
-    override fun readInt(address: Address): Int {
+    override fun readInt(address: Ptr<*>): Int {
         return address.toMemorySegment(Int.SIZE_BYTES).get(ValueLayout.JAVA_INT_UNALIGNED, 0L)
     }
 
-    override fun readLong(address: Address): Long {
+    override fun readLong(address: Ptr<*>): Long {
         return address.toMemorySegment(Long.SIZE_BYTES).get(ValueLayout.JAVA_LONG_UNALIGNED, 0L)
     }
 
-    override fun readNInt(address: Address): NInt {
-        val segment = address.toMemorySegment(Address.SIZE_BYTES)
+    override fun readNInt(address: Ptr<*>): NInt {
+        val segment = address.toMemorySegment(Ptr.SIZE_BYTES)
         return segment.get(ValueLayout.ADDRESS_UNALIGNED, 0L).address().toNInt()
     }
 
-    override fun readPointer(address: Address): VoidPtr {
-        return address.toMemorySegment(Address.SIZE_BYTES).get(AddressLayout.ADDRESS_UNALIGNED, 0L).toPtr()
+    override fun readPointer(address: Ptr<*>): Ptr<CVoid> {
+        return address.toMemorySegment(Ptr.SIZE_BYTES).get(AddressLayout.ADDRESS_UNALIGNED, 0L).toPtr()
     }
 
-    override fun readFloat(address: Address): Float {
+    override fun readFloat(address: Ptr<*>): Float {
         return address.toMemorySegment(Float.SIZE_BYTES).get(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L)
     }
 
-    override fun readDouble(address: Address): Double {
+    override fun readDouble(address: Ptr<*>): Double {
         return address.toMemorySegment(Double.SIZE_BYTES).get(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L)
     }
 
-    override fun readNFloat(address: Address): NFloat {
-        val segment = address.toMemorySegment(Address.SIZE_BYTES)
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+    override fun readNFloat(address: Ptr<*>): NFloat {
+        val segment = address.toMemorySegment(Ptr.SIZE_BYTES)
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             segment.get(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L).toNFloat()
         }
         else {
@@ -160,14 +160,14 @@ private object PanamaMemory : Memory {
         }
     }
 
-    override fun readBytes(address: Address, data: ByteArray, dataStart: Int, dataEnd: Int) {
+    override fun readBytes(address: Ptr<*>, data: ByteArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Byte.SIZE_BYTES), ValueLayout.JAVA_BYTE, 0L, data, dataStart, size
         )
     }
 
-    override fun readShorts(address: Address, data: ShortArray, dataStart: Int, dataEnd: Int) {
+    override fun readShorts(address: Ptr<*>, data: ShortArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Short.SIZE_BYTES),
@@ -179,33 +179,28 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun readInts(address: Address, data: IntArray, dataStart: Int, dataEnd: Int) {
+    override fun readInts(address: Ptr<*>, data: IntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Int.SIZE_BYTES), ValueLayout.JAVA_INT_UNALIGNED, 0L, data, dataStart, size
         )
     }
 
-    override fun readLongs(address: Address, data: LongArray, dataStart: Int, dataEnd: Int) {
+    override fun readLongs(address: Ptr<*>, data: LongArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Long.SIZE_BYTES), ValueLayout.JAVA_LONG_UNALIGNED, 0L, data, dataStart, size
         )
     }
 
-    override fun readNInts(address: Address, data: NIntArray, dataStart: Int, dataEnd: Int) {
+    override fun readNInts(address: Ptr<*>, data: NIntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            address.toMemorySegment(size * Address.SIZE_BYTES),
-            ValueLayout.ADDRESS_UNALIGNED,
-            0L,
-            data,
-            dataStart,
-            size
+            address.toMemorySegment(size * Ptr.SIZE_BYTES), ValueLayout.ADDRESS_UNALIGNED, 0L, data, dataStart, size
         )
     }
 
-    override fun readFloats(address: Address, data: FloatArray, dataStart: Int, dataEnd: Int) {
+    override fun readFloats(address: Ptr<*>, data: FloatArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Float.SIZE_BYTES),
@@ -217,7 +212,7 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun readDoubles(address: Address, data: DoubleArray, dataStart: Int, dataEnd: Int) {
+    override fun readDoubles(address: Ptr<*>, data: DoubleArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             address.toMemorySegment(size * Double.SIZE_BYTES),
@@ -229,9 +224,9 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun readNFloats(address: Address, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+    override fun readNFloats(address: Ptr<*>, data: NFloatArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
-        if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+        if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             MemorySegment.copy(
                 address.toMemorySegment(size * Float.SIZE_BYTES),
                 ValueLayout.JAVA_FLOAT_UNALIGNED,
@@ -253,10 +248,10 @@ private object PanamaMemory : Memory {
         }
     }
 
-    override fun readPointers(address: Address, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
+    override fun readPointers(address: Ptr<*>, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            address.toMemorySegment(size * Address.SIZE_BYTES),
+            address.toMemorySegment(size * Ptr.SIZE_BYTES),
             ValueLayout.ADDRESS_UNALIGNED,
             0L,
             data.value.value,
@@ -265,42 +260,42 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun writeByte(address: Address, value: Byte) {
+    override fun writeByte(address: Ptr<*>, value: Byte) {
         address.toMemorySegment(Byte.SIZE_BYTES).set(ValueLayout.JAVA_BYTE, 0L, value)
     }
 
-    override fun writeShort(address: Address, value: Short) {
+    override fun writeShort(address: Ptr<*>, value: Short) {
         address.toMemorySegment(Short.SIZE_BYTES).set(ValueLayout.JAVA_SHORT_UNALIGNED, 0L, value)
     }
 
-    override fun writeInt(address: Address, value: Int) {
+    override fun writeInt(address: Ptr<*>, value: Int) {
         address.toMemorySegment(Int.SIZE_BYTES).set(ValueLayout.JAVA_INT_UNALIGNED, 0L, value)
     }
 
-    override fun writeLong(address: Address, value: Long) {
+    override fun writeLong(address: Ptr<*>, value: Long) {
         address.toMemorySegment(Long.SIZE_BYTES).set(ValueLayout.JAVA_LONG_UNALIGNED, 0L, value)
     }
 
-    override fun writeNInt(address: Address, value: NInt) {
-        val segment = address.toMemorySegment(Address.SIZE_BYTES)
-        segment.set(ValueLayout.ADDRESS_UNALIGNED, 0L, value.asVoidPtr().toMemorySegment())
+    override fun writeNInt(address: Ptr<*>, value: NInt) {
+        val segment = address.toMemorySegment(Ptr.SIZE_BYTES)
+        segment.set(ValueLayout.ADDRESS_UNALIGNED, 0L, value.asPtr<CVoid>().toMemorySegment())
     }
 
-    override fun writePointer(address: Address, value: Address) {
-        address.toMemorySegment(Address.SIZE_BYTES).set(ValueLayout.ADDRESS_UNALIGNED, 0L, value.toMemorySegment())
+    override fun writePointer(address: Ptr<*>, value: Ptr<*>) {
+        address.toMemorySegment(Ptr.SIZE_BYTES).set(ValueLayout.ADDRESS_UNALIGNED, 0L, value.toMemorySegment())
     }
 
-    override fun writeFloat(address: Address, value: Float) {
+    override fun writeFloat(address: Ptr<*>, value: Float) {
         address.toMemorySegment(Float.SIZE_BYTES).set(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L, value)
     }
 
-    override fun writeDouble(address: Address, value: Double) {
+    override fun writeDouble(address: Ptr<*>, value: Double) {
         address.toMemorySegment(Double.SIZE_BYTES).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 0L, value)
     }
 
-    override fun writeNFloat(address: Address, value: NFloat) {
-        val segment = address.toMemorySegment(Address.SIZE_BYTES)
-        return if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+    override fun writeNFloat(address: Ptr<*>, value: NFloat) {
+        val segment = address.toMemorySegment(Ptr.SIZE_BYTES)
+        return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             segment.set(ValueLayout.JAVA_FLOAT_UNALIGNED, 0L, value.toFloat())
         }
         else {
@@ -308,14 +303,14 @@ private object PanamaMemory : Memory {
         }
     }
 
-    override fun writeBytes(address: Address, data: ByteArray, dataStart: Int, dataEnd: Int) {
+    override fun writeBytes(address: Ptr<*>, data: ByteArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data, dataStart, address.toMemorySegment(size * Byte.SIZE_BYTES), ValueLayout.JAVA_BYTE, 0L, size
         )
     }
 
-    override fun writeShorts(address: Address, data: ShortArray, dataStart: Int, dataEnd: Int) {
+    override fun writeShorts(address: Ptr<*>, data: ShortArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data,
@@ -327,33 +322,28 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun writeInts(address: Address, data: IntArray, dataStart: Int, dataEnd: Int) {
+    override fun writeInts(address: Ptr<*>, data: IntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data, dataStart, address.toMemorySegment(size * Int.SIZE_BYTES), ValueLayout.JAVA_INT_UNALIGNED, 0L, size
         )
     }
 
-    override fun writeLongs(address: Address, data: LongArray, dataStart: Int, dataEnd: Int) {
+    override fun writeLongs(address: Ptr<*>, data: LongArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data, dataStart, address.toMemorySegment(size * Long.SIZE_BYTES), ValueLayout.JAVA_LONG_UNALIGNED, 0L, size
         )
     }
 
-    override fun writeNInts(address: Address, data: NIntArray, dataStart: Int, dataEnd: Int) {
+    override fun writeNInts(address: Ptr<*>, data: NIntArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
-            data,
-            dataStart,
-            address.toMemorySegment(size * Address.SIZE_BYTES),
-            ValueLayout.ADDRESS_UNALIGNED,
-            0L,
-            size
+            data, dataStart, address.toMemorySegment(size * Ptr.SIZE_BYTES), ValueLayout.ADDRESS_UNALIGNED, 0L, size
         )
     }
 
-    override fun writeFloats(address: Address, data: FloatArray, dataStart: Int, dataEnd: Int) {
+    override fun writeFloats(address: Ptr<*>, data: FloatArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data,
@@ -365,7 +355,7 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun writeDoubles(address: Address, data: DoubleArray, dataStart: Int, dataEnd: Int) {
+    override fun writeDoubles(address: Ptr<*>, data: DoubleArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data,
@@ -377,9 +367,9 @@ private object PanamaMemory : Memory {
         )
     }
 
-    override fun writeNFloats(address: Address, data: NFloatArray, dataStart: Int, dataEnd: Int) {
+    override fun writeNFloats(address: Ptr<*>, data: NFloatArray, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
-        if (Address.SIZE_BYTES == Int.SIZE_BYTES) {
+        if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) {
             MemorySegment.copy(
                 data.floatArrayValue,
                 dataStart,
@@ -401,12 +391,12 @@ private object PanamaMemory : Memory {
         }
     }
 
-    override fun writePointers(address: Address, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
+    override fun writePointers(address: Ptr<*>, data: PtrArray<*>, dataStart: Int, dataEnd: Int) {
         val size = dataEnd - dataStart
         MemorySegment.copy(
             data.value.value,
             dataStart,
-            address.toMemorySegment(size * Address.SIZE_BYTES),
+            address.toMemorySegment(size * Ptr.SIZE_BYTES),
             ValueLayout.ADDRESS_UNALIGNED,
             0L,
             size

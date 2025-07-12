@@ -20,9 +20,10 @@ import co.touchlab.stately.concurrency.ThreadLocalRef
 import co.touchlab.stately.concurrency.value
 import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.ShutdownHandler
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.NUInt
-import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.asPtr
 import dev.karmakrafts.kwire.ctype.toNUInt
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -34,7 +35,7 @@ class MemoryStack private constructor() : Allocator {
     companion object {
         val stackSize: NUInt = 8192U.toNUInt()
         val stackAlignment: NUInt = Memory.defaultAlignment
-        private val headerSize: NUInt = Address.SIZE_BYTES.toNUInt()
+        private val headerSize: NUInt = Ptr.SIZE_BYTES.toNUInt()
         private val instance: ThreadLocalRef<MemoryStack> = ThreadLocalRef()
 
         @KWireCompilerApi
@@ -56,27 +57,27 @@ class MemoryStack private constructor() : Allocator {
         }
     }
 
-    private val address: VoidPtr = Memory.allocate(stackSize, stackAlignment)
-    private val frames: ArrayList<VoidPtr> = ArrayList()
-    var frameAddress: VoidPtr = address
+    private val address: Ptr<CVoid> = Memory.allocate(stackSize, stackAlignment)
+    private val frames: ArrayList<Ptr<CVoid>> = ArrayList()
+    var frameAddress: Ptr<CVoid> = address
         private set
 
     init {
         ShutdownHandler.register(AutoCloseable(::free))
     }
 
-    override fun allocate(size: NUInt, alignment: NUInt): VoidPtr {
+    override fun allocate(size: NUInt, alignment: NUInt): Ptr<CVoid> {
         val alignedSize = Memory.align(size, alignment)
         val address = frameAddress
-        frameAddress = frameAddress + alignedSize
+        frameAddress = (frameAddress.asNUInt() + alignedSize).asPtr()
         return address.align(alignment)
     }
 
-    override fun reallocate(address: Address, size: NUInt, alignment: NUInt): VoidPtr {
+    override fun reallocate(address: Ptr<*>, size: NUInt, alignment: NUInt): Ptr<CVoid> {
         return allocate(size, alignment)
     }
 
-    override fun free(address: Address) {}
+    override fun free(address: Ptr<*>) {}
 
     @KWireCompilerApi
     fun push(): MemoryStack {

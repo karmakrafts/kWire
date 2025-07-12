@@ -16,7 +16,7 @@
 
 package dev.karmakrafts.kwire.ffi
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.Ptr
 import org.lwjgl.system.libffi.LibFFI
 import java.lang.foreign.MemoryLayout
 import java.lang.foreign.ValueLayout
@@ -35,7 +35,7 @@ import org.lwjgl.system.libffi.FFIType as LibFFIType
  */
 private fun getPointerLayout(useSegments: Boolean = true): ValueLayout {
     if (useSegments) return ValueLayout.ADDRESS
-    return if (Address.SIZE_BYTES == Int.SIZE_BYTES) ValueLayout.JAVA_INT
+    return if (Ptr.SIZE_BYTES == Int.SIZE_BYTES) ValueLayout.JAVA_INT
     else ValueLayout.JAVA_LONG
 }
 
@@ -81,15 +81,15 @@ internal fun FFIType.toLibFFI(): LibFFIType = when (this) {
     FFIType.SHORT -> LibFFI.ffi_type_sint16
     FFIType.INT -> LibFFI.ffi_type_sint32
     FFIType.LONG -> LibFFI.ffi_type_sint64
-    FFIType.NINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_sint32 else LibFFI.ffi_type_sint64
+    FFIType.NINT -> if (Ptr.SIZE_BYTES == 4) LibFFI.ffi_type_sint32 else LibFFI.ffi_type_sint64
     FFIType.UBYTE -> LibFFI.ffi_type_uint8
     FFIType.USHORT -> LibFFI.ffi_type_uint16
     FFIType.UINT -> LibFFI.ffi_type_uint32
     FFIType.ULONG -> LibFFI.ffi_type_uint64
-    FFIType.NUINT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_uint64 else LibFFI.ffi_type_uint64
+    FFIType.NUINT -> if (Ptr.SIZE_BYTES == 4) LibFFI.ffi_type_uint64 else LibFFI.ffi_type_uint64
     FFIType.FLOAT -> LibFFI.ffi_type_float
     FFIType.DOUBLE -> LibFFI.ffi_type_double
-    FFIType.NFLOAT -> if (Address.SIZE_BYTES == 4) LibFFI.ffi_type_float else LibFFI.ffi_type_double
+    FFIType.NFLOAT -> if (Ptr.SIZE_BYTES == 4) LibFFI.ffi_type_float else LibFFI.ffi_type_double
     FFIType.PTR -> LibFFI.ffi_type_pointer
 }
 

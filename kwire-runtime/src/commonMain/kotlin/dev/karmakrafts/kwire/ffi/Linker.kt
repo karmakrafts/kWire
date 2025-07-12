@@ -16,8 +16,9 @@
 
 package dev.karmakrafts.kwire.ffi
 
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
-import dev.karmakrafts.kwire.ctype.VoidPtr
+import dev.karmakrafts.kwire.ctype.Ptr
 
 /**
  * Internal function to get the platform-specific implementation of the Linker interface.
@@ -71,5 +72,5 @@ internal interface Linker {
      * @return A pointer to the symbol if found, or null if the symbol could not be found
      *         in the library or if an error occurred during lookup.
      */
-    fun SharedLibraryHandle.findSymbol(name: String): @Const VoidPtr?
+    fun SharedLibraryHandle.findSymbol(name: String): @Const Ptr<CVoid>
 }

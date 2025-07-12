@@ -18,11 +18,9 @@
 
 package dev.karmakrafts.kwire.memory
 
-import dev.karmakrafts.kwire.ctype.Address
+import dev.karmakrafts.kwire.ctype.CVoid
 import dev.karmakrafts.kwire.ctype.Const
-import dev.karmakrafts.kwire.ctype.NumPtr
-import dev.karmakrafts.kwire.ctype.VoidPtr
-import dev.karmakrafts.kwire.ctype.reinterpretVoid
+import dev.karmakrafts.kwire.ctype.Ptr
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -36,24 +34,24 @@ annotation class DelicatePinningApi
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun acquireStableAddress(value: Any): @Const VoidPtr
+internal expect fun acquireStableAddress(value: Any): @Const Ptr<CVoid>
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun <T : Any> derefStableAddress(address: @Const Address): T
+internal expect fun <T : Any> derefStableAddress(address: @Const Ptr<*>): T
 
 @PublishedApi
 @DelicatePinningApi
-internal expect fun releaseStableAddress(address: @Const Address)
+internal expect fun releaseStableAddress(address: @Const Ptr<*>)
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(DelicatePinningApi::class)
 @JvmInline
-value class StableRef<T : Any> @PublishedApi internal constructor(val address: @Const VoidPtr) {
+value class StableRef<T : Any> @PublishedApi internal constructor(val address: @Const Ptr<CVoid>) {
     companion object {
         inline fun <T : Any> create(value: T): StableRef<T> = StableRef(acquireStableAddress(value))
 
-        inline fun <T : Any> from(address: Address): StableRef<T> = StableRef(address.reinterpretVoid())
+        inline fun <T : Any> from(address: Ptr<CVoid>): StableRef<T> = StableRef(address.reinterpret())
     }
 
     inline val value: T get() = derefStableAddress(address)
@@ -75,49 +73,49 @@ expect fun <T : Any> T.pin(): Pinned<T>
 expect fun unpin(pinned: Pinned<out Any>)
 
 @DelicatePinningApi
-expect fun Pinned<ByteArray>.acquireByteAddress(): NumPtr<Byte>
+expect fun Pinned<ByteArray>.acquireByteAddress(): Ptr<Byte>
 
 @DelicatePinningApi
-expect fun Pinned<ShortArray>.acquireShortAddress(): NumPtr<Short>
+expect fun Pinned<ShortArray>.acquireShortAddress(): Ptr<Short>
 
 @DelicatePinningApi
-expect fun Pinned<IntArray>.acquireIntAddress(): NumPtr<Int>
+expect fun Pinned<IntArray>.acquireIntAddress(): Ptr<Int>
 
 @DelicatePinningApi
-expect fun Pinned<LongArray>.acquireLongAddress(): NumPtr<Long>
+expect fun Pinned<LongArray>.acquireLongAddress(): Ptr<Long>
 
 @DelicatePinningApi
-expect fun Pinned<FloatArray>.acquireFloatAddress(): NumPtr<Float>
+expect fun Pinned<FloatArray>.acquireFloatAddress(): Ptr<Float>
 
 @DelicatePinningApi
-expect fun Pinned<DoubleArray>.acquireDoubleAddress(): NumPtr<Double>
+expect fun Pinned<DoubleArray>.acquireDoubleAddress(): Ptr<Double>
 
 @DelicatePinningApi
-expect fun Pinned<CharArray>.acquireCharAddress(): NumPtr<Char>
+expect fun Pinned<CharArray>.acquireCharAddress(): Ptr<Char>
 
 @DelicatePinningApi
-expect fun Pinned<ByteArray>.releasePinnedByteAddress(address: NumPtr<Byte>)
+expect fun Pinned<ByteArray>.releasePinnedByteAddress(address: Ptr<Byte>)
 
 @DelicatePinningApi
-expect fun Pinned<ShortArray>.releasePinnedShortAddress(address: NumPtr<Short>)
+expect fun Pinned<ShortArray>.releasePinnedShortAddress(address: Ptr<Short>)
 
 @DelicatePinningApi
-expect fun Pinned<IntArray>.releasePinnedIntAddress(address: NumPtr<Int>)
+expect fun Pinned<IntArray>.releasePinnedIntAddress(address: Ptr<Int>)
 
 @DelicatePinningApi
-expect fun Pinned<LongArray>.releasePinnedLongAddress(address: NumPtr<Long>)
+expect fun Pinned<LongArray>.releasePinnedLongAddress(address: Ptr<Long>)
 
 @DelicatePinningApi
-expect fun Pinned<FloatArray>.releasePinnedFloatAddress(address: NumPtr<Float>)
+expect fun Pinned<FloatArray>.releasePinnedFloatAddress(address: Ptr<Float>)
 
 @DelicatePinningApi
-expect fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: NumPtr<Double>)
+expect fun Pinned<DoubleArray>.releasePinnedDoubleAddress(address: Ptr<Double>)
 
 @DelicatePinningApi
-expect fun Pinned<CharArray>.releasePinnedCharAddress(address: NumPtr<Char>)
+expect fun Pinned<CharArray>.releasePinnedCharAddress(address: Ptr<Char>)
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
+inline fun <reified R> ByteArray.fixed(block: (Ptr<Byte>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -133,7 +131,7 @@ inline fun <reified R> ByteArray.fixed(block: (NumPtr<Byte>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
+inline fun <reified R> ShortArray.fixed(block: (Ptr<Short>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -149,7 +147,7 @@ inline fun <reified R> ShortArray.fixed(block: (NumPtr<Short>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
+inline fun <reified R> IntArray.fixed(block: (Ptr<Int>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -165,7 +163,7 @@ inline fun <reified R> IntArray.fixed(block: (NumPtr<Int>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
+inline fun <reified R> LongArray.fixed(block: (Ptr<Long>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -181,7 +179,7 @@ inline fun <reified R> LongArray.fixed(block: (NumPtr<Long>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
+inline fun <reified R> FloatArray.fixed(block: (Ptr<Float>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -197,7 +195,7 @@ inline fun <reified R> FloatArray.fixed(block: (NumPtr<Float>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
+inline fun <reified R> DoubleArray.fixed(block: (Ptr<Double>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -213,7 +211,7 @@ inline fun <reified R> DoubleArray.fixed(block: (NumPtr<Double>) -> R): R {
 }
 
 @OptIn(DelicatePinningApi::class)
-inline fun <reified R> CharArray.fixed(block: (NumPtr<Char>) -> R): R {
+inline fun <reified R> CharArray.fixed(block: (Ptr<Char>) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

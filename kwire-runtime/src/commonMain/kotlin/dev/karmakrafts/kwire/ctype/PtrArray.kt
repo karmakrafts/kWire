@@ -32,13 +32,11 @@ import kotlin.jvm.JvmInline
  * @param P The type of address that the pointers in this array represent
  */
 @JvmInline
-value class PtrArray<P : Address> @PublishedApi internal constructor(
+value class PtrArray<P : Ptr<*>> @PublishedApi internal constructor(
     /**
      * The underlying array of native unsigned integers that store the raw addresses.
      */
-    @param:KWireCompilerApi
-    @property:KWireCompilerApi
-    val value: NUIntArray
+    @param:KWireCompilerApi @property:KWireCompilerApi val value: NUIntArray
 ) {
     /**
      * Creates a new pointer array with the specified size and initializer function.
@@ -87,4 +85,4 @@ value class PtrArray<P : Address> @PublishedApi internal constructor(
  * @param pointers The pointers to include in the array
  * @return A new pointer array containing the specified pointers
  */
-inline fun <P : Address> ptrArrayOf(vararg pointers: P): PtrArray<P> = PtrArray(pointers.size) { pointers[it] }
+inline fun <P : Ptr<*>> ptrArrayOf(vararg pointers: P): PtrArray<P> = PtrArray(pointers.size) { pointers[it] }

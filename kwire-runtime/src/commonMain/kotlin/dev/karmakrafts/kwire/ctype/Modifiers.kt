@@ -19,15 +19,24 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
+ * Used as a constraint on generic parameters to denote that the
+ * given type has to be one of the following:
+ *  - [Byte], [Short], [Int], [Long] or [NInt]
+ *  - [UByte], [UShort], [UInt], [ULong] or [NUInt]
+ *  - [Float], [Double] or [NFloat]
+ *  - [Char]
+ *  - [CVoid], [CFn] or [Ptr]
+ *  - any subtype of [Struct]
+ */
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.TYPE_PARAMETER)
+annotation class ValueType
+
+/**
  * A marker annotation for pointer types.
  *
- * This annotation may be applied to [FunPtr], [NumPtr] or [Ptr] types
+ * This annotation may be applied to [Ptr] types
  * to indicate that whatever they are pointing to may not be mutated.
- *  - For [FunPtr], constness only exists for static analysis purposes and to allow smooth interop
- *  - For [NumPtr], constness restrictions apply to any mutating operation like [NumPtr.set] or
- *    other member functions of [NumPtr] which are not annotated with [Const]
- *  - For [Ptr], constness restrictions apply to any mutating operation like [Ptr.set] or
- *    other member functions of [Ptr] which are not annotated with [Const]
  */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
@@ -35,7 +44,7 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 annotation class Const
 
 /**
- * Marker annotation for member functions of subtypes of [Pointed]
+ * Marker annotation for member functions of value types
  * which permit calls when the aforementioned type is marked with [Const].
  * This also includes extension receivers of that type.
  */
@@ -46,7 +55,7 @@ annotation class ConstCallable
 
 /**
  * Marker annotation for types which may be used within
- * subtypes [Pointed]. This also includes extension receivers
+ * value types. This also includes extension receivers
  * of that type.
  */
 @KWireCompilerApi

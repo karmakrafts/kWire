@@ -17,9 +17,10 @@
 package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.checker.ConstChecker
-import dev.karmakrafts.kwire.compiler.checker.FunPtrChecker
-import dev.karmakrafts.kwire.compiler.checker.NumPtrChecker
+import dev.karmakrafts.kwire.compiler.checker.PtrCFnChecker
+import dev.karmakrafts.kwire.compiler.checker.PtrCVoidChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
+import dev.karmakrafts.kwire.compiler.checker.ValueTypeChecker
 import dev.karmakrafts.kwire.compiler.optimizer.JvmDowncallOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.NativeDowncallOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.PtrOptimizer
@@ -43,9 +44,10 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
 
             // Validation
             file.acceptVoid(StructChecker(kwireContext))
-            file.acceptVoid(NumPtrChecker(kwireContext))
-            file.acceptVoid(FunPtrChecker(kwireContext))
             file.acceptVoid(ConstChecker(kwireContext))
+            file.acceptVoid(PtrCVoidChecker(kwireContext))
+            file.acceptVoid(PtrCFnChecker(kwireContext))
+            file.acceptVoid(ValueTypeChecker(kwireContext))
             if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
 
             // Generation
