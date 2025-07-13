@@ -27,7 +27,7 @@ import kotlin.native.ref.WeakReference
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 private object ShutdownHandlerImpl : ShutdownHandler {
-    private val objects: ArrayDeque<WeakReference<AutoCloseable>> = ArrayDeque()
+    private val objects: ArrayDeque<Pair<Any, WeakReference<AutoCloseable>>> = ArrayDeque()
     private val objectsMutex: Mutex = Mutex()
 
     init {
@@ -41,21 +41,23 @@ private object ShutdownHandlerImpl : ShutdownHandler {
     private fun closeAll() = runBlocking {
         objectsMutex.withLock {
             while (objects.isNotEmpty()) {
-                objects.removeFirst().value?.close()
+                val (_, ref) = objects.removeFirst()
+                ref.value?.close()
             }
             objects.clear()
         }
     }
 
-    override fun register(closeable: AutoCloseable) = runBlocking {
+    override fun register(closeable: AutoCloseable, key: Any) = runBlocking {
         objectsMutex.withLock {
-            objects += WeakReference(closeable)
+            if (objects.any { it.first == key }) return@withLock
+            objects += Pair(key, WeakReference(closeable))
         }
     }
 
     override fun unregister(closeable: AutoCloseable): Unit = runBlocking {
         objectsMutex.withLock {
-            objects.find { it.value == closeable }?.let(objects::remove)
+            objects.find { it.second.value === closeable }?.let(objects::remove)
         }
     }
 }

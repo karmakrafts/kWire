@@ -19,7 +19,7 @@ package dev.karmakrafts.kwire.compiler.checker
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.isValueType
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.ir.util.render
 internal class ValueTypeChecker( // @formatter:off
     context: KWirePluginContext,
 ) : TypeUsageChecker(context) { // @formatter:on
-    override fun checkType(declaration: IrDeclaration, type: IrType) {
+    override fun checkType(declaration: IrElement, type: IrType) {
         if (type !is IrSimpleType) return
         val clazz = type.getClass() ?: return
         val parameters = clazz.typeParameters

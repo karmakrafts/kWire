@@ -22,15 +22,22 @@ import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
+import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.classifierOrNull
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.isNullable
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.isTypeParameter
@@ -71,7 +78,7 @@ internal fun IrType.resolveFromReceiver(call: IrCall): IrType? {
         val classTypeParam = dispatchClass.typeParameters.find { it == typeParam } ?: return null
         return parentType.arguments[classTypeParam.index].typeOrNull
     }
-    // First attempt to resolve via dispatcher reseiver, then extension receiver
+    // First attempt to resolve via dispatcher receiver, then extension receiver
     return call.dispatchReceiver?.type?.let(::tryResolve)
         ?: call.arguments[call.target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]?.type?.let(::tryResolve)
 }
@@ -90,4 +97,26 @@ internal fun IrType.isValueType(context: KWirePluginContext): Boolean {
         return hasAnnotation(KWireNames.ValueType.id)
     }
     return computeMemoryLayout(context) !is ReferenceMemoryLayout || isCFn()
+}
+
+internal fun IrType.markedConst(context: KWirePluginContext): IrType {
+    return IrSimpleTypeImpl(
+        classifier = classifierOrFail,
+        nullability = if (isNullable()) SimpleTypeNullability.MARKED_NULLABLE else SimpleTypeNullability.DEFINITELY_NOT_NULL,
+        arguments = if (this is IrSimpleType) arguments.toList() else emptyList(),
+        annotations = listOf(
+            IrConstructorCallImplWithShape(
+                startOffset = SYNTHETIC_OFFSET,
+                endOffset = SYNTHETIC_OFFSET,
+                type = context.kwireSymbols.constType.defaultType,
+                symbol = context.kwireSymbols.constConstructor,
+                typeArgumentsCount = 0,
+                constructorTypeArgumentsCount = 0,
+                valueArgumentsCount = 0,
+                contextParameterCount = 0,
+                hasDispatchReceiver = false,
+                hasExtensionReceiver = false
+            )
+        )
+    )
 }

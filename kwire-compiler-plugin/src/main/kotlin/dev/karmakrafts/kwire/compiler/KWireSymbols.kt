@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.util.KWireNames
+import dev.karmakrafts.kwire.compiler.util.markedConst
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -25,6 +26,8 @@ import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.isVararg
 
 internal class KWireSymbols(
@@ -68,4 +71,12 @@ internal class KWireSymbols(
     val uShortType: IrClassSymbol = context.referenceClass(KWireNames.Kotlin.UShort.id)!!
     val uIntType: IrClassSymbol = context.referenceClass(KWireNames.Kotlin.UInt.id)!!
     val uLongType: IrClassSymbol = context.referenceClass(KWireNames.Kotlin.ULong.id)!!
+
+    val sharedLibraryType: IrClassSymbol = context.referenceClass(KWireNames.SharedLibrary.id)!!
+    val sharedLibraryCompanionType: IrClassSymbol = context.referenceClass(KWireNames.SharedLibrary.Companion.id)!!
+    val sharedLibraryOpen: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.SharedLibrary.Companion.open).first()
+    val sharedLibraryGetFunctionAddress: IrSimpleFunctionSymbol = context.referenceFunctions(KWireNames.SharedLibrary.getFunctionAddress).first()
+
+    val constType: IrClassSymbol = context.referenceClass(KWireNames.Const.id)!!
+    val constConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.Const.id).first()
 }

@@ -16,6 +16,9 @@
 
 package dev.karmakrafts.kwire
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 /**
  * Internal function to get the platform-specific implementation of the ShutdownHandler interface.
  *
@@ -33,6 +36,7 @@ internal expect fun getPlatformShutdownHandler(): ShutdownHandler
  * that should be automatically closed when the application terminates. This ensures proper
  * cleanup of resources like native memory, file handles, and other system resources.
  */
+@OptIn(ExperimentalUuidApi::class)
 interface ShutdownHandler {
     /**
      * Companion object that delegates to the platform-specific ShutdownHandler implementation.
@@ -46,8 +50,9 @@ interface ShutdownHandler {
      * Registers an AutoCloseable resource to be closed when the application shuts down.
      *
      * @param closeable The AutoCloseable resource to register for automatic closing
+     * @param key A key by which the given entry is deduplicated if registered more than once.
      */
-    fun register(closeable: AutoCloseable)
+    fun register(closeable: AutoCloseable, key: Any = Uuid.random())
 
     /**
      * Unregisters an AutoCloseable resource from being closed when the application shuts down.

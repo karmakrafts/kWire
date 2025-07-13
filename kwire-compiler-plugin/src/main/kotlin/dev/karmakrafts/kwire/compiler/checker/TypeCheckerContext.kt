@@ -16,10 +16,6 @@
 
 package dev.karmakrafts.kwire.compiler.checker
 
-import dev.karmakrafts.kwire.compiler.KWirePluginContext
-
-internal class ConstChecker(
-    context: KWirePluginContext
-) : AbstractChecker<Nothing?>(context) {
+internal class TypeCheckerContext {
 
 }

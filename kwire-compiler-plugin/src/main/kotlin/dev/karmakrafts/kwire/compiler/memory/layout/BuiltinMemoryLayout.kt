@@ -39,8 +39,6 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.types.starProjectedType
-import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.toIrConst
 
@@ -184,9 +182,9 @@ internal enum class BuiltinMemoryLayout(
     // Pointer types
 
     PTR("dev.karmakrafts.kwire.ctype.Ptr",
-        { kwireSymbols.ptrType.starProjectedType },
+        { anyPtr },
         { it.emitPointerSize() },
-        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.ptrType.typeWith(it.irBuiltIns.unitType) } },
+        { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.voidPtr } },
         BuiltinMemoryOps::write);
     // @formatter:on
 
@@ -222,9 +220,7 @@ internal enum class BuiltinMemoryLayout(
             FLOAT -> 0F.toIrConst(context.irBuiltIns.floatType)
             DOUBLE -> 0.0.toIrConst(context.irBuiltIns.doubleType)
             NFLOAT -> constNFloat(context, 0.0)
-            PTR -> constNUInt(context, 0UL).reinterpret(
-                context, context.kwireSymbols.ptrType.typeWith(context.irBuiltIns.unitType)
-            )
+            PTR -> constNUInt(context, 0UL).reinterpret(context, context.voidPtr)
         }
     }
 

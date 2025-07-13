@@ -20,12 +20,13 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentLinkedDeque
 
 internal actual fun getPlatformShutdownHandler(): ShutdownHandler = object : ShutdownHandler {
-    private val objects: ConcurrentLinkedDeque<WeakReference<AutoCloseable>> = ConcurrentLinkedDeque()
+    private val objects: ConcurrentLinkedDeque<Pair<Any, WeakReference<AutoCloseable>>> = ConcurrentLinkedDeque()
 
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
             while (objects.isNotEmpty()) {
-                objects.removeFirst().get()?.close()
+                val (_, ref) = objects.removeFirst()
+                ref.get()?.close()
             }
             objects.clear()
         }.apply {
@@ -33,11 +34,12 @@ internal actual fun getPlatformShutdownHandler(): ShutdownHandler = object : Shu
         })
     }
 
-    override fun register(closeable: AutoCloseable) {
-        objects += WeakReference(closeable)
+    override fun register(closeable: AutoCloseable, key: Any) {
+        if (objects.any { it.first == key }) return
+        objects += Pair(key, WeakReference(closeable))
     }
 
     override fun unregister(closeable: AutoCloseable) {
-        objects.removeIf { it.get() == closeable }
+        objects.removeIf { it.second.get() === closeable }
     }
 }

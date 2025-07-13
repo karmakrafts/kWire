@@ -19,6 +19,7 @@
 package dev.karmakrafts.kwire.ffi
 
 import co.touchlab.stately.collections.ConcurrentMutableMap
+import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.Platform
 import dev.karmakrafts.kwire.ShutdownHandler
 import dev.karmakrafts.kwire.ctype.CVoid
@@ -69,6 +70,7 @@ internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkH
  *
  * @property handle The platform-specific handle to the loaded library
  */
+@KWireCompilerApi
 class SharedLibrary internal constructor(
     private val handle: SharedLibraryHandle
 ) : AutoCloseable {
@@ -78,6 +80,7 @@ class SharedLibrary internal constructor(
      * This allows for convenient access to library loading functionality without
      * requiring an instance of the class.
      */
+    @KWireCompilerApi
     companion object {
         internal val openLibraries: ConcurrentMutableMap<String, SharedLibrary> = ConcurrentMutableMap()
 
@@ -174,6 +177,7 @@ class SharedLibrary internal constructor(
          * @return A SharedLibrary instance representing the loaded library
          * @throws IllegalArgumentException if none of the libraries could be loaded
          */
+        @KWireCompilerApi
         fun open(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary {
             return requireNotNull(tryOpen(names, linkMode)) { "Could not open library $names" }
         }
@@ -200,7 +204,7 @@ class SharedLibrary internal constructor(
      * @param name The name of the function to find
      * @return The memory address of the function, or null if the function was not found
      */
-    fun findFunctionAddress(name: String): @Const Ptr<CVoid>? {
+    fun findFunctionAddress(name: String): @Const Ptr<CVoid> {
         return with(Linker) { handle.findSymbol(name) }
     }
 
@@ -225,7 +229,7 @@ class SharedLibrary internal constructor(
      *
      * @return This SharedLibrary instance for method chaining
      */
-    fun closeOnExit() = ShutdownHandler.register(this)
+    fun closeOnExit() = ShutdownHandler.register(this, "shared-lib-${handle.name}")
 
     /**
      * Closes this library, releasing any resources associated with it.
@@ -235,7 +239,9 @@ class SharedLibrary internal constructor(
      * close the library when the application exits.
      */
     override fun close() {
+        val name = handle.name
+        if(name !in openLibraries) return // Don't close any library twice
         handle.close()
-        openLibraries -= handle.name
+        openLibraries -= name
     }
 }

@@ -29,9 +29,9 @@ import org.jetbrains.kotlin.ir.util.target
  */
 internal class PtrCFnChecker(
     context: KWirePluginContext
-) : AbstractChecker(context) {
-    override fun visitCall(expression: IrCall) {
-        super.visitCall(expression)
+) : AbstractChecker<Nothing?>(context) {
+    override fun visitCall(expression: IrCall, data: Nothing?) {
+        super.visitCall(expression, data)
 
         val function = expression.target
         val intrinsicType = function.getIntrinsicType() ?: return

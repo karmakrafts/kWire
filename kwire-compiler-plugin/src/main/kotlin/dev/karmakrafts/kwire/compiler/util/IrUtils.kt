@@ -452,7 +452,7 @@ internal fun IrFieldSymbol.load(receiver: IrExpression? = null): IrGetField = Ir
     receiver = receiver
 ) // @formatter:on
 
-internal fun IrField.load(): IrGetField = symbol.load()
+internal fun IrField.load(receiver: IrExpression? = null): IrGetField = symbol.load(receiver)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off

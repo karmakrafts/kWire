@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.types.starProjectedType
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal enum class FFIType(
@@ -48,7 +47,7 @@ internal enum class FFIType(
     FLOAT   ({ irBuiltIns.floatType }),
     DOUBLE  ({ irBuiltIns.doubleType }),
     NFLOAT  ({ kwireSymbols.nFloatType.owner.expandedType }),
-    PTR     ({ kwireSymbols.ptrType.starProjectedType }, { it.isPtr() });
+    PTR     ({ anyPtr }, { it.isPtr() });
     // @formatter:on
 
     constructor(typeGetter: KWirePluginContext.() -> IrType) : this(

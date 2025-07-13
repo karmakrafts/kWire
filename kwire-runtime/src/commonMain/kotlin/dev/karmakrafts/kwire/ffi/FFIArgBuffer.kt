@@ -132,7 +132,7 @@ interface FFIArgBuffer {
      * @param value The pointer value to store
      */
     @KWireCompilerApi
-    fun putPointer(value: Ptr<CVoid>)
+    fun putPointer(value: Ptr<*>)
 
     /**
      * Puts a float value into the buffer.
@@ -273,7 +273,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
             is NUInt -> putNUInt(argument)
             is Float -> putFloat(argument)
             is Double -> putDouble(argument)
-            is Ptr<*> -> putPointer(argument.reinterpret())
+            is Ptr<*> -> putPointer(argument)
         }
     }
 
@@ -302,7 +302,7 @@ internal class FFIArgBufferImpl @PublishedApi internal constructor(
         types += FFIType.NINT
     }
 
-    override fun putPointer(value: Ptr<CVoid>) {
+    override fun putPointer(value: Ptr<*>) {
         stackFrame.pointer(value)
         types += FFIType.PTR
     }

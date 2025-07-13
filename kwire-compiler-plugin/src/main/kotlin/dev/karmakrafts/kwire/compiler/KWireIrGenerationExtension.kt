@@ -29,6 +29,7 @@ import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
+import dev.karmakrafts.kwire.compiler.transformer.SharedImportContext
 import dev.karmakrafts.kwire.compiler.transformer.SharedImportTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -44,14 +45,14 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
 
             // Validation
             file.acceptVoid(StructChecker(kwireContext))
-            file.acceptVoid(ConstChecker(kwireContext))
-            file.acceptVoid(PtrCVoidChecker(kwireContext))
-            file.acceptVoid(PtrCFnChecker(kwireContext))
-            file.acceptVoid(ValueTypeChecker(kwireContext))
+            file.accept(ConstChecker(kwireContext), null)
+            file.accept(PtrCVoidChecker(kwireContext), null)
+            file.accept(PtrCFnChecker(kwireContext), null)
+            file.accept(ValueTypeChecker(kwireContext), null)
             if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
 
             // Generation
-            file.acceptVoid(SharedImportTransformer(kwireContext))
+            file.accept(SharedImportTransformer(kwireContext), SharedImportContext(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))
 
             // Optimization pre-processing passes

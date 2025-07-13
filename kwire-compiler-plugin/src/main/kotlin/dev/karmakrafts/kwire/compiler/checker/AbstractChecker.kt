@@ -20,12 +20,11 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.IrVisitor
 
-internal abstract class AbstractChecker(
+internal abstract class AbstractChecker<D>(
     protected val context: KWirePluginContext
-) : IrVisitorVoid(), MessageCollectorExtensions by context {
+) : IrVisitor<Unit, D>(), MessageCollectorExtensions by context {
     override fun reportError(message: String, location: CompilerMessageLocation?) {
         super.reportError(message, location)
         context.checkerFailed = true
@@ -36,7 +35,7 @@ internal abstract class AbstractChecker(
         context.checkerFailed = true
     }
 
-    override fun visitElement(element: IrElement) {
-        element.acceptChildrenVoid(this)
+    override fun visitElement(element: IrElement, data: D) {
+        element.acceptChildren(this, data)
     }
 }

@@ -17,22 +17,24 @@
 package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeOrNull
 
 internal abstract class TypeUsageChecker(
     context: KWirePluginContext
-) : AbstractChecker(context) {
-    abstract fun checkType(declaration: IrDeclaration, type: IrType)
+) : AbstractChecker<Nothing?>(context) {
+    abstract fun checkType(declaration: IrElement, type: IrType)
 
-    private fun checkTypeRecursively(declaration: IrDeclaration, type: IrType) {
+    private fun checkTypeRecursively(declaration: IrElement, type: IrType) {
         checkType(declaration, type)
         if (type !is IrSimpleType) return
         for (typeArgument in type.arguments) {
@@ -41,28 +43,29 @@ internal abstract class TypeUsageChecker(
         }
     }
 
-    override fun visitValueParameter(declaration: IrValueParameter) {
-        super.visitValueParameter(declaration)
+    override fun visitValueParameter(declaration: IrValueParameter, data: Nothing?) {
+        super.visitValueParameter(declaration, data)
         checkTypeRecursively(declaration, declaration.type)
     }
 
-    override fun visitTypeAlias(declaration: IrTypeAlias) {
-        super.visitTypeAlias(declaration)
+    override fun visitTypeAlias(declaration: IrTypeAlias, data: Nothing?) {
+        super.visitTypeAlias(declaration, data)
         checkTypeRecursively(declaration, declaration.expandedType)
     }
 
-    override fun visitField(declaration: IrField) {
-        super.visitField(declaration)
+    override fun visitField(declaration: IrField, data: Nothing?) {
+        super.visitField(declaration, data)
         checkTypeRecursively(declaration, declaration.type)
     }
 
-    override fun visitVariable(declaration: IrVariable) {
-        super.visitVariable(declaration)
+    override fun visitVariable(declaration: IrVariable, data: Nothing?) {
+        super.visitVariable(declaration, data)
         checkTypeRecursively(declaration, declaration.type)
     }
 
-    override fun visitFunction(declaration: IrFunction) {
-        super.visitFunction(declaration)
+    override fun visitFunction(declaration: IrFunction, data: Nothing?) {
+        super.visitFunction(declaration, data)
+
         checkTypeRecursively(declaration, declaration.returnType)
         for (parameter in declaration.parameters) {
             checkTypeRecursively(parameter, parameter.type)

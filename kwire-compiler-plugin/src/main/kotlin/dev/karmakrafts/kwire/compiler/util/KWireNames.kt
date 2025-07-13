@@ -46,6 +46,8 @@ internal object KWireNames {
         val acquire: Name = Name.identifier("acquire")
         val release: Name = Name.identifier("release")
         val createUpcallStub: Name = Name.identifier("createUpcallStub")
+        val open: Name = Name.identifier("open")
+        val getFunctionAddress: Name = Name.identifier("getFunctionAddress")
     }
 
     object Kotlin {
@@ -289,6 +291,21 @@ internal object KWireNames {
     object SharedImport {
         val name: Name = Name.identifier("SharedImport")
         val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object SharedLibrary {
+        val name: Name = Name.identifier("SharedLibrary")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+        val getFunctionAddress: CallableId = CallableId(id, Functions.getFunctionAddress)
+
+        object Companion {
+            val name: FqName = FqName("SharedLibrary.Companion")
+            val id: ClassId = ClassId(ffiPackageName, name, false)
+            val fqName: FqName = id.asSingleFqName()
+            val open: CallableId = CallableId(ffiPackageName, name, Functions.open)
+        }
     }
 
     object CallingConvention {
