@@ -19,9 +19,11 @@ package dev.karmakrafts.kwire.compiler.transformer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.ResolvedType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
 import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
 import dev.karmakrafts.kwire.compiler.util.hasCustomAlignment
+import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -42,22 +44,49 @@ internal class MemoryIntrinsicsTransformer(
 )) {
     // @formatter:on
     private fun emitDefault(call: IrCall): IrExpression {
-        val type = call.typeArguments.firstOrNull()
-        if (type == null) {
+        val function = call.target
+        val resolvedType = call.typeArguments.firstOrNull()
+            ?.resolveFromReceiver(function, call.typeArguments.filterNotNull(), call.dispatchReceiver)
+        if (resolvedType == null) {
             reportError("Could not determine type for default intrinsic", call)
             return call
         }
-        return type.computeMemoryLayout(context).emitDefault(context)
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("default intrinsic requires concrete type", call)
+            return call
+        }
+        return resolvedType.type.computeMemoryLayout(context).emitDefault(context)
     }
 
     private fun emitSizeOf(call: IrCall): IrExpression {
-        val type = call.typeArguments.first() ?: return constNUInt(context, 0UL)
-        val layout = type.computeMemoryLayout(context)
+        val function = call.target
+        val resolvedType = call.typeArguments.firstOrNull()
+            ?.resolveFromReceiver(function, call.typeArguments.filterNotNull(), call.dispatchReceiver)
+        if (resolvedType == null) {
+            reportError("Could not determine type for sizeOf intrinsic", call)
+            return call
+        }
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("sizeOf intrinsic requires concrete type", call)
+            return call
+        }
+        val layout = resolvedType.type.computeMemoryLayout(context)
         return context.toNUInt(layout.emitSize(context))
     }
 
     private fun emitAlignOf(call: IrCall): IrExpression {
-        val type = call.typeArguments.first() ?: return constNUInt(context, 0UL)
+        val function = call.target
+        val resolvedType = call.typeArguments.firstOrNull()
+            ?.resolveFromReceiver(function, call.typeArguments.filterNotNull(), call.dispatchReceiver)
+        if (resolvedType == null) {
+            reportError("Could not determine type for alignOf intrinsic", call)
+            return call
+        }
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("alignOf intrinsic requires concrete type", call)
+            return call
+        }
+        val type = resolvedType.type
         if (type.hasCustomAlignment()) {
             return constNUInt(context, type.getCustomAlignment()!!.toULong())
         }

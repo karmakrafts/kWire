@@ -20,16 +20,12 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
-import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
 import org.jetbrains.kotlin.ir.types.classifierOrFail
-import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
@@ -41,7 +37,6 @@ import org.jetbrains.kotlin.ir.util.isNullable
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.isTypeParameter
-import org.jetbrains.kotlin.ir.util.target
 
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
     val inType = type.type
@@ -65,22 +60,6 @@ internal fun IrType.isCFn(): Boolean = getClass()?.isCFn() == true
 internal fun IrType.getPointedType(): IrType? {
     if (this !is IrSimpleType) return null
     return arguments.firstOrNull()?.typeOrNull
-}
-
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrType.resolveFromReceiver(call: IrCall): IrType? {
-    if (!isTypeParameter()) return this
-    val typeParam = (classifierOrNull as? IrTypeParameterSymbol)?.owner ?: return null
-
-    fun tryResolve(parentType: IrType): IrType? {
-        if (parentType !is IrSimpleType) return null
-        val dispatchClass = parentType.getClass() ?: return null
-        val classTypeParam = dispatchClass.typeParameters.find { it == typeParam } ?: return null
-        return parentType.arguments[classTypeParam.index].typeOrNull
-    }
-    // First attempt to resolve via dispatcher receiver, then extension receiver
-    return call.dispatchReceiver?.type?.let(::tryResolve)
-        ?: call.arguments[call.target.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }]?.type?.let(::tryResolve)
 }
 
 internal fun IrType.isCDecl(): Boolean = hasAnnotation(KWireNames.CDecl.id)

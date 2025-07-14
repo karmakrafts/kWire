@@ -5,7 +5,7 @@ androidGradle = "8.9.3" # https://developer.android.com/reference/tools/gradle-a
 androidCompileSDK = "35"
 androidMinimalSDK = "28"
 
-kwire = "1.1.0"
+kwire = "1.2.0"
 iridium = "1.6.3" # https://github.com/karmakrafts/Iridium/tags
 kotlin = "2.2.0"
 kotlinx-coroutines = "1.10.2"

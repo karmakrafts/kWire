@@ -18,18 +18,14 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
 import dev.karmakrafts.iridium.setupCompilerTest
-import dev.karmakrafts.kwire.compiler.util.unwrapConstValue
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.target
 import kotlin.test.Test
 
@@ -38,6 +34,25 @@ class PtrIntrinsicsTest {
     val primitiveTypes: Array<String> = arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "NInt", "NFloat")
     val resolvedPrimitiveTypes: Array<String> =
         arrayOf("Byte", "Short", "Int", "Long", "Float", "Double", "Long", "Double")
+
+    @Test
+    fun `Dereference of local in same scope is optimized away`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.ref
+            fun test() {
+                var x = 100
+                val xPtr = x.ref()
+                println(xPtr.deref())
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            // TODO: implement actual test logic
+        }
+    }
 
     @Test
     fun `Perform plus operation on NumPtr`() = runCompilerTest {

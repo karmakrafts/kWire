@@ -46,7 +46,7 @@ internal class FunctionAllocationScope( // @formatter:off
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
             type = returnType,
-            tryResult = (localReferences.values + body.statements).toBlock(returnType, statementOrigin),
+            tryResult = (localRef2Address.values + body.statements).toBlock(returnType, statementOrigin),
             catches = emptyList(),
             finallyExpression = context.memoryStack.pop(loadStack())
         )

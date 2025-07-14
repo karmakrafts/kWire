@@ -68,7 +68,7 @@ internal data class SharedImportScope( // @formatter:off
             startOffset = SYNTHETIC_OFFSET
             endOffset = SYNTHETIC_OFFSET
             type = context.kwireSymbols.sharedLibraryType.defaultType
-            name = Name.identifier("__kwire_library_${id}__")
+            name = Name.identifier("__kwire_library_${id.toHexString()}__")
             isFinal = true
             visibility = DescriptorVisibilities.PRIVATE
             origin = declOrigin
@@ -77,7 +77,7 @@ internal data class SharedImportScope( // @formatter:off
             initializer = context.irFactory.createExpressionBody( // @formatter:off
                 startOffset = SYNTHETIC_OFFSET,
                 endOffset = SYNTHETIC_OFFSET,
-                expression = context.kwireSymbols.sharedLibraryOpen.call( // @formatter:off
+                expression = context.kwireSymbols.sharedLibraryOpen.call(
                     dispatchReceiver = context.kwireSymbols.sharedLibraryCompanionType.getObjectInstance(),
                     valueArguments = mapOf(
                         "names" to context.createListOf(
@@ -85,7 +85,7 @@ internal data class SharedImportScope( // @formatter:off
                             values = names.map { it.toIrConst(context.irBuiltIns.stringType) }
                         )
                     )
-                ) // @formatter:on
+                )
             ) // @formatter:on
         }
         // Remember the newly created library for all the given aliases to speed up subsequent resolutions
@@ -105,7 +105,7 @@ internal data class SharedImportScope( // @formatter:off
                 startOffset = SYNTHETIC_OFFSET
                 endOffset = SYNTHETIC_OFFSET
                 type = context.constVoidPtr
-                this.name = Name.identifier("__kwire_fn_${library.id}_${Uuid.random()}__")
+                this.name = Name.identifier("__kwire_fn_${library.id.toHexString()}_${Uuid.random().toHexString()}__")
                 isFinal = true
                 visibility = DescriptorVisibilities.PRIVATE
                 origin = declOrigin

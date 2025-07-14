@@ -68,15 +68,17 @@ internal abstract class AbstractAllocationScope( // @formatter:off
 
     inline val stackVariable: IrVariable get() = _stack.value
     inline val hasAllocations: Boolean get() = _stack.isInitialized()
-    protected val localReferences: HashMap<IrValueDeclaration, IrVariable> = HashMap()
+    protected val localRef2Address: HashMap<IrValueDeclaration, IrValueDeclaration> = HashMap()
+    protected val address2LocalRef: HashMap<IrValueDeclaration, IrValueDeclaration> = HashMap()
 
     fun loadStack(): IrGetValue = stackVariable.load()
+    fun getLocalAddress(variable: IrValueDeclaration): IrValueDeclaration? = localRef2Address[variable]
+    fun getLocalReference(address: IrValueDeclaration): IrValueDeclaration? = address2LocalRef[address]
 
-    fun getLocalReference(variable: IrValueDeclaration): IrVariable? = localReferences[variable]
-
-    fun addLocalReference(variable: IrValueDeclaration, address: IrVariable) {
-        require(variable !in localReferences) { "Local reference for ${variable.dump()} already exists" }
-        localReferences[variable] = address
+    fun addLocalAddress(variable: IrValueDeclaration, address: IrVariable) {
+        require(variable !in localRef2Address) { "Local reference for ${variable.dump()} already exists" }
+        localRef2Address[variable] = address
+        address2LocalRef[address] = variable
     }
 
     fun allocate(size: IrExpression, alignment: IrExpression): IrExpression {

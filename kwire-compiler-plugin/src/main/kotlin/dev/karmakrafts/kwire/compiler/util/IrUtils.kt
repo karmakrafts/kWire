@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.transformer.ptrIntrinsicOrigin
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -44,6 +46,7 @@ import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
@@ -441,7 +444,7 @@ internal fun IrValueSymbol.load(): IrGetValue = IrGetValueImpl( // @formatter:of
     symbol = this
 ) // @formatter:on
 
-internal fun IrVariable.load(): IrGetValue = symbol.load()
+internal fun IrValueDeclaration.load(): IrGetValue = symbol.load()
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrFieldSymbol.load(receiver: IrExpression? = null): IrGetField = IrGetFieldImpl( // @formatter:off
@@ -480,5 +483,30 @@ internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType)
         }
 
         else -> error("Unsupported type for generated reinterpretation: ${type.render()}")
+    }
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun unrollLocalRef(ref: IrExpression?): IrVariable? {
+    return when (ref) {
+        null -> null
+        is IrGetValue -> when (val decl = ref.symbol.owner) {
+            is IrVariable -> {
+                if (decl.isVar) decl
+                else unrollLocalRef(decl.initializer) ?: decl
+            }
+
+            else -> null
+        }
+
+        is IrBlock -> if (ref.origin == ptrIntrinsicOrigin) {
+            unrollLocalRef(ref.statements.lastOrNull() as? IrExpression)
+        }
+        else null
+
+        is IrTry -> unrollLocalRef(ref.tryResult)
+        is IrComposite -> unrollLocalRef(ref.statements.lastOrNull() as? IrExpression ?: return null)
+
+        else -> null
     }
 }

@@ -75,13 +75,12 @@ internal class SharedImportTransformer(
         }
 
         val dispatchReceiver = declaration.dispatchReceiverParameter?.symbol?.load()
-        val address = data.scope.getFunction(libraryNames, functionName, dispatchReceiver)
+        data.scope.getFunction(libraryNames, functionName, dispatchReceiver)
 
         // Remove external modifier and add an empty body as nop fallback
         declaration.isExternal = false
         declaration.body = context.irFactory.createBlockBody(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET
+            startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET
         )
     }
 }

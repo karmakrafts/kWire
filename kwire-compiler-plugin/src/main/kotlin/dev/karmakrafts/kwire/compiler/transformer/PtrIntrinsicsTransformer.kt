@@ -19,9 +19,11 @@ package dev.karmakrafts.kwire.compiler.transformer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.ffi.CallingConvention
 import dev.karmakrafts.kwire.compiler.ffi.FFI
+import dev.karmakrafts.kwire.compiler.memory.layout.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.ResolvedType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getFunctionType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
@@ -34,6 +36,7 @@ import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
 import dev.karmakrafts.kwire.compiler.util.times
 import dev.karmakrafts.kwire.compiler.util.toBlock
+import dev.karmakrafts.kwire.compiler.util.unrollLocalRef
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -63,6 +66,7 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
@@ -150,6 +154,11 @@ internal class PtrIntrinsicsTransformer(
                 return call
             }
         }
+        val parent = data.parentOrNull
+        if (parent == null) {
+            reportError("Could not determine parent of function reference intrinsic", call)
+            return call
+        }
         val stubFunction = context.irFactory.buildFun {
             startOffset = SYNTHETIC_OFFSET
             endOffset = SYNTHETIC_OFFSET
@@ -158,7 +167,7 @@ internal class PtrIntrinsicsTransformer(
             visibility = DescriptorVisibilities.LOCAL
             name = Name.special("<anonymous>")
         }.apply {
-            parent = data.parent
+            this.parent = parent
             val bufferParam = addValueParameter {
                 name = Name.identifier("buffer")
                 type = context.ffi.ffiArgBufferType.defaultType
@@ -193,9 +202,11 @@ internal class PtrIntrinsicsTransformer(
         // Check if there's already a ref to the same local var, and if so, load it instead
         when (reference) {
             is IrGetValue -> {
-                val variable = reference.symbol.owner
-                val ref = data.findLocalReference(variable)
-                if (ref != null) return ref.load()
+                val variable = unrollLocalRef(reference)?.symbol?.owner
+                if (variable != null) {
+                    val ref = data.findLocalAddress(variable)
+                    if (ref != null) return ref.load()
+                }
             }
         }
 
@@ -208,6 +219,11 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
 
+        val parent = data.parentOrNull
+        if (parent == null) {
+            reportError("Could not determine parent for local reference intrinsic", call)
+            return call
+        }
         val addressVariable = IrVariableImpl(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
@@ -219,7 +235,7 @@ internal class PtrIntrinsicsTransformer(
             isConst = false,
             isLateinit = false
         ).apply {
-            parent = data.parent
+            this.parent = parent
             initializer = allocationScope.allocate(pointedType).reinterpret(context, pointerType)
         }
 
@@ -228,7 +244,7 @@ internal class PtrIntrinsicsTransformer(
         when (reference) {
             is IrGetValue -> {
                 val variable = reference.symbol.owner
-                allocationScope.addLocalReference(variable, addressVariable)
+                allocationScope.addLocalAddress(variable, addressVariable)
                 insertAddressInLine = false
             }
         }
@@ -257,21 +273,37 @@ internal class PtrIntrinsicsTransformer(
         } // @formatter:on
     }
 
-    private fun emitDeref(call: IrCall): IrExpression {
-        val type = call.type.resolveFromReceiver(call)
-        if (type == null) {
-            reportError("Could not resolve reference type for dereference", call)
-            return call
-        }
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun emitDeref(call: IrCall, data: IntrinsicContext): IrExpression {
+        val function = call.target
         val address = call.dispatchReceiver
         if (address == null) {
             reportError("Could not retrieve dispatch receiver for pointer dereference", call)
             return call
         }
+        when (address) {
+            is IrGetValue -> {
+                // If we can find the original local reference, optimize to get the ref directly instead of going
+                // through memory reads
+                val variable = unrollLocalRef(address)?.symbol?.owner
+                if (variable != null) {
+                    val ref = data.findLocalReference(variable)
+                    if (ref != null) return ref.load()
+                }
+            }
+        }
+        val resolvedType = call.type.resolveFromReceiver(function, call.typeArguments.filterNotNull(), address)
+        if (resolvedType == null) {
+            reportError("Could not resolve reference type for dereference", call)
+            return call
+        }
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("Dereference requires concrete type", call)
+            return call
+        }
         val pointerType = address.type
-        val layout = type.computeMemoryLayout(context)
+        val layout = resolvedType.type.computeMemoryLayout(context)
 
-        val function = call.target
         val indexParam = function.parameters.firstOrNull { it.kind == IrParameterKind.Regular }
         val index = indexParam?.let { call.arguments[it] }
 
@@ -291,30 +323,35 @@ internal class PtrIntrinsicsTransformer(
 
     private fun emitSet(call: IrCall): IrExpression {
         val function = call.target
-        val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
-        val valueParam = params.single { it.name.asString() == "value" }
-        val type = valueParam.type.resolveFromReceiver(call)
-        if (type == null) {
-            reportError("Could not resolve reference type for pointer write", call)
-            return call
-        }
-
         val dispatchReceiver = call.dispatchReceiver
         if (dispatchReceiver == null) {
             reportError("Could not retrieve dispatch receiver for pointer dereference", call)
             return call
         }
-        val pointerType = dispatchReceiver.type
 
-        val layout = type.computeMemoryLayout(context)
+        val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        val valueParam = params.single { it.name.asString() == "value" }
+        val resolvedType =
+            valueParam.type.resolveFromReceiver(function, call.typeArguments.filterNotNull(), dispatchReceiver)
+        if (resolvedType == null) {
+            reportError("Could not resolve reference type for pointer write", call)
+            return call
+        }
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("Write to address requires concrete type", call)
+            return call
+        }
+
+        val pointerType = dispatchReceiver.type
+        val layout = resolvedType.type.computeMemoryLayout(context)
         val value = call.arguments[valueParam]
         if (value == null) {
             reportError("Could not determine value expression for pointer write", call)
             return call
         }
+
         val indexParam = params.firstOrNull { it.name.asString() == "index" }
         val index = indexParam?.let { call.arguments[it] }
-
         // Handle subscript-operator memory offsets
         if (index != null) {
             val rawAddress = dispatchReceiver.getRawAddress()
@@ -338,14 +375,19 @@ internal class PtrIntrinsicsTransformer(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun emitArrayGet(call: IrCall): IrExpression {
-        val type = call.type.resolveFromReceiver(call)
-        if (type == null) {
-            reportError("Could not reify type for pointer array get intrinsic", call)
-            return call
-        }
+        val function = call.target
         val dispatchReceiver = call.dispatchReceiver
         if (dispatchReceiver == null) {
             reportError("Could not retrieve dispatch receiver for array get intrinsic", call)
+            return call
+        }
+        val resolvedType = call.type.resolveFromReceiver(function, call.typeArguments.filterNotNull(), dispatchReceiver)
+        if (resolvedType == null) {
+            reportError("Could not reify type for pointer array get intrinsic", call)
+            return call
+        }
+        if (resolvedType !is ResolvedType.Concrete) {
+            reportError("Pointer array get requires concrete type", call)
             return call
         }
         val delegate = getPtrArrayValue(dispatchReceiver)
@@ -353,7 +395,6 @@ internal class PtrIntrinsicsTransformer(
             reportError("Could not retrieve array delegate for array get intrinsic", call)
             return call
         }
-        val function = call.target
         val indexParam = function.parameters.single { it.name.asString() == "index" }
         val index = call.arguments[indexParam]
         if (index == null) {
@@ -369,7 +410,7 @@ internal class PtrIntrinsicsTransformer(
         val getOperator = delegateClass.functions.single { it.name.asString() == "get" }
         return getOperator.call(
             dispatchReceiver = delegate, valueArguments = mapOf("index" to index)
-        ).reinterpret(context, type)
+        ).reinterpret(context, resolvedType.type)
     }
 
     private fun emitArraySet(call: IrCall): IrExpression {
@@ -438,28 +479,36 @@ internal class PtrIntrinsicsTransformer(
     private inline fun emitPointerArithmeticOp(
         call: IrCall, op: IrExpression.(IrExpression) -> IrExpression
     ): IrExpression {
+        val function = call.target
+        val dispatchReceiver = call.dispatchReceiver
+        if (dispatchReceiver == null) {
+            reportError("Pointer arithmetic intrinsic requires dispatch receiver", call)
+            return call
+        }
         // Reify pointer type from class type parameter
         var pointerType: IrType? = call.type
-        val pointedType = pointerType?.getPointedType()?.resolveFromReceiver(call)
-        if (pointedType == null) {
+        val resolvedPointedType = pointerType?.getPointedType()?.resolveFromReceiver(
+            function, call.typeArguments.filterNotNull(), dispatchReceiver
+        )
+        if (resolvedPointedType == null) {
             reportError("Could not determine pointed type for pointer arithmetic intrinsic", call)
             return call
         }
-        pointerType = pointerType.getClass()?.typeWith(pointedType)
+        pointerType = when (resolvedPointedType) {
+            is ResolvedType.Star -> pointerType.getClass()?.symbol?.starProjectedType
+            is ResolvedType.Concrete -> pointerType.getClass()?.typeWith(resolvedPointedType.type)
+        }
         if (pointerType == null) {
             reportError("Could not reify pointer type for pointer arithmetic intrinsic", call)
             return call
         }
 
-        val layout = pointedType.computeMemoryLayout(context)
+        val layout = when (resolvedPointedType) {
+            is ResolvedType.Star -> BuiltinMemoryLayout.BYTE // Assume byte data on wildcard with no type size
+            is ResolvedType.Concrete -> resolvedPointedType.type.computeMemoryLayout(context)
+        }
         if (layout is ReferenceMemoryLayout) {
             reportError("Cannot perform pointer arithmetic operation on pointer to reference type", call)
-            return call
-        }
-        val function = call.target
-        val dispatchReceiver = call.dispatchReceiver
-        if (dispatchReceiver == null) {
-            reportError("Pointer arithmetic intrinsic requires dispatch receiver", call)
             return call
         }
         val lhs = dispatchReceiver.getRawAddress()
@@ -487,7 +536,7 @@ internal class PtrIntrinsicsTransformer(
     override fun visitIntrinsic(expression: IrCall, data: IntrinsicContext, type: KWireIntrinsicType): IrElement {
         return when (type) {
             KWireIntrinsicType.PTR_REF -> emitRef(expression, data)
-            KWireIntrinsicType.PTR_DEREF -> emitDeref(expression)
+            KWireIntrinsicType.PTR_DEREF -> emitDeref(expression, data)
             KWireIntrinsicType.PTR_SET -> emitSet(expression)
             KWireIntrinsicType.PTR_ARRAY_GET -> emitArrayGet(expression)
             KWireIntrinsicType.PTR_ARRAY_SET -> emitArraySet(expression)

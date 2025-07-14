@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrScript
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrVariable
 import java.util.*
 
 internal class IntrinsicContext(  // @formatter:off
@@ -37,11 +36,19 @@ internal class IntrinsicContext(  // @formatter:off
     inline val allocationScope: AbstractAllocationScope get() = allocationScopeStack.peek()
 
     private val parentStack: Stack<IrDeclarationParent> = Stack()
-    inline val parent: IrDeclarationParent get() = parentStack.peek()
+    inline val parentOrNull: IrDeclarationParent? get() = parentStack.lastOrNull()
 
-    fun findLocalReference(variable: IrValueDeclaration): IrVariable? {
+    fun findLocalAddress(variable: IrValueDeclaration): IrValueDeclaration? {
         for (scope in allocationScopeStack.reversed()) {
-            val ref = scope.getLocalReference(variable) ?: continue
+            val ref = scope.getLocalAddress(variable) ?: continue
+            return ref
+        }
+        return null
+    }
+
+    fun findLocalReference(address: IrValueDeclaration): IrValueDeclaration? {
+        for (scope in allocationScopeStack.reversed()) {
+            val ref = scope.getLocalReference(address) ?: continue
             return ref
         }
         return null
@@ -72,31 +79,33 @@ internal class IntrinsicContext(  // @formatter:off
     }
 
     fun pushAnonInitializer() {
+        val parent = parentOrNull ?: return
         allocationScopeStack.push(FunctionAllocationScope(context, parent))
     }
 
     fun popAnonInitializer(initializer: IrElement) {
-        allocationScope.injectIfNeeded(initializer)
-        allocationScopeStack.pop()
+        allocationScopeStack.removeLastOrNull()?.injectIfNeeded(initializer)
     }
 
     fun pushFunction(function: IrFunction) {
+        val parent = parentOrNull ?: return
         allocationScopeStack.push(FunctionAllocationScope(context, parent))
         parentStack.push(function)
     }
 
     fun popFunction(function: IrElement) {
-        allocationScope.injectIfNeeded(function)
-        allocationScopeStack.pop()
-        parentStack.pop()
+        allocationScopeStack.removeLastOrNull()?.apply {
+            injectIfNeeded(function)
+            parentStack.pop()
+        }
     }
 
     fun pushBlock() {
+        val allocationScope = allocationScopeStack.lastOrNull() ?: return
         allocationScopeStack.push(BlockAllocationScope(allocationScope))
     }
 
     fun popBlock(block: IrElement) {
-        allocationScope.injectIfNeeded(block)
-        allocationScopeStack.pop()
+        allocationScopeStack.removeLastOrNull()?.injectIfNeeded(block)
     }
 }

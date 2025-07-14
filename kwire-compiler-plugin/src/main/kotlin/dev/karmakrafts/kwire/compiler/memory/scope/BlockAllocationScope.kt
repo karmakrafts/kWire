@@ -38,7 +38,7 @@ internal class BlockAllocationScope(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
             type = type,
-            tryResult = (localReferences.values + oldStatements).toBlock(type, statementOrigin),
+            tryResult = (localRef2Address.values + oldStatements).toBlock(type, statementOrigin),
             catches = emptyList(),
             finallyExpression = context.memoryStack.pop(loadStack())
         )

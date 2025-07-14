@@ -48,6 +48,7 @@ internal object KWireNames {
         val createUpcallStub: Name = Name.identifier("createUpcallStub")
         val open: Name = Name.identifier("open")
         val getFunctionAddress: Name = Name.identifier("getFunctionAddress")
+        val closeOnExit: Name = Name.identifier("closeOnExit")
     }
 
     object Kotlin {
@@ -299,6 +300,7 @@ internal object KWireNames {
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
         val getFunctionAddress: CallableId = CallableId(id, Functions.getFunctionAddress)
+        val closeOnExit: CallableId = CallableId(id, Functions.closeOnExit)
 
         object Companion {
             val name: FqName = FqName("SharedLibrary.Companion")

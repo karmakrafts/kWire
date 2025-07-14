@@ -140,9 +140,12 @@ class SharedLibrary internal constructor(
          *
          * @param names A list of possible names for the library to load
          * @param linkMode The mode to use when linking the library (NOW for immediate loading of all symbols, LAZY for on-demand loading)
+         * @param closeOnExit When true, automatically closes the library instance.
          * @return A SharedLibrary instance if the library was found and loaded, or null otherwise
          */
-        fun tryOpen(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary? {
+        fun tryOpen(
+            names: List<String>, linkMode: LinkMode = LinkMode.LAZY, closeOnExit: Boolean = true
+        ): SharedLibrary? {
             for (name in names) {
                 if (name !in openLibraries) continue
                 return openLibraries[name]
@@ -150,6 +153,8 @@ class SharedLibrary internal constructor(
             return Linker.findLibrary(names, linkMode)?.let {
                 openLibraries.getOrPut(it.name) {
                     SharedLibrary(it)
+                }.apply {
+                    if (closeOnExit) closeOnExit()
                 }
             }
         }
@@ -174,12 +179,15 @@ class SharedLibrary internal constructor(
          *
          * @param names A list of possible names for the library to load
          * @param linkMode The mode to use when linking the library (NOW for immediate loading of all symbols, LAZY for on-demand loading)
+         * @param closeOnExit When true, automatically closes the library instance.
          * @return A SharedLibrary instance representing the loaded library
          * @throws IllegalArgumentException if none of the libraries could be loaded
          */
         @KWireCompilerApi
-        fun open(names: List<String>, linkMode: LinkMode = LinkMode.LAZY): SharedLibrary {
-            return requireNotNull(tryOpen(names, linkMode)) { "Could not open library $names" }
+        fun open(
+            names: List<String>, linkMode: LinkMode = LinkMode.LAZY, closeOnExit: Boolean = true
+        ): SharedLibrary {
+            return requireNotNull(tryOpen(names, linkMode, closeOnExit)) { "Could not open library $names" }
         }
 
         /**
@@ -240,7 +248,7 @@ class SharedLibrary internal constructor(
      */
     override fun close() {
         val name = handle.name
-        if(name !in openLibraries) return // Don't close any library twice
+        if (name !in openLibraries) return // Don't close any library twice
         handle.close()
         openLibraries -= name
     }
