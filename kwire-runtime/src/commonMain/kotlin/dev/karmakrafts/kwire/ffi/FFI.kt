@@ -221,7 +221,7 @@ interface FFI {
         descriptor: FFIDescriptor,
         callingConvention: CallingConvention = CallingConvention.CDECL,
         args: FFIArgBuffer
-    ): Ptr<*>
+    ): Ptr<CVoid>
 
     /**
      * Calls a native function at the specified address with unsigned byte return type.
@@ -559,7 +559,7 @@ inline fun FFI.callPointer(
     descriptor: FFIDescriptor,
     callingConvention: CallingConvention = CallingConvention.CDECL,
     args: FFIArgBuffer.() -> Unit = {}
-): Ptr<*> {
+): Ptr<CVoid> {
     contract {
         callsInPlace(args, InvocationKind.EXACTLY_ONCE)
     }

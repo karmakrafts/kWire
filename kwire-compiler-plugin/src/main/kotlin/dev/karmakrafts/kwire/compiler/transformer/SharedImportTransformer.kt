@@ -23,20 +23,32 @@ import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.getAnnotationValue
 import dev.karmakrafts.kwire.compiler.util.isSharedImport
 import dev.karmakrafts.kwire.compiler.util.load
+import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrTryImpl
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.visitors.IrVisitor
 
 internal class SharedImportTransformer(
     private val context: KWirePluginContext
 ) : IrVisitor<Unit, SharedImportContext>(), MessageCollectorExtensions by context {
+    companion object : GeneratedDeclarationKey() {
+        val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
+    }
+
     override fun visitElement(element: IrElement, data: SharedImportContext) {
         element.acceptChildren(this, data)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitFile(declaration: IrFile, data: SharedImportContext) {
         data.pushScope(declaration)
         super.visitFile(declaration, data)
@@ -75,12 +87,56 @@ internal class SharedImportTransformer(
         }
 
         val dispatchReceiver = declaration.dispatchReceiverParameter?.symbol?.load()
-        data.scope.getFunction(libraryNames, functionName, dispatchReceiver)
+        val addressField = data.scope.getFunction(libraryNames, functionName, dispatchReceiver)
+        val returnType = declaration.returnType
+        val parameterTypes = declaration.parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
 
         // Remove external modifier and add an empty body as nop fallback
         declaration.isExternal = false
         declaration.body = context.irFactory.createBlockBody(
             startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET
-        )
+        ).apply {
+            val address = addressField.load(receiver = dispatchReceiver)
+            val descriptor = context.ffi.getDescriptor(returnType, parameterTypes)
+
+            val (_, bufferStatements, bufferVariable) = context.ffi.extractArgumentsIntoBuffer(declaration)
+            if (bufferVariable == null) {
+                reportError("Could not build argument buffer for @SharedImport function", declaration)
+                return@apply
+            }
+
+            bufferVariable.parent = declaration
+            statements += bufferVariable
+            statements += bufferStatements
+
+            fun createTryFinally(): IrTryImpl = IrTryImpl(
+                startOffset = SYNTHETIC_OFFSET,
+                endOffset = SYNTHETIC_OFFSET,
+                type = returnType,
+                tryResult = context.ffi.call(
+                    type = returnType,
+                    address = address,
+                    descriptor = descriptor,
+                    argBuffer = bufferVariable.load(),
+                    callingConvention = callingConvention
+                ),
+                catches = emptyList(),
+                finallyExpression = context.ffi.releaseArgBuffer(bufferVariable.load())
+            )
+
+            // For cases without a result, we can omit the IrReturn element
+            if (returnType.isUnit()) {
+                statements += createTryFinally()
+                return@apply
+            }
+            // Otherwise we explicitly return the try-finally expression
+            statements += IrReturnImpl(
+                startOffset = SYNTHETIC_OFFSET,
+                endOffset = SYNTHETIC_OFFSET,
+                type = returnType,
+                returnTargetSymbol = declaration.symbol,
+                value = createTryFinally()
+            )
+        }
     }
 }

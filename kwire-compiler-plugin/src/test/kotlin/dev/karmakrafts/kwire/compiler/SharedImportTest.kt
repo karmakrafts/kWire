@@ -20,6 +20,7 @@ import dev.karmakrafts.iridium.runCompilerTest
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.util.dump
 import org.junit.jupiter.api.Test
 
 class SharedImportTest {
@@ -123,6 +124,7 @@ class SharedImportTest {
         result irMatches {
             getChild<IrClass> { it.name.asString() == "Test" } matches {
                 getChild<IrFunction> { it.name.asString() == "copyMemory" } matches {
+                    println(element.dump())
                     element.isExternal shouldBe false
                     val body = element.body
                     body shouldNotBe null

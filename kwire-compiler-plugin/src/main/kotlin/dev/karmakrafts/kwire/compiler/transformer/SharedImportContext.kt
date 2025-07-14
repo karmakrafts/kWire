@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.defaultType
@@ -70,6 +71,7 @@ internal data class SharedImportScope( // @formatter:off
             type = context.kwireSymbols.sharedLibraryType.defaultType
             name = Name.identifier("__kwire_library_${id.toHexString()}__")
             isFinal = true
+            isStatic = parent is IrFile
             visibility = DescriptorVisibilities.PRIVATE
             origin = declOrigin
         }.apply {
@@ -95,7 +97,9 @@ internal data class SharedImportScope( // @formatter:off
     }
 
     fun getFunction(
-        libraryNames: List<String>, name: String, dispatchReceiver: IrExpression? = null
+        libraryNames: List<String>,
+        name: String,
+        dispatchReceiver: IrExpression? = null
     ): IrField {
         val library = getLibrary(libraryNames)
         val functions = library.functions
@@ -107,6 +111,7 @@ internal data class SharedImportScope( // @formatter:off
                 type = context.constVoidPtr
                 this.name = Name.identifier("__kwire_fn_${library.id.toHexString()}_${Uuid.random().toHexString()}__")
                 isFinal = true
+                isStatic = parent is IrFile
                 visibility = DescriptorVisibilities.PRIVATE
                 origin = declOrigin
             }.apply {

@@ -99,3 +99,10 @@ internal fun IrType.markedConst(context: KWirePluginContext): IrType {
         )
     )
 }
+
+internal fun IrType.isSameAs(type: IrType): Boolean {
+    return when {
+        isPtr() -> type.isPtr() && type.getPointedType()?.let { getPointedType()?.isSameAs(it) } == true
+        else -> this == type
+    }
+}

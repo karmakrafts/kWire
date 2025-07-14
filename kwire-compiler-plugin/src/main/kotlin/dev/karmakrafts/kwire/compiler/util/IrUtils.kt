@@ -186,31 +186,31 @@ internal fun IrExpression.topLevelBinaryOp(
 internal fun IrExpression.plus(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "plus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+    function.name.asString() == "plus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.times(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "times" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+    function.name.asString() == "times" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.minus(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "minus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type == other.type
+    function.name.asString() == "minus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
-    symbol = context.referenceFunctions(KWireNames.Kotlin.min).first { it.owner.returnType == type }, other = other
+    symbol = context.referenceFunctions(KWireNames.Kotlin.min).first { it.owner.returnType.isSameAs(type) }, other = other
 )
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.max(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
-    symbol = context.referenceFunctions(KWireNames.Kotlin.max).first { it.owner.returnType == type }, other = other
+    symbol = context.referenceFunctions(KWireNames.Kotlin.max).first { it.owner.returnType.isSameAs(type) }, other = other
 )
 
 internal fun constInt(context: KWirePluginContext, value: Int): IrConstImpl = IrConstImpl.int( // @formatter:off
@@ -471,7 +471,7 @@ internal fun IrFunction.getFunctionType(context: KWirePluginContext): IrType {
 }
 
 internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType): IrExpression {
-    if (this.type == type) return this
+    if (this.type.isSameAs(type)) return this
     val isNumericExpr = this.type.getNativeType() == NativeType.NUINT
     return when {
         type.getNativeType() == NativeType.NUINT -> getRawAddress()!!

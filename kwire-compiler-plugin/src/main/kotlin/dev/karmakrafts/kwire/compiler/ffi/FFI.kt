@@ -22,12 +22,14 @@ import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.isPtr
+import dev.karmakrafts.kwire.compiler.util.isSameAs
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.toVararg
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
@@ -54,7 +56,11 @@ internal data class ExtractedFFIArgBuffer(
     val isDirectCall: Boolean = false,
     val statements: List<IrStatement> = emptyList(),
     val bufferVariable: IrVariable? = null
-)
+) {
+    companion object {
+        val empty: ExtractedFFIArgBuffer = ExtractedFFIArgBuffer(true, emptyList(), null)
+    }
+}
 
 @OptIn(ExperimentalUuidApi::class)
 internal class FFI(
@@ -119,9 +125,15 @@ internal class FFI(
     ) // @formatter:on
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    fun call(type: IrType, address: IrExpression, descriptor: IrExpression, argBuffer: IrExpression): IrCall {
+    fun call(
+        type: IrType,
+        address: IrExpression,
+        descriptor: IrExpression,
+        argBuffer: IrExpression,
+        callingConvention: CallingConvention? = null
+    ): IrCall {
         return ffiType.owner.functions.first { function ->
-            if (!function.name.asString().startsWith("call") || function.returnType != type) return@first false
+            if (!function.name.asString().startsWith("call") || !function.returnType.isSameAs(type)) return@first false
             val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
             params.last().type == ffiArgBufferType.defaultType
         }.call( // @formatter:off
@@ -129,8 +141,10 @@ internal class FFI(
             valueArguments = mapOf(
                 "address" to address,
                 "descriptor" to descriptor,
-                "callingConvention" to address.type
-                    .getCallingConventionOrDefault()
+                "callingConvention" to (address.type
+                    .getCallingConvention()
+                    ?: callingConvention
+                    ?: CallingConvention.CDECL)
                     .getEnumValue(callingConventionType) { name },
                 "args" to argBuffer
             )
@@ -180,21 +194,34 @@ internal class FFI(
         ) // @formatter:on
     }
 
-    fun extractArgumentsIntoBuffer(args: IrVararg): ExtractedFFIArgBuffer {
-        val bufferVariable = IrVariableImpl(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET,
-            origin = declOrigin,
-            symbol = IrVariableSymbolImpl(),
-            name = Name.identifier("__kwire_arg_buffer_${Uuid.random().toHexString()}__"),
-            type = ffiArgBufferType.defaultType,
-            isVar = false,
-            isConst = false,
-            isLateinit = false
-        ).apply {
-            initializer = acquireArgBuffer()
-        }
+    private fun createBufferVar(): IrVariable = IrVariableImpl(
+        startOffset = SYNTHETIC_OFFSET,
+        endOffset = SYNTHETIC_OFFSET,
+        origin = declOrigin,
+        symbol = IrVariableSymbolImpl(),
+        name = Name.identifier("__kwire_arg_buffer_${Uuid.random().toHexString()}__"),
+        type = context.ffi.ffiArgBufferType.defaultType,
+        isVar = false,
+        isConst = false,
+        isLateinit = false
+    ).apply {
+        initializer = acquireArgBuffer()
+    }
 
+    fun extractArgumentsIntoBuffer(function: IrFunction): ExtractedFFIArgBuffer {
+        val bufferVariable = createBufferVar()
+        val parameters = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        if (parameters.isEmpty()) return ExtractedFFIArgBuffer.empty
+        val statements = ArrayList<IrStatement>()
+        for (parameter in parameters) {
+            statements += putArgument(bufferVariable.load(), parameter.load())
+        }
+        // Wrapped function invocations are always considered as direct call
+        return ExtractedFFIArgBuffer(true, statements, bufferVariable)
+    }
+
+    fun extractArgumentsIntoBuffer(args: IrVararg): ExtractedFFIArgBuffer {
+        val bufferVariable = createBufferVar()
         val argElements = args.elements
         // For dynamic invocations, we need to unbox all args at runtime first, go through putAll
         val statements = ArrayList<IrStatement>()
@@ -204,20 +231,16 @@ internal class FFI(
                 statements += when (argElement) {
                     is IrSpreadElement -> putArguments(bufferVariable.load(), argElement.expression)
                     is IrExpression -> putArgument(bufferVariable.load(), argElement)
-                    else -> return ExtractedFFIArgBuffer()
+                    else -> return ExtractedFFIArgBuffer.empty
                 }
             }
-            return ExtractedFFIArgBuffer(
-                statements = statements, bufferVariable = bufferVariable
-            )
+            return ExtractedFFIArgBuffer(statements = statements, bufferVariable = bufferVariable)
         }
         // For direct invocations we can expand all arguments at compile time
         for (argElement in argElements) {
-            if (argElement !is IrExpression) return ExtractedFFIArgBuffer()
+            if (argElement !is IrExpression) return ExtractedFFIArgBuffer.empty
             statements += putArgument(bufferVariable.load(), argElement)
         }
-        return ExtractedFFIArgBuffer(
-            isDirectCall = true, statements = statements, bufferVariable = bufferVariable
-        )
+        return ExtractedFFIArgBuffer(true, statements, bufferVariable)
     }
 }

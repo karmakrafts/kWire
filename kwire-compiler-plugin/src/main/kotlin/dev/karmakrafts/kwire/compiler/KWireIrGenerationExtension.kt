@@ -40,8 +40,11 @@ import org.jetbrains.kotlin.platform.konan.NativePlatforms
 
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+        val kwireSymbols = KWireSymbols(pluginContext)
+        val KWireModuleContext = KWireModuleContext(pluginContext, kwireSymbols, moduleFragment)
+
         for (file in moduleFragment.files) {
-            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file)
+            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols, KWireModuleContext)
 
             // Validation
             file.acceptVoid(StructChecker(kwireContext))

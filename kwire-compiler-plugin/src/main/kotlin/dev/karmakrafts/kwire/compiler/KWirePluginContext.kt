@@ -49,10 +49,11 @@ import org.jetbrains.kotlin.ir.util.toIrConst
 internal class KWirePluginContext( // @formatter:off
     val pluginContext: IrPluginContext,
     val irModule: IrModuleFragment,
-    override val irFile: IrFile
+    override val irFile: IrFile,
+    val kwireSymbols: KWireSymbols,
+    val KWireModuleContext: KWireModuleContext
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions { // @formatter:on
     var checkerFailed: Boolean = false
-    val kwireSymbols: KWireSymbols = KWireSymbols(pluginContext)
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     val ffi: FFI = FFI(this)
     val memory: Memory = Memory(this)
