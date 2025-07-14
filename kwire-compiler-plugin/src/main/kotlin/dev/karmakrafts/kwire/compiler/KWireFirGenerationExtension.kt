@@ -21,17 +21,22 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.EffectiveVisibility
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.builder.buildRegularClass
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGenerationApi
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
+import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.moduleData
+import org.jetbrains.kotlin.fir.plugin.createDefaultPrivateConstructor
 import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.SpecialNames
 
 internal class KWireFirGenerationExtension( // @formatter:off
     session: FirSession,
@@ -40,6 +45,13 @@ internal class KWireFirGenerationExtension( // @formatter:off
     @ExperimentalTopLevelDeclarationsGenerationApi
     override fun getTopLevelClassIds(): Set<ClassId> {
         return setOf(KWireModuleContext.classId)
+    }
+
+    override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
+        if (classSymbol.classId == KWireModuleContext.classId) {
+            return setOf(SpecialNames.INIT)
+        }
+        return emptySet()
     }
 
     private fun createModuleClass(): FirClassLikeSymbol<*> = buildRegularClass {
@@ -54,12 +66,23 @@ internal class KWireFirGenerationExtension( // @formatter:off
         scopeProvider = session.kotlinScopeProvider
     }.symbol
 
-    @OptIn(FirImplementationDetail::class)
     @ExperimentalTopLevelDeclarationsGenerationApi
     override fun generateTopLevelClassLikeDeclaration(classId: ClassId): FirClassLikeSymbol<*>? {
-        if (classId == KWireModuleContext.classId) {
-            return createModuleClass()
+        return when (classId) {
+            KWireModuleContext.classId -> createModuleClass()
+            else -> null
         }
-        return null
+    }
+
+    private fun createModuleClassConstructor(owner: FirClassSymbol<*>): List<FirConstructorSymbol> {
+        return listOf(createDefaultPrivateConstructor(owner, KWireModuleContext).symbol)
+    }
+
+    override fun generateConstructors(context: MemberGenerationContext): List<FirConstructorSymbol> {
+        val owner = context.owner
+        return when (owner.classId) {
+            KWireModuleContext.classId -> createModuleClassConstructor(owner)
+            else -> emptyList()
+        }
     }
 }
