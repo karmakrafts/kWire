@@ -17,9 +17,78 @@
 package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import dev.karmakrafts.kwire.compiler.util.isValueType
+import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrStarProjection
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.target
 
 internal class ValueTypeChecker( // @formatter:off
     context: KWirePluginContext,
 ) : AbstractChecker<Nothing?>(context) { // @formatter:on
+    override fun visitCall(expression: IrCall, data: Nothing?) {
+        super.visitCall(expression, data)
+        val function = expression.target
+        val parameters = function.typeParameters
+        val arguments = expression.typeArguments
+        for (parameterIndex in parameters.indices) {
+            val parameter = parameters[parameterIndex]
+            if (!parameter.isValueType()) continue
+            val argument = arguments[parameterIndex] ?: continue
+            if (argument.isValueType(context)) continue
+            reportError(
+                "Type parameter ${parameter.name.asString()} in ${function.name.asString()} expected value type, but got ${argument.render()}",
+                expression
+            )
+        }
+    }
+
+    private fun checkTypeUsage(
+        type: IrType, traceElement: IrElement
+    ) {
+        if (type !is IrSimpleType) return
+        val clazz = type.getClass() ?: return
+        val parameters = clazz.typeParameters
+        val arguments = type.arguments
+        for (parameterIndex in parameters.indices) {
+            val parameter = parameters[parameterIndex]
+            if (!parameter.isValueType()) continue
+            val argument = arguments[parameterIndex]
+            when (argument) {
+                is IrStarProjection -> continue // Star projections are allowed
+                is IrType -> if (argument.isValueType(context)) continue
+                else -> {}
+            }
+            reportError(
+                "Type parameter ${parameter.name.asString()} in ${clazz.name.asString()} expected value type, but got ${argument.render()}",
+                traceElement
+            )
+        }
+    }
+
+    override fun visitFunction(declaration: IrFunction, data: Nothing?) {
+        super.visitFunction(declaration, data)
+        checkTypeUsage(declaration.returnType, declaration)
+        val parameterTypes = declaration.parameters.map { it.type }
+        for (type in parameterTypes) {
+            checkTypeUsage(type, declaration)
+        }
+    }
+
+    override fun visitField(declaration: IrField, data: Nothing?) {
+        super.visitField(declaration, data)
+        checkTypeUsage(declaration.type, declaration)
+    }
+
+    override fun visitTypeAlias(declaration: IrTypeAlias, data: Nothing?) {
+        super.visitTypeAlias(declaration, data)
+        checkTypeUsage(declaration.expandedType, declaration)
+    }
 }

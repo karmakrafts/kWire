@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -76,6 +77,10 @@ internal fun IrType.isValueType(context: KWirePluginContext): Boolean {
         return hasAnnotation(KWireNames.ValueType.id)
     }
     return computeMemoryLayout(context) !is ReferenceMemoryLayout || isCFn()
+}
+
+internal fun IrTypeParameter.isValueType(): Boolean {
+    return hasAnnotation(KWireNames.ValueType.id)
 }
 
 internal fun IrType.markedConst(context: KWirePluginContext): IrType {
