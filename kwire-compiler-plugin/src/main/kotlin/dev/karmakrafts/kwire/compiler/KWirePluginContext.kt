@@ -51,7 +51,6 @@ internal class KWirePluginContext( // @formatter:off
     val irModule: IrModuleFragment,
     override val irFile: IrFile,
     val kwireSymbols: KWireSymbols,
-    val KWireModuleContext: KWireModuleContext
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions { // @formatter:on
     var checkerFailed: Boolean = false
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)

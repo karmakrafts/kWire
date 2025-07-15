@@ -71,13 +71,11 @@ internal class KWireSymbols(
 
     val sharedLibraryType: IrClassSymbol = context.referenceClass(KWireNames.SharedLibrary.id)!!
     val sharedLibraryCompanionType: IrClassSymbol = context.referenceClass(KWireNames.SharedLibrary.Companion.id)!!
-    val sharedLibraryOpen: IrSimpleFunctionSymbol =
-        context.referenceFunctions(KWireNames.SharedLibrary.Companion.open).first()
-    val sharedLibraryGetFunctionAddress: IrSimpleFunctionSymbol =
-        context.referenceFunctions(KWireNames.SharedLibrary.getFunctionAddress).first()
-    val sharedLibraryCloseOnExit: IrSimpleFunctionSymbol =
-        context.referenceFunctions(KWireNames.SharedLibrary.closeOnExit).first()
+    val sharedLibraryOpenAndGetFunction: IrSimpleFunctionSymbol =
+        context.referenceFunctions(KWireNames.SharedLibrary.Companion.openAndGetFunction).first()
 
     val constType: IrClassSymbol = context.referenceClass(KWireNames.Const.id)!!
     val constConstructor: IrConstructorSymbol = context.referenceConstructors(KWireNames.Const.id).first()
+
+    val linkModeType: IrClassSymbol = context.referenceClass(KWireNames.LinkMode.id)!!
 }

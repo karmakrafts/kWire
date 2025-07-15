@@ -74,6 +74,8 @@ internal inline fun <reified T : SharedLibraryHandle> SharedLibraryHandle.checkH
 class SharedLibrary internal constructor(
     private val handle: SharedLibraryHandle
 ) : AutoCloseable {
+    private val functions: ConcurrentMutableMap<String, @Const Ptr<CVoid>> = ConcurrentMutableMap()
+
     /**
      * Companion object providing static methods for creating SharedLibrary instances.
      *
@@ -183,7 +185,6 @@ class SharedLibrary internal constructor(
          * @return A SharedLibrary instance representing the loaded library
          * @throws IllegalArgumentException if none of the libraries could be loaded
          */
-        @KWireCompilerApi
         fun open(
             names: List<String>, linkMode: LinkMode = LinkMode.LAZY, closeOnExit: Boolean = true
         ): SharedLibrary {
@@ -201,6 +202,12 @@ class SharedLibrary internal constructor(
          * @throws IllegalArgumentException if none of the libraries could be loaded
          */
         inline fun open(vararg names: String): SharedLibrary = open(names.toList(), LinkMode.LAZY)
+
+        @KWireCompilerApi
+        inline fun openAndGetFunction(libraryNames: List<String>, functionName: String): @Const Ptr<CVoid> {
+            val library = SharedLibrary.open(libraryNames)
+            return library.getFunctionAddress(functionName)
+        }
     }
 
     /**
@@ -213,7 +220,9 @@ class SharedLibrary internal constructor(
      * @return The memory address of the function, or null if the function was not found
      */
     fun findFunctionAddress(name: String): @Const Ptr<CVoid> {
-        return with(Linker) { handle.findSymbol(name) }
+        return functions.getOrPut(name) {
+            with(Linker) { handle.findSymbol(name) }
+        }
     }
 
     /**

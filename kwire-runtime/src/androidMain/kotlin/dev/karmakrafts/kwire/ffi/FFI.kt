@@ -81,16 +81,17 @@ internal object PanamaFFI : FFI {
         var offset = 0.toNUInt()
         return Array(types.size) { index ->
             val type = types[index]
+            val readAddress = (address.asNUInt() + offset).asPtr<CVoid>()
             val value: Any = when (type) {
-                FFIType.BYTE, FFIType.UBYTE -> Memory.readByte(address + offset)
-                FFIType.SHORT, FFIType.USHORT -> Memory.readShort(address + offset)
-                FFIType.INT, FFIType.UINT -> Memory.readInt(address + offset)
-                FFIType.LONG, FFIType.ULONG -> Memory.readLong(address + offset)
-                FFIType.NINT, FFIType.NUINT -> Memory.readNInt(address + offset)
-                FFIType.FLOAT -> Memory.readFloat(address + offset)
-                FFIType.DOUBLE -> Memory.readDouble(address + offset)
-                FFIType.NFLOAT -> Memory.readNFloat(address + offset)
-                FFIType.PTR -> Memory.readPointer(address + offset).asLong()
+                FFIType.BYTE, FFIType.UBYTE -> Memory.readByte(readAddress)
+                FFIType.SHORT, FFIType.USHORT -> Memory.readShort(readAddress)
+                FFIType.INT, FFIType.UINT -> Memory.readInt(readAddress)
+                FFIType.LONG, FFIType.ULONG -> Memory.readLong(readAddress)
+                FFIType.NINT, FFIType.NUINT -> Memory.readNInt(readAddress)
+                FFIType.FLOAT -> Memory.readFloat(readAddress)
+                FFIType.DOUBLE -> Memory.readDouble(readAddress)
+                FFIType.NFLOAT -> Memory.readNFloat(readAddress)
+                FFIType.PTR -> Memory.readPointer(readAddress).toMemorySegment()
                 else -> throw IllegalStateException("Cannot map FFI parameter type $type")
             }
             offset += type.size.toNUInt()

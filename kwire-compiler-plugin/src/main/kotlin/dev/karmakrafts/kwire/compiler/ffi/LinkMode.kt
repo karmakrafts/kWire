@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler
+package dev.karmakrafts.kwire.compiler.ffi
 
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
-
-internal class KWireFirGenerationExtension( // @formatter:off
-    session: FirSession,
-    private val messageCollector: MessageCollector
-) : FirDeclarationGenerationExtension(session) { // @formatter:on
-
+internal enum class LinkMode {
+    NOW,
+    LAZY
 }

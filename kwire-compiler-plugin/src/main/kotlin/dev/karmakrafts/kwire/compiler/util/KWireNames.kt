@@ -46,8 +46,7 @@ internal object KWireNames {
         val acquire: Name = Name.identifier("acquire")
         val release: Name = Name.identifier("release")
         val createUpcallStub: Name = Name.identifier("createUpcallStub")
-        val open: Name = Name.identifier("open")
-        val getFunctionAddress: Name = Name.identifier("getFunctionAddress")
+        val openAndGetFunction: Name = Name.identifier("openAndGetFunction")
         val closeOnExit: Name = Name.identifier("closeOnExit")
     }
 
@@ -295,18 +294,23 @@ internal object KWireNames {
         val fqName: FqName = id.asSingleFqName()
     }
 
+    object LinkMode {
+        val name: Name = Name.identifier("LinkMode")
+        val id: ClassId = ClassId(ffiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
     object SharedLibrary {
         val name: Name = Name.identifier("SharedLibrary")
         val id: ClassId = ClassId(ffiPackageName, name)
         val fqName: FqName = id.asSingleFqName()
-        val getFunctionAddress: CallableId = CallableId(id, Functions.getFunctionAddress)
         val closeOnExit: CallableId = CallableId(id, Functions.closeOnExit)
 
         object Companion {
             val name: FqName = FqName("SharedLibrary.Companion")
             val id: ClassId = ClassId(ffiPackageName, name, false)
             val fqName: FqName = id.asSingleFqName()
-            val open: CallableId = CallableId(ffiPackageName, name, Functions.open)
+            val openAndGetFunction: CallableId = CallableId(ffiPackageName, name, Functions.openAndGetFunction)
         }
     }
 

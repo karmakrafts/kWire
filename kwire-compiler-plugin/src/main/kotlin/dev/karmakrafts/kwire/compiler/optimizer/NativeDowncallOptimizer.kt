@@ -19,4 +19,4 @@ package dev.karmakrafts.kwire.compiler.optimizer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
-internal class NativeDowncallOptimizer : IrTransformer<KWirePluginContext>()
+internal class NativeDowncallOptimizer : IrTransformer<KWirePluginContext>() {}

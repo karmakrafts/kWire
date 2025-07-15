@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.ctype.Const
 import dev.karmakrafts.kwire.ctype.ConstCallable
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.Ptr
+import dev.karmakrafts.kwire.ctype.asPtr
 import dev.karmakrafts.kwire.ctype.toNUInt
 
 object Marshaler {
@@ -30,7 +31,7 @@ object Marshaler {
 
     fun lengthUtf16(address: @Const Ptr<Short>): NUInt {
         var index = 0.toNUInt()
-        while (Memory.readShort(address + (index * Short.SIZE_BYTES.toNUInt())) != 0.toShort()) {
+        while (Memory.readShort((address.asNUInt() + (index * Short.SIZE_BYTES.toNUInt())).asPtr<Short>()) != 0.toShort()) {
             ++index
         }
         return index
@@ -42,7 +43,7 @@ object Marshaler {
         val encodedBytes = value.encodeToByteArray()
         val length = encodedBytes.size.toNUInt()
         val address = allocate(length + 1U.toNUInt())
-        Memory.writeByte(address + length, 0) // Write null-terminator
+        Memory.writeByte((address.asNUInt() + length).asPtr<Byte>(), 0) // Write null-terminator
         encodedBytes.fixed { srcAddress ->
             Memory.copy(srcAddress, address, length)
         }
@@ -60,7 +61,8 @@ object Marshaler {
     fun Allocator.stringUtf16(value: String): Ptr<Short> {
         val length = value.length.toNUInt()
         val address = allocate((length + 1U.toNUInt()) * Short.SIZE_BYTES.toNUInt())
-        Memory.writeShort(address + length, 0) // Write null-terminator
+        // Write null-terminator
+        Memory.writeShort((address.asNUInt() + (length * Short.SIZE_BYTES.toNUInt())).asPtr<Short>(), 0)
         value.toCharArray().fixed { srcAddress ->
             Memory.copy(srcAddress, address, length * Short.SIZE_BYTES.toNUInt())
         }

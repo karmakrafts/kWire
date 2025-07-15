@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
+import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
@@ -58,6 +59,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
@@ -186,31 +188,39 @@ internal fun IrExpression.topLevelBinaryOp(
 internal fun IrExpression.plus(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "plus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
+    function.name.asString() == "plus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(
+        other.type
+    )
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.times(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "times" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
+    function.name.asString() == "times" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(
+        other.type
+    )
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.minus(
     other: IrExpression, isExtension: Boolean = false
 ): IrExpression = binaryOp(type.getClass()!!.functions.first { function ->
-    function.name.asString() == "minus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(other.type)
+    function.name.asString() == "minus" && function.parameters.first { it.kind == IrParameterKind.Regular }.type.isSameAs(
+        other.type
+    )
 }.symbol, other, isExtension)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.min(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
-    symbol = context.referenceFunctions(KWireNames.Kotlin.min).first { it.owner.returnType.isSameAs(type) }, other = other
+    symbol = context.referenceFunctions(KWireNames.Kotlin.min).first { it.owner.returnType.isSameAs(type) },
+    other = other
 )
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.max(context: KWirePluginContext, other: IrExpression): IrExpression = topLevelBinaryOp(
-    symbol = context.referenceFunctions(KWireNames.Kotlin.max).first { it.owner.returnType.isSameAs(type) }, other = other
+    symbol = context.referenceFunctions(KWireNames.Kotlin.max).first { it.owner.returnType.isSameAs(type) },
+    other = other
 )
 
 internal fun constInt(context: KWirePluginContext, value: Int): IrConstImpl = IrConstImpl.int( // @formatter:off
@@ -456,6 +466,22 @@ internal fun IrFieldSymbol.load(receiver: IrExpression? = null): IrGetField = Ir
 ) // @formatter:on
 
 internal fun IrField.load(receiver: IrExpression? = null): IrGetField = symbol.load(receiver)
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrFieldSymbol.store(
+    value: IrExpression, receiver: IrExpression? = null
+): IrSetField = IrSetFieldImpl( // @formatter:off
+    startOffset = SYNTHETIC_OFFSET,
+    endOffset = SYNTHETIC_OFFSET,
+    symbol = this,
+    type = owner.type,
+    receiver = receiver,
+    value = value
+) // @formatter:on
+
+internal fun IrField.store(
+    value: IrExpression, receiver: IrExpression? = null
+): IrSetField = symbol.store(value, receiver)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off
