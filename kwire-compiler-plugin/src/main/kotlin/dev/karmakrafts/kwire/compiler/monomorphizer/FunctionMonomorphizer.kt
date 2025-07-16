@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.monomorphizer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.transformer.TemplateTransformer
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.findContainingParent
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
@@ -100,6 +101,8 @@ internal class FunctionMonomorphizer(
                 replaceReturnTargets(function.symbol) // Patch all return targets
                 replaceTypes(substitutions) // Substitute all used types recursively
                 patchDeclarationParents(function.parent)
+                // Recursively transform all templates for this newly monomorphized function
+                transform(TemplateTransformer(context), context)
             }
         }
     }
