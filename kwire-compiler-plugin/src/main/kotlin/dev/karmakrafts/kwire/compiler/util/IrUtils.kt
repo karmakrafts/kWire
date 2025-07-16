@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -262,6 +264,8 @@ internal fun constNFloat(context: KWirePluginContext, value: Double): IrExpressi
 ) // @formatter:on
 
 // Shared imports
+
+internal fun IrAnnotationContainer.isTemplate(): Boolean = hasAnnotation(KWireNames.Template.id)
 
 internal fun IrAnnotationContainer.isSharedImport(): Boolean = hasAnnotation(KWireNames.SharedImport.id)
 
@@ -533,6 +537,14 @@ internal fun unrollLocalRef(ref: IrExpression?): IrVariable? {
         is IrTry -> unrollLocalRef(ref.tryResult)
         is IrComposite -> unrollLocalRef(ref.statements.lastOrNull() as? IrExpression ?: return null)
 
+        else -> null
+    }
+}
+
+internal fun IrDeclaration.findContainingParent(): IrDeclarationContainer? {
+    return when (val parent = parent) {
+        is IrDeclarationContainer -> parent
+        is IrDeclaration -> parent.findContainingParent()
         else -> null
     }
 }

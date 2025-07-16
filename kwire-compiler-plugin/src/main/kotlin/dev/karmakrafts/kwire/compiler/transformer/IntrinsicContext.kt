@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.scope.AbstractAllocationScope
 import dev.karmakrafts.kwire.compiler.memory.scope.BlockAllocationScope
 import dev.karmakrafts.kwire.compiler.memory.scope.FunctionAllocationScope
+import dev.karmakrafts.kwire.compiler.util.isTemplate
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
@@ -30,13 +31,18 @@ import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import java.util.*
 
 internal class IntrinsicContext(  // @formatter:off
-    val context: KWirePluginContext
+    private val context: KWirePluginContext
 ) { // @formatter:on
     private val allocationScopeStack: Stack<AbstractAllocationScope> = Stack()
     inline val allocationScope: AbstractAllocationScope get() = allocationScopeStack.peek()
 
     private val parentStack: Stack<IrDeclarationParent> = Stack()
     inline val parentOrNull: IrDeclarationParent? get() = parentStack.lastOrNull()
+
+    val isInsideTemplate: Boolean get() = when(val parent = parentOrNull) {
+        is IrClass, is IrFunction -> parent.isTemplate()
+        else -> false
+    }
 
     fun findLocalAddress(variable: IrValueDeclaration): IrValueDeclaration? {
         for (scope in allocationScopeStack.reversed()) {

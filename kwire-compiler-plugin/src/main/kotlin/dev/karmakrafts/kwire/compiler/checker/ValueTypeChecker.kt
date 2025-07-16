@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrStarProjection
@@ -84,6 +85,11 @@ internal class ValueTypeChecker( // @formatter:off
 
     override fun visitField(declaration: IrField, data: Nothing?) {
         super.visitField(declaration, data)
+        checkTypeUsage(declaration.type, declaration)
+    }
+
+    override fun visitVariable(declaration: IrVariable, data: Nothing?) {
+        super.visitVariable(declaration, data)
         checkTypeUsage(declaration.type, declaration)
     }
 

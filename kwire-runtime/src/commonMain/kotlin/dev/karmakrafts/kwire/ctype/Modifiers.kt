@@ -19,20 +19,6 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 
 /**
- * Used as a constraint on generic parameters to denote that the
- * given type has to be one of the following:
- *  - [Byte], [Short], [Int], [Long] or [NInt]
- *  - [UByte], [UShort], [UInt], [ULong] or [NUInt]
- *  - [Float], [Double] or [NFloat]
- *  - [Char]
- *  - [CVoid], [CFn] or [Ptr]
- *  - any subtype of [Struct]
- */
-@Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.TYPE_PARAMETER)
-annotation class ValueType
-
-/**
  * A marker annotation for pointer types.
  *
  * This annotation may be applied to [Ptr] types

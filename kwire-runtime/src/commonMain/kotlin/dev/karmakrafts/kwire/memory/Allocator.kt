@@ -27,12 +27,12 @@ import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.NUIntArray
 import dev.karmakrafts.kwire.ctype.Ptr
 import dev.karmakrafts.kwire.ctype.PtrArray
-import dev.karmakrafts.kwire.ctype.ValueType
 import dev.karmakrafts.kwire.ctype.ptrArrayOf
 import dev.karmakrafts.kwire.ctype.toNFloatArray
 import dev.karmakrafts.kwire.ctype.toNIntArray
 import dev.karmakrafts.kwire.ctype.toNUInt
 import dev.karmakrafts.kwire.memory.Memory.Companion.defaultAlignment
+import dev.karmakrafts.kwire.meta.ValueType
 
 interface Allocator {
     /**

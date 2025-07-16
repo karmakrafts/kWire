@@ -22,6 +22,7 @@ import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.memory.Memory
+import dev.karmakrafts.kwire.meta.ValueType
 import kotlin.jvm.JvmInline
 
 internal expect val pointerSize: Int
@@ -39,7 +40,9 @@ internal expect val pointerSize: Int
 @JvmInline
 value class Ptr<@ValueType T>
 @KWireCompilerApi @PublishedApi internal constructor(
-    @param:KWireCompilerApi @property:KWireCompilerApi val rawAddress: NUInt
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi
+    val rawAddress: NUInt
 ) {
     companion object {
         /**

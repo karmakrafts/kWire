@@ -124,6 +124,7 @@ internal object KWireNames {
     val memoryPackageName: FqName = FqName("${packageName.asString()}.memory")
     val ctypePackageName: FqName = FqName("${packageName.asString()}.ctype")
     val ffiPackageName: FqName = FqName("${packageName.asString()}.ffi")
+    val metaPackageName: FqName = FqName("${packageName.asString()}.meta")
 
     // ------------------------------ dev.karmakrafts.kwire
 
@@ -144,11 +145,6 @@ internal object KWireNames {
         val toNInt: CallableId = CallableId(ctypePackageName, Functions.toNInt)
         val toNUInt: CallableId = CallableId(ctypePackageName, Functions.toNUInt)
         val toNFloat: CallableId = CallableId(ctypePackageName, Functions.toNFloat)
-    }
-
-    object ValueType {
-        val name: Name = Name.identifier("ValueType")
-        val id: ClassId = ClassId(ctypePackageName, name)
     }
 
     object CFn {
@@ -364,5 +360,18 @@ internal object KWireNames {
             val fqName: FqName = id.asSingleFqName()
             val acquire: CallableId = CallableId(ffiPackageName, name, Functions.acquire)
         }
+    }
+
+    // dev.karmakrafts.kwire.meta
+
+    object Template {
+        val name: Name = Name.identifier("Template")
+        val id: ClassId = ClassId(metaPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
+    object ValueType {
+        val name: Name = Name.identifier("ValueType")
+        val id: ClassId = ClassId(metaPackageName, name)
     }
 }

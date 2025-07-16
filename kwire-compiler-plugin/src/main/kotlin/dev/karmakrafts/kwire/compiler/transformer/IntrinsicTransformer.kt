@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.ir.declarations.IrScript
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
@@ -92,7 +91,8 @@ internal abstract class IntrinsicTransformer( // @formatter:off
         if (transformedCall is IrCall) {
             val function = transformedCall.target
             val type = function.getIntrinsicType() ?: return transformedCall
-            if (type !in types) return transformedCall
+            // If the intrinsic type isn't relevant to this transformer or if we are inside a template, skip lowering
+            if (type !in types || data.isInsideTemplate) return transformedCall
             return visitIntrinsic(transformedCall, data, type)
         }
         return transformedCall

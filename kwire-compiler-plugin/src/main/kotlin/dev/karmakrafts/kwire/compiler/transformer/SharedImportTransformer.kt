@@ -59,9 +59,12 @@ internal class SharedImportTransformer(
         ) // @formatter:on
     }
 
-    private fun createTrampolineBody(
-        libraryNames: List<String>, functionName: String, callingConvention: CallingConvention, function: IrFunction
-    ): IrBlockBody {
+    private fun createTrampolineBody( // @formatter:off
+        libraryNames: List<String>,
+        functionName: String,
+        callingConvention: CallingConvention,
+        function: IrFunction
+    ): IrBlockBody { // @formatter:on
         val returnType = function.returnType
         val parameterTypes = function.parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
         val address = getFunctionAddress(libraryNames, functionName)

@@ -20,7 +20,7 @@ import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
 import dev.karmakrafts.kwire.ctype.NUInt
 import dev.karmakrafts.kwire.ctype.Struct
-import dev.karmakrafts.kwire.ctype.ValueType
+import dev.karmakrafts.kwire.meta.ValueType
 import kotlin.reflect.KProperty1
 
 /**

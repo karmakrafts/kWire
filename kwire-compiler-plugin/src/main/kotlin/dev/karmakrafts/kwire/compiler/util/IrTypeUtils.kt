@@ -22,15 +22,18 @@ import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
 import org.jetbrains.kotlin.ir.types.classifierOrFail
+import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
@@ -39,9 +42,20 @@ import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 
+internal fun IrType.isPointerAssignableFrom(type: IrType): Boolean {
+    if (!isPtr() || !type.isPtr()) return false
+    val pointedType = getPointedType() ?: return false
+    // IrStarProjection resolves to Any concrete type
+    if (pointedType.isUnit()) {
+        // void* is assignable from any pointer type
+        return true
+    }
+    return pointedType.isSameAs(type.getPointedType() ?: return false)
+}
+
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
     val inType = type.type
-    return this == inType || inType.isSubtypeOf(type, context.typeSystemContext)
+    return this == inType || inType.isSubtypeOf(type, context.typeSystemContext) || isPointerAssignableFrom(type)
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -71,10 +85,11 @@ internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id
 internal fun IrType.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)
 internal fun IrType.isInheritsConstness(): Boolean = hasAnnotation(KWireNames.InheritsConstness.id)
 
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrType.isValueType(context: KWirePluginContext): Boolean {
     if (isTypeParameter()) {
         // If the type parameter has the @ValueType annotation, any non value type would fail the checker stage
-        return hasAnnotation(KWireNames.ValueType.id)
+        return (classifierOrNull as? IrTypeParameterSymbol)?.owner?.hasAnnotation(KWireNames.ValueType.id) == true
     }
     return computeMemoryLayout(context) !is ReferenceMemoryLayout || isCFn()
 }

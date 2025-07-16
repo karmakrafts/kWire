@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
-import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -43,9 +42,9 @@ internal fun IrTypeArgument.toResolvedType(): ResolvedType = when (this) {
 
 internal fun IrTypeParametersContainer.computeSubstitutions(
     arguments: List<IrTypeArgument>
-): Map<IrTypeParameter, ResolvedType> {
+): Map<IrTypeParameterSymbol, ResolvedType> {
     return if (typeParameters.size != arguments.size) emptyMap()
-    else typeParameters.zip(arguments.map { it.toResolvedType() }).toMap()
+    else typeParameters.map { it.symbol }.zip(arguments.map { it.toResolvedType() }).toMap()
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -58,7 +57,7 @@ internal fun IrType.resolveFromReceiver( // @formatter:off
     val symbol = classifierOrNull as? IrTypeParameterSymbol ?: return null
 
     val substitutions = parent.computeSubstitutions(typeArguments)
-    val type = substitutions[symbol.owner]
+    val type = substitutions[symbol]
 
     if (type == null) {
         // Attempt to resolve via receiver

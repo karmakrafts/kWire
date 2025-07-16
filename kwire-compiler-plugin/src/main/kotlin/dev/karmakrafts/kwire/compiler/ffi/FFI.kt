@@ -21,6 +21,8 @@ import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.isAssignableFrom
+import dev.karmakrafts.kwire.compiler.util.isPointerAssignableFrom
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.isSameAs
 import dev.karmakrafts.kwire.compiler.util.load
@@ -164,7 +166,7 @@ internal class FFI(
         val function = ffiArgBufferType.owner.functions.first { function ->
             if (!function.name.asString().startsWith("get")) return@first false
             val returnType = function.returnType
-            returnType == type || (returnType.isPtr() && type.isPtr())
+            type.isAssignableFrom(context, returnType)
         }
         val result = function.call(dispatchReceiver = buffer)
         if (result.type.isPtr()) {
@@ -186,7 +188,8 @@ internal class FFI(
         val function = ffiArgBufferType.owner.functions.first { function ->
             if (!function.name.asString().startsWith("put")) return@first false
             val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
-            params.first().type == type
+            val paramType = params.first().type
+            paramType == type || (paramType.isPtr() && type.isPtr())
         }
         return function.call( // @formatter:off
             dispatchReceiver = buffer,

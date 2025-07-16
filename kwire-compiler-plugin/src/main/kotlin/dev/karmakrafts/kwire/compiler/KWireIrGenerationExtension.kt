@@ -30,6 +30,7 @@ import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.SharedImportTransformer
+import dev.karmakrafts.kwire.compiler.transformer.TemplateTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -51,6 +52,9 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             file.accept(PtrCFnChecker(kwireContext), null)
             file.accept(ValueTypeChecker(kwireContext), null)
             if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
+
+            // Template expansion/monomorphization
+            file.transform(TemplateTransformer(kwireContext), kwireContext)
 
             // Generation
             file.acceptVoid(SharedImportTransformer(kwireContext))
