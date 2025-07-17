@@ -35,7 +35,8 @@ internal class KWireModuleData( // @formatter:off
     val monomorphizedFunctions: HashMap<MonoFunctionSignature, IrSimpleFunction> = HashMap()
 
     // Allows making a reference to the synthetic class generated in FIR
-    val monoFunctionClassName: Name = Name.identifier("KWireMonoFunctions\$${module.name.getCleanSpecialName().hashCode().toHexString()}")
+    val monoFunctionClassName: Name =
+        Name.identifier("KWireMonoFunctions\$${module.name.getCleanSpecialName().hashCode().toHexString()}")
     val monoFunctionClassId: ClassId = ClassId.topLevel(FqName.topLevel(monoFunctionClassName))
     val monoFunctionClass: IrClass = module.findChild<IrClass> { it.name == monoFunctionClassName }!!
 }

@@ -205,7 +205,7 @@ class SharedLibrary internal constructor(
 
         @KWireCompilerApi
         inline fun openAndGetFunction(libraryNames: List<String>, functionName: String): @Const Ptr<CVoid> {
-            val library = SharedLibrary.open(libraryNames)
+            val library = open(libraryNames)
             return library.getFunctionAddress(functionName)
         }
     }

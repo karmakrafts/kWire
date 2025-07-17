@@ -24,8 +24,8 @@ import dev.karmakrafts.kwire.compiler.util.remapSyntheticSourceRanges
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
+import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
@@ -41,12 +41,11 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
-import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.deepCopyWithoutPatchingParents
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
-import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.ir.util.target
+import org.jetbrains.kotlin.name.Name
 
 internal data class MonoFunctionSignature( // @formatter:off
     val symbol: IrFunctionSymbol,
@@ -80,9 +79,6 @@ internal class FunctionMonomorphizer(
                 with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
                 // Only copy value parameters, as type parameters are eliminated
                 // @formatter:off
-                parameters = function.parameters
-                    .filterNot { it.kind == IrParameterKind.DispatchReceiver }
-                    .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
                 // Copy all annotations except @Template
                 annotations = function.annotations
                     .filterNot { it.type.getClass()?.isClassWithFqName(KWireNames.Template.fqName) == true }
@@ -106,17 +102,35 @@ internal class FunctionMonomorphizer(
 
                     else -> null
                 }
+                parameters = function.parameters.map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
+                patchDeclarationParents(monoFunctionClass)
                 // @formatter:on
                 // Patch all parameters to reference the newly deep-copied mono-function params
                 replaceParameterRefs(function.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
                 replaceReturnTargets(function.symbol) // Patch all return targets
                 replaceTypes(substitutions) // Substitute all used types recursively
                 remapValueAccesses(function) // Remap all local references accordingly
-                patchDeclarationParents(monoFunctionClass)
-                // Replace dispatch receiver if required
-                parameters += createDispatchReceiverParameterWithClassParent(declOrigin)
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
+                // Add a fresh dispatch receiver parameter
+                val dispatchReceiverParam = buildReceiverParameter {
+                    startOffset = SYNTHETIC_OFFSET
+                    endOffset = SYNTHETIC_OFFSET
+                    name = Name.special("<this>")
+                    type = monoFunctionClass.defaultType
+                }
+                parameters =
+                    listOf(dispatchReceiverParam) + parameters.filterNot { it.kind == IrParameterKind.DispatchReceiver }
+                // If the original function had a dispatch receiver, patch up all references to it
+                // TODO: this is plainly wrong for anything but top-level functions;
+                //    we need to turn the original dispatch receiver into a context parameter when present,
+                //    then we patch the old dispatch param into that new context param.
+                //    Make sure to adjust call generation accordingly - Me, who forgot twice already
+                val oldDispatchReceiver =
+                    function.parameters.firstOrNull { it.kind == IrParameterKind.DispatchReceiver }
+                if (oldDispatchReceiver != null) {
+                    replaceParameterRefs(mapOf(oldDispatchReceiver.symbol to dispatchReceiverParam.symbol))
+                }
             }
             // Register the function as visible and inject it
             context.metadataDeclarationRegistrar.registerFunctionAsMetadataVisible(function)
@@ -154,9 +168,10 @@ internal class FunctionMonomorphizer(
         ).apply {
             dispatchReceiver = context.kwireModuleData.monoFunctionClass.symbol.getObjectInstance()
             // Copy and remap regular value arguments
-            for (parameter in regularParams) {
-                val originalParam = function.parameters[parameter.indexInParameters]
-                arguments[parameter] = call.arguments[originalParam]
+            for (parameter in monoFunction.parameters) {
+                if (parameter.kind == IrParameterKind.DispatchReceiver) continue
+                val originalParameter = function.parameters.find { it.name == parameter.name } ?: continue
+                arguments[parameter] = call.arguments[originalParameter]
             }
         }
     }

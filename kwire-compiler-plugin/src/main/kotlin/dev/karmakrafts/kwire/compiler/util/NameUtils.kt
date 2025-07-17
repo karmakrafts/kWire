@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.name.Name
 
 internal fun Name.getCleanSpecialName(): String {
     val rawValue = asString()
-    if(isSpecial) {
+    if (isSpecial) {
         return rawValue.substring(1, rawValue.length - 1)
     }
     return rawValue

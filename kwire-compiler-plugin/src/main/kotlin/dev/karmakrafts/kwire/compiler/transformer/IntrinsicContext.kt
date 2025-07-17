@@ -39,10 +39,11 @@ internal class IntrinsicContext(  // @formatter:off
     private val parentStack: Stack<IrDeclarationParent> = Stack()
     inline val parentOrNull: IrDeclarationParent? get() = parentStack.lastOrNull()
 
-    val isInsideTemplate: Boolean get() = when(val parent = parentOrNull) {
-        is IrClass, is IrFunction -> parent.isTemplate()
-        else -> false
-    }
+    val isInsideTemplate: Boolean
+        get() = when (val parent = parentOrNull) {
+            is IrClass, is IrFunction -> parent.isTemplate()
+            else -> false
+        }
 
     fun findLocalAddress(variable: IrValueDeclaration): IrValueDeclaration? {
         for (scope in allocationScopeStack.reversed()) {

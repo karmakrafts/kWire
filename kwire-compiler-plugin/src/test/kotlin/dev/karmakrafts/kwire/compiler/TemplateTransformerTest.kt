@@ -30,15 +30,17 @@ class TemplateTransformerTest {
             import dev.karmakrafts.kwire.meta.Template
             import dev.karmakrafts.kwire.meta.ValueType
             import dev.karmakrafts.kwire.memory.sizeOf
+            import dev.karmakrafts.kwire.memory.default
             import dev.karmakrafts.kwire.ctype.Ptr
             import dev.karmakrafts.kwire.ctype.nullptr
             @Template
-            fun <@ValueType T> test(): Ptr<T> {
+            fun <@ValueType T> test(value: T): Ptr<T> {
+                println(value)
                 return nullptr()
             }
             @Template
             fun <@ValueType T> foo() {
-                val ptr = test<T>()
+                val ptr = test<T>(default<T>())
             }
             fun bar() {
                 foo<Int>()

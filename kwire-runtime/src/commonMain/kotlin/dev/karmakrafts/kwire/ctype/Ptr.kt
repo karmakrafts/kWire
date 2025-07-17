@@ -40,9 +40,7 @@ internal expect val pointerSize: Int
 @JvmInline
 value class Ptr<@ValueType T>
 @KWireCompilerApi @PublishedApi internal constructor(
-    @param:KWireCompilerApi
-    @property:KWireCompilerApi
-    val rawAddress: NUInt
+    @param:KWireCompilerApi @property:KWireCompilerApi val rawAddress: NUInt
 ) {
     companion object {
         /**

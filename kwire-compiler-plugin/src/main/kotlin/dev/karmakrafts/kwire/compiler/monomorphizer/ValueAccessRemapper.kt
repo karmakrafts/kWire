@@ -60,8 +60,11 @@ private class ValueAccessFinder : IrVisitorVoid() {
         super.visitVariable(declaration)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitValueAccess(expression: IrValueAccessExpression) {
-        accesses += expression
+        if (expression.symbol.owner is IrVariable) {
+            accesses += expression
+        }
         super.visitValueAccess(expression)
     }
 }

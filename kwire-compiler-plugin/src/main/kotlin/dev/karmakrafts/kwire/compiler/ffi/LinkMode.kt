@@ -17,6 +17,5 @@
 package dev.karmakrafts.kwire.compiler.ffi
 
 internal enum class LinkMode {
-    NOW,
-    LAZY
+    NOW, LAZY
 }

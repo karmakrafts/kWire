@@ -51,7 +51,8 @@ internal class KWireFirGenerationExtension( // @formatter:off
     }
 
     private val moduleName: String = session.moduleData.name.getCleanSpecialName()
-    private val monoFunctionClassName: Name = Name.identifier("KWireMonoFunctions\$${moduleName.hashCode().toHexString()}")
+    private val monoFunctionClassName: Name =
+        Name.identifier("KWireMonoFunctions\$${moduleName.hashCode().toHexString()}")
     private val monoFunctionClassId: ClassId = ClassId.topLevel(FqName.topLevel(monoFunctionClassName))
 
     private fun generateMonoFunctionClass(): FirClassSymbol<*> = buildRegularClass {

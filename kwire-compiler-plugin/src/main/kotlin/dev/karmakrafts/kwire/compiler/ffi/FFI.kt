@@ -22,7 +22,6 @@ import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.isAssignableFrom
-import dev.karmakrafts.kwire.compiler.util.isPointerAssignableFrom
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.isSameAs
 import dev.karmakrafts.kwire.compiler.util.load

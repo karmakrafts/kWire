@@ -33,8 +33,7 @@ internal class SourceRangeReplacer(
 }
 
 internal fun <E : IrElement> E.remapSourceRanges(
-    startMapper: (IrElement) -> Int,
-    endMapper: (IrElement) -> Int
+    startMapper: (IrElement) -> Int, endMapper: (IrElement) -> Int
 ): E {
     acceptVoid(SourceRangeReplacer(startMapper, endMapper))
     return this

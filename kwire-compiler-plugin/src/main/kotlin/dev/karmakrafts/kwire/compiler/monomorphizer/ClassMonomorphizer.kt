@@ -20,6 +20,4 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 
 internal class ClassMonomorphizer(
     private val context: KWirePluginContext
-) {
-
-}
+)
