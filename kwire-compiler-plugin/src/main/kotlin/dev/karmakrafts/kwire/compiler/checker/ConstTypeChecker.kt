@@ -17,7 +17,7 @@
 package dev.karmakrafts.kwire.compiler.checker
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.isValueType
+import dev.karmakrafts.kwire.compiler.util.isConst
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
@@ -28,32 +28,30 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
 
-internal class ValueTypeChecker( // @formatter:off
-    context: KWirePluginContext,
-) : TypeChecker<Nothing?>(context) { // @formatter:on
+internal class ConstTypeChecker(
+    context: KWirePluginContext
+) : TypeChecker<Nothing?>(context) {
     override fun checkTypeArgument(parameter: IrTypeParameter, argument: IrTypeArgument, traceElement: IrElement) {
-        if (!parameter.isValueType() || argument !is IrType // This handles IrStarProjections
-            || argument.isValueType(context)
-        ) return
+        if (!parameter.isConst() || argument !is IrType || argument.isConst()) return
         when (traceElement) {
             is IrCall -> {
                 val function = traceElement.target
                 reportError(
-                    "Type parameter ${parameter.name.asString()} in ${function.kotlinFqName.asString()} expected value type, but got ${argument.render()}",
+                    "Type parameter ${parameter.name.asString()} in ${function.kotlinFqName.asString()} expected const type, but got ${argument.render()}",
                     traceElement
                 )
             }
 
             is IrDeclarationParent -> {
                 reportError(
-                    "Type parameter ${parameter.name.asString()} in ${traceElement.kotlinFqName.asString()} expected value type, but got ${argument.render()}",
+                    "Type parameter ${parameter.name.asString()} in ${traceElement.kotlinFqName.asString()} expected const type, but got ${argument.render()}",
                     traceElement
                 )
             }
 
             else -> {
                 reportError(
-                    "Type parameter ${parameter.name.asString()} expected value type, but got ${argument.render()}",
+                    "Type parameter ${parameter.name.asString()} expected const type, but got ${argument.render()}",
                     traceElement
                 )
             }

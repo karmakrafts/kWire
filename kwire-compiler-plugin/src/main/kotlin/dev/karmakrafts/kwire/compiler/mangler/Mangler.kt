@@ -31,16 +31,16 @@ import org.jetbrains.kotlin.name.Name
  * of possibly many different versions of the same element.
  *
  * Functions are mangled as follows when monomorphized:
- *  - fun <T> test(value: T)       ->  test<Int>()     ->  test_XXXXXXXX_c__c_mono()
- *  - fun <T> test(value: Int)     ->  test<Float>()   ->  test_XXXXXXXX_c__k_mono()
- *  - fun <T> T.test()             ->  10.test()       ->  test_XXXXXXXX__c_mono
+ *  - fun <T> test(value: T)       ->  test<Int>()     ->  test_XXXXXXXX_c__c()
+ *  - fun <T> test(value: Int)     ->  test<Float>()   ->  test_XXXXXXXX_c__k()
+ *  - fun <T> T.test()             ->  10.test()       ->  test_XXXXXXXX__c
  *
  * The original function name is followed by **two underscores** when
  * the function has a dispatch- or extension receiver.
  * Otherwise, it is always followed by **a single underscore**.
  *
  * Classes are mangled as follows when monomorphized:
- *  - class Test<T>                ->  Test<Int>()     -> Test$XXXXXXXX$c$mono()
+ *  - class Test<T>                ->  Test<Int>()     -> Test$XXXXXXXX$c()
  *
  * Where `XXXXXXXX` is a placeholder of the hash code of the original IR element
  * before monomorphization.
@@ -48,10 +48,6 @@ import org.jetbrains.kotlin.name.Name
 internal class Mangler(
     private val context: KWirePluginContext
 ) {
-    companion object {
-        const val MARKER_SUFFIX: String = "mono"
-    }
-
     private fun IrFunction.computeMangledSignature(): String {
         val parameterTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
         val types = listOf(returnType) + parameterTypes
@@ -60,16 +56,13 @@ internal class Mangler(
 
     fun IrFunction.mangleName(typeArguments: List<IrType>): Name {
         // Gather receiver parameters
-        val hasDispatchReceiver = dispatchReceiverParameter != null
         val extensionReceiverParameter = parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
-        val hasExtensionReceiver = extensionReceiverParameter != null
-        val hasReceiver = hasDispatchReceiver || hasExtensionReceiver
+        val hasReceiver = extensionReceiverParameter != null
 
         // Construct receiver signature
-        val receiverTypes = ArrayList<IrType>()
-        if (hasDispatchReceiver) receiverTypes += dispatchReceiverParameter!!.type
-        if (hasExtensionReceiver) receiverTypes += extensionReceiverParameter.type
-        val receiverSignature = with(context.typeMangler) { receiverTypes.mangle() }
+        val receiverSignature = extensionReceiverParameter?.type?.let {
+            with(context.typeMangler) { it.mangle() }
+        }
 
         var newName = name.asString()
         newName += "_${hashCode()}"
@@ -81,7 +74,6 @@ internal class Mangler(
             newName += "_${with(context.typeMangler) { typeArguments.mangle() }}"
         }
 
-        newName += "_$MARKER_SUFFIX"
         return Name.identifier(newName)
     }
 
@@ -91,7 +83,7 @@ internal class Mangler(
 
     fun IrClass.mangleName(typeArguments: List<IrType>): Name {
         val suffix = with(context.typeMangler) { typeWith(typeArguments).mangle() }
-        return Name.identifier("${name.asString()}\$${hashCode()}\$${suffix}\$$MARKER_SUFFIX")
+        return Name.identifier("${name.asString()}\$${hashCode()}\$${suffix}")
     }
 
     fun IrClass.mangleNameInPlace(typeArguments: List<IrType>) {

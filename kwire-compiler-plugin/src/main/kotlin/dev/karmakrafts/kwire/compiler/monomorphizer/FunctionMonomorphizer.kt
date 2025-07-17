@@ -76,7 +76,6 @@ internal class FunctionMonomorphizer(
                 visibility =
                     DescriptorVisibilities.PUBLIC // Monomorphized functions are relocated, so they're always public
             }.apply functionScope@{
-                with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
                 // Only copy value parameters, as type parameters are eliminated
                 // @formatter:off
                 // Copy all annotations except @Template
@@ -131,6 +130,8 @@ internal class FunctionMonomorphizer(
                 if (oldDispatchReceiver != null) {
                     replaceParameterRefs(mapOf(oldDispatchReceiver.symbol to dispatchReceiverParam.symbol))
                 }
+                // Mangle function in-place after it is constructed
+                with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
             }
             // Register the function as visible and inject it
             context.metadataDeclarationRegistrar.registerFunctionAsMetadataVisible(function)

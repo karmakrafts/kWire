@@ -17,11 +17,36 @@
 package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.util.dump
 import org.junit.jupiter.api.Test
 
 class TemplateTransformerTest {
+    @Test
+    fun `Monomorphize imported external top level function`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.meta.Template
+            import dev.karmakrafts.kwire.meta.ValueType
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.Const
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.toNUInt
+            import dev.karmakrafts.kwire.ctype.NUInt
+            import dev.karmakrafts.kwire.ffi.SharedImport
+            @Template
+            @SharedImport(name = "memcpy", libraryNames = ["libc.so.6", "msvcrt.dll", "libSystem.dylib"])
+            external fun <@ValueType T> memcpy(dest: Ptr<T>, src: @Const Ptr<T>, count: NUInt): Ptr<T>
+            fun test() {
+                memcpy(nullptr<Int>(), nullptr<Int>(), 0.toNUInt())
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            // TODO: implement this
+        }
+    }
+
     @Test
     fun `Monomorphize top level function`() = runCompilerTest {
         kwireTransformerPipeline()
@@ -29,29 +54,46 @@ class TemplateTransformerTest {
         source("""
             import dev.karmakrafts.kwire.meta.Template
             import dev.karmakrafts.kwire.meta.ValueType
-            import dev.karmakrafts.kwire.memory.sizeOf
-            import dev.karmakrafts.kwire.memory.default
             import dev.karmakrafts.kwire.ctype.Ptr
             import dev.karmakrafts.kwire.ctype.nullptr
             @Template
-            fun <@ValueType T> test(value: T): Ptr<T> {
-                println(value)
-                return nullptr()
-            }
-            @Template
-            fun <@ValueType T> foo() {
-                val ptr = test<T>(default<T>())
+            fun <@ValueType T> foo(address: Ptr<T>): Ptr<T> {
+                return address + 2
             }
             fun bar() {
-                foo<Int>()
+                val ptr = foo<Int>(nullptr())
             }
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            println(element.dump())
-            getChild<IrFunction> { it.name.asString() == "foo" } matches {
+            // TODO: implement this
+        }
+    }
+
+    @Test
+    fun `Monomorphize class member function`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.meta.Template
+            import dev.karmakrafts.kwire.meta.ValueType
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.nullptr
+            class Test {
+                @Template
+                fun <@ValueType T> foo(address: Ptr<T>): Ptr<T> {
+                    return address + 2
+                }
+                fun bar() {
+                    val ptr = foo<Int>(nullptr())
+                }
             }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            // TODO: implement this
         }
     }
 }

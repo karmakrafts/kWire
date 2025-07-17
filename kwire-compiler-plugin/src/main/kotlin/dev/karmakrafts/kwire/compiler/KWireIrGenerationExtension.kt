@@ -16,7 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler
 
-import dev.karmakrafts.kwire.compiler.checker.ConstChecker
+import dev.karmakrafts.kwire.compiler.checker.ConstTypeChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCFnChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCVoidChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
@@ -49,7 +49,7 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
             val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols, kwireModuleData)
             // Validation
             file.acceptVoid(StructChecker(kwireContext))
-            file.accept(ConstChecker(kwireContext), null)
+            file.accept(ConstTypeChecker(kwireContext), null)
             file.accept(PtrCVoidChecker(kwireContext), null)
             file.accept(PtrCFnChecker(kwireContext), null)
             file.accept(ValueTypeChecker(kwireContext), null)

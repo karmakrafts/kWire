@@ -25,7 +25,9 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrStarProjection
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
 import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.classifierOrNull
@@ -42,10 +44,25 @@ import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 
-internal fun IrType.isPointerAssignableFrom(type: IrType): Boolean {
+internal enum class ConstCastType {
+    NONE, ADD_CONSTNESS, REMOVE_CONSTNESS
+}
+
+internal fun IrType.getConstCastTypeFrom(type: IrType): ConstCastType = when {
+    !isConst() && type.isConst() -> ConstCastType.REMOVE_CONSTNESS
+    isConst() && !type.isConst() -> ConstCastType.ADD_CONSTNESS
+    else -> ConstCastType.NONE
+}
+
+internal fun IrType.isPointerAssignableFrom(type: IrType, ignoreConstness: Boolean = false): Boolean {
+    if (!ignoreConstness && getConstCastTypeFrom(type) == ConstCastType.REMOVE_CONSTNESS) {
+        // For normal assignments, we are not allowed to drop constness
+        return false
+    }
     if (!isPtr() || !type.isPtr()) return false
-    val pointedType = getPointedType() ?: return false
-    // IrStarProjection resolves to Any concrete type
+    val pointedType = getPointedTypeArgument() ?: return false
+    if (pointedType is IrStarProjection) return true
+    if (pointedType !is IrType) return false
     if (pointedType.isUnit()) {
         // void* is assignable from any pointer type
         return true
@@ -53,9 +70,8 @@ internal fun IrType.isPointerAssignableFrom(type: IrType): Boolean {
     return pointedType.isSameAs(type.getPointedType() ?: return false)
 }
 
-internal fun IrType.isAssignableFrom(context: KWirePluginContext, type: IrType): Boolean {
-    val inType = type.type
-    return this == inType || inType.isSubtypeOf(type, context.typeSystemContext) || isPointerAssignableFrom(type)
+internal fun IrType.isAssignableFrom(context: KWirePluginContext, inType: IrType): Boolean {
+    return isSameAs(inType) || inType.isSubtypeOf(this, context.typeSystemContext) || isPointerAssignableFrom(inType)
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -77,12 +93,18 @@ internal fun IrType.getPointedType(): IrType? {
     return arguments.firstOrNull()?.typeOrNull
 }
 
+internal fun IrType.getPointedTypeArgument(): IrTypeArgument? {
+    if (this !is IrSimpleType) return null
+    return arguments.firstOrNull()
+}
+
 internal fun IrType.isCDecl(): Boolean = hasAnnotation(KWireNames.CDecl.id)
 internal fun IrType.isStdCall(): Boolean = hasAnnotation(KWireNames.StdCall.id)
 internal fun IrType.isThisCall(): Boolean = hasAnnotation(KWireNames.ThisCall.id)
 internal fun IrType.isFastCall(): Boolean = hasAnnotation(KWireNames.FastCall.id)
 
 internal fun IrType.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)
+internal fun IrTypeParameter.isConst(): Boolean = hasAnnotation(KWireNames.Const.id)
 internal fun IrType.isInheritsConstness(): Boolean = hasAnnotation(KWireNames.InheritsConstness.id)
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -120,9 +142,4 @@ internal fun IrType.markedConst(context: KWirePluginContext): IrType {
     )
 }
 
-internal fun IrType.isSameAs(type: IrType): Boolean {
-    return when {
-        isPtr() -> type.isPtr() && type.getPointedType()?.let { getPointedType()?.isSameAs(it) } == true
-        else -> this == type
-    }
-}
+internal fun IrType.isSameAs(type: IrType): Boolean = this == type

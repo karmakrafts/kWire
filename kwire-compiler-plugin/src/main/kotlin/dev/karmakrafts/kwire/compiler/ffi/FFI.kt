@@ -23,7 +23,6 @@ import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.isAssignableFrom
 import dev.karmakrafts.kwire.compiler.util.isPtr
-import dev.karmakrafts.kwire.compiler.util.isSameAs
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.toVararg
@@ -125,6 +124,10 @@ internal class FFI(
         )
     ) // @formatter:on
 
+    private fun isImplicitReinterpretCast(outType: IrType, inType: IrType): Boolean {
+        return outType.isPtr() && inType.isPtr() // This simple rule should hold for now..
+    }
+
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun call(
         type: IrType,
@@ -132,9 +135,13 @@ internal class FFI(
         descriptor: IrExpression,
         argBuffer: IrExpression,
         callingConvention: CallingConvention? = null
-    ): IrCall {
-        return ffiType.owner.functions.first { function ->
-            if (!function.name.asString().startsWith("call") || !function.returnType.isSameAs(type)) return@first false
+    ): IrExpression {
+        val call = ffiType.owner.functions.first { function ->
+            if (!function.name.asString().startsWith("call") || (!type.isAssignableFrom(
+                    context,
+                    function.returnType
+                ) && !isImplicitReinterpretCast(type, function.returnType))
+            ) return@first false
             val params = function.parameters.filter { it.kind == IrParameterKind.Regular }
             params.last().type == ffiArgBufferType.defaultType
         }.call( // @formatter:off
@@ -150,6 +157,11 @@ internal class FFI(
                 "args" to argBuffer
             )
         ) // @formatter:on
+        // Perform pointer reinterprets on the fly
+        if (isImplicitReinterpretCast(type, call.type)) {
+            return call.reinterpret(context, type)
+        }
+        return call
     }
 
     fun acquireArgBuffer(): IrCall = ffiArgBufferAcquire.call(

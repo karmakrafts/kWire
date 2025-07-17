@@ -24,8 +24,13 @@ import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getAnnotationValue
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.isSharedImport
+import dev.karmakrafts.kwire.compiler.util.isTemplate
 import dev.karmakrafts.kwire.compiler.util.load
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
@@ -34,16 +39,36 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTryImpl
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.toIrConst
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import java.util.Stack
 import kotlin.uuid.ExperimentalUuidApi
 
 internal class SharedImportTransformer(
     private val context: KWirePluginContext
 ) : IrVisitorVoid(), MessageCollectorExtensions by context {
+    private val parentStack: Stack<IrDeclarationParent> = Stack()
+    inline val parentOrNull: IrDeclarationParent? get() = parentStack.lastOrNull()
+
+    val isInsideTemplate: Boolean
+        get() = (parentOrNull as? IrAnnotationContainer)?.isTemplate() ?: false
+
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
+    }
+
+    override fun visitFile(declaration: IrFile) {
+        parentStack.push(declaration)
+        super.visitFile(declaration)
+        parentStack.pop()
+    }
+
+    override fun visitClass(declaration: IrClass) {
+        parentStack.push(declaration)
+        super.visitClass(declaration)
+        parentStack.pop()
     }
 
     private fun getFunctionAddress(libraryNames: List<String>, functionName: String): IrCall {
@@ -66,9 +91,14 @@ internal class SharedImportTransformer(
         function: IrFunction
     ): IrBlockBody { // @formatter:on
         val returnType = function.returnType
+        check(!returnType.isTypeParameter()) { "Trampoline function return type must be concrete" }
+
         val parameterTypes = function.parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
+        check(parameterTypes.none { it.isTypeParameter() }) { "Trampoline function parameter types must be concrete" }
+
         val address = getFunctionAddress(libraryNames, functionName)
         val descriptor = context.ffi.getDescriptor(returnType, parameterTypes)
+
         return context.irFactory.createBlockBody(
             startOffset = SYNTHETIC_OFFSET, endOffset = SYNTHETIC_OFFSET
         ).apply {
@@ -115,9 +145,12 @@ internal class SharedImportTransformer(
 
     @OptIn(ExperimentalUuidApi::class)
     override fun visitFunction(declaration: IrFunction) {
+        parentStack.push(declaration)
         super.visitFunction(declaration)
+        // Check before we pop if we are inside a template function
+        if (!declaration.isSharedImport() || isInsideTemplate) return
+        parentStack.pop()
 
-        if (!declaration.isSharedImport()) return
         if (!declaration.isExternal) {
             reportError("Function marked with @SharedImport must be external", declaration)
             return

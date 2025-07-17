@@ -24,6 +24,11 @@ import dev.karmakrafts.kwire.ffi.Marshal
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.jvmTarget
 
+internal val signedTypeNames: List<String> = listOf("Byte", "Short", "Int", "Long")
+internal val unsignedTypeNames: List<String> = listOf("UByte", "UShort", "UInt", "ULong")
+internal val nativeTypeNames: List<String> = listOf("NInt", "NUInt", "NFloat")
+internal val primitiveTypeNames: List<String> = signedTypeNames + unsignedTypeNames + nativeTypeNames
+
 @CompilerTestDsl
 internal fun CompilerTestScope.kwirePipeline(moduleName: String = "test") {
     pipeline {

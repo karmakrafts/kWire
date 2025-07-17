@@ -23,10 +23,13 @@ import dev.karmakrafts.kwire.KWireCompilerApi
  *
  * This annotation may be applied to [Ptr] types
  * to indicate that whatever they are pointing to may not be mutated.
+ *
+ * It can also be applied to type parameters to indicate the
+ * passed in type has a constness requirement.
  */
 @KWireCompilerApi
 @Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.TYPE)
+@Target(AnnotationTarget.TYPE, AnnotationTarget.TYPE_PARAMETER)
 annotation class Const
 
 /**
