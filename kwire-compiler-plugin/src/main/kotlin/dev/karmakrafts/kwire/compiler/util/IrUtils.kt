@@ -84,6 +84,9 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
+import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.FqName
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -547,4 +550,18 @@ internal fun IrDeclaration.findContainingParent(): IrDeclarationContainer? {
         is IrDeclaration -> parent.findContainingParent()
         else -> null
     }
+}
+
+internal inline fun <reified E : IrElement> IrElement.findChild(crossinline predicate: (E) -> Boolean = { true }): E? {
+    var result: E? = null
+    acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) {
+            if (result == null && element is E && predicate(element)) {
+                result = element
+                return
+            }
+            element.acceptChildrenVoid(this)
+        }
+    })
+    return result
 }

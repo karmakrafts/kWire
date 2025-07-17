@@ -30,6 +30,9 @@ private const val APPLE_EXTENSION: String = "dylib"
 @PublishedApi
 internal expect fun getCurrentPlatform(): Platform
 
+@PublishedApi
+internal expect fun isJvmPlatform(): Boolean
+
 /**
  * Enumeration of supported operating system platforms.
  *
@@ -72,5 +75,7 @@ enum class Platform( // @formatter:off
          * information about the platform-specific characteristics.
          */
         val current: Platform = getCurrentPlatform()
+
+        val isOnJvm: Boolean = isJvmPlatform()
     }
 }

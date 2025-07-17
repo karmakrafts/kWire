@@ -52,7 +52,8 @@ class MemoryLayoutTest {
             resetAssertions()
             result irMatches {
                 val symbols = KWireSymbols(pluginContext)
-                val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols)
+                val moduleData = KWireModuleData(pluginContext, symbols, element)
+                val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
                 val layout = type.typeGetter(context).computeMemoryLayout(context)
                 val data = layout.serialize()
                 val deserializedLayout = MemoryLayout.deserialize(data)
@@ -79,7 +80,8 @@ class MemoryLayoutTest {
         compiler shouldNotReport { error() }
         result irMatches {
             val symbols = KWireSymbols(pluginContext)
-            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols)
+            val moduleData = KWireModuleData(pluginContext, symbols, element)
+            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = struct.defaultType.computeMemoryLayout(context)
 
@@ -112,7 +114,8 @@ class MemoryLayoutTest {
         compiler shouldNotReport { error() }
         result irMatches {
             val symbols = KWireSymbols(pluginContext)
-            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols)
+            val moduleData = KWireModuleData(pluginContext, symbols, element)
+            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = struct.defaultType.computeMemoryLayout(context)
 
@@ -144,7 +147,8 @@ class MemoryLayoutTest {
         compiler shouldNotReport { error() }
         result irMatches {
             val symbols = KWireSymbols(pluginContext)
-            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols)
+            val moduleData = KWireModuleData(pluginContext, symbols, element)
+            val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
             val layout = struct.defaultType.computeMemoryLayout(context)
             layout::class shouldBe ReferenceMemoryLayout::class

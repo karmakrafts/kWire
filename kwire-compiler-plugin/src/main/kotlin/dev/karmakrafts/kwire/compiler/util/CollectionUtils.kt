@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-@file:JvmName("PlatformImpl")
+package dev.karmakrafts.kwire.compiler.util
 
-package dev.karmakrafts.kwire
-
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
-
-@PublishedApi
-internal actual fun isJvmPlatform(): Boolean = true
+internal fun <K, V, M : MutableMap<V, K>> Map<K, V>.valuesToKeys(map: M): M {
+    for ((key, value) in this) {
+        map[value] = key
+    }
+    return map
+}

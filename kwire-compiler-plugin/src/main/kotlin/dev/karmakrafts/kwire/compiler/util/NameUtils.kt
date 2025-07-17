@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-@file:JvmName("PlatformImpl")
+package dev.karmakrafts.kwire.compiler.util
 
-package dev.karmakrafts.kwire
+import org.jetbrains.kotlin.name.Name
 
-@PublishedApi
-internal actual fun getCurrentPlatform(): Platform = Platform.ANDROID
-
-@PublishedApi
-internal actual fun isJvmPlatform(): Boolean = true
+internal fun Name.getCleanSpecialName(): String {
+    val rawValue = asString()
+    if(isSpecial) {
+        return rawValue.substring(1, rawValue.length - 1)
+    }
+    return rawValue
+}

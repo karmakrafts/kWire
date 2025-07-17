@@ -27,8 +27,10 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
+import org.jetbrains.kotlin.ir.types.typeWithArguments
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
@@ -39,6 +41,13 @@ private class TypeReplacer(
         if (type.isTypeParameter()) {
             val symbol = type.classifierOrNull as? IrTypeParameterSymbol ?: return type
             return substitutions[symbol] ?: type
+        }
+        if (type is IrSimpleType && type.arguments.isNotEmpty()) {
+            val clazz = type.classifierOrNull ?: return type
+            return clazz.typeWithArguments(type.arguments.map {
+                if (it !is IrType) it
+                else resolveType(it)
+            })
         }
         return type
     }

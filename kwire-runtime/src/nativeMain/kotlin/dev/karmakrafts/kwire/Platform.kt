@@ -31,3 +31,6 @@ internal actual fun getCurrentPlatform(): Platform = when (KotlinPlatform.osFami
     OsFamily.ANDROID -> Platform.ANDROID
     else -> throw IllegalStateException("Unsupported platform")
 }
+
+@PublishedApi
+internal actual fun isJvmPlatform(): Boolean = false

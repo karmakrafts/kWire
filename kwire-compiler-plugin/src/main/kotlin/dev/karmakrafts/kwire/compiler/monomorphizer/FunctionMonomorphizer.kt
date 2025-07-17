@@ -19,9 +19,12 @@ package dev.karmakrafts.kwire.compiler.monomorphizer
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.transformer.TemplateTransformer
 import dev.karmakrafts.kwire.compiler.util.KWireNames
-import dev.karmakrafts.kwire.compiler.util.findContainingParent
+import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.remapSyntheticSourceRanges
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.GeneratedDeclarationKey
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -38,12 +41,14 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
-import org.jetbrains.kotlin.ir.util.copyValueArgumentsFrom
+import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.deepCopyWithoutPatchingParents
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
+import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.ir.util.target
 
-private data class MonoFunctionSignature( // @formatter:off
+internal data class MonoFunctionSignature( // @formatter:off
     val symbol: IrFunctionSymbol,
     val substitutions: LinkedHashMap<IrTypeParameterSymbol, IrType>
 ) // @formatter:on
@@ -55,55 +60,68 @@ internal class FunctionMonomorphizer(
         val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
     }
 
-    private val functions: HashMap<MonoFunctionSignature, IrSimpleFunction> = HashMap()
-
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
-    private fun injectIntoParent(originalFunction: IrFunction, monoFunction: IrSimpleFunction) {
-        val container = originalFunction.findContainingParent() ?: return
-        container.declarations += monoFunction
-    }
-
-    fun monomorphize(
-        function: IrFunction, substitutions: LinkedHashMap<IrTypeParameterSymbol, IrType>
-    ): IrSimpleFunction {
-        return functions.getOrPut(MonoFunctionSignature(function.symbol, substitutions)) {
-            context.irFactory.buildFun {
+    @OptIn(UnsafeDuringIrConstructionAPI::class)fun monomorphize( // @formatter:off
+        function: IrFunction,
+        substitutions: LinkedHashMap<IrTypeParameterSymbol, IrType>
+    ): IrSimpleFunction { // @formatter:on
+        val signature = MonoFunctionSignature(function.symbol, substitutions)
+        return context.kwireModuleData.monomorphizedFunctions.getOrPut(signature) {
+            val monoFunctionClass = context.kwireModuleData.monoFunctionClass
+            val function = context.irFactory.buildFun {
                 updateFrom(function) // Copy base properties like visibility and modality
+                startOffset = SYNTHETIC_OFFSET
+                endOffset = SYNTHETIC_OFFSET
                 name = function.name // Copy original name as it is mangled after construction
                 origin = declOrigin
                 returnType = function.returnType
+                visibility =
+                    DescriptorVisibilities.PUBLIC // Monomorphized functions are relocated, so they're always public
             }.apply functionScope@{
-                with(context.mangler) { mangleName(substitutions.values.toList()) }
+                with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
                 // Only copy value parameters, as type parameters are eliminated
-                parameters = function.parameters.map { it.deepCopyWithoutPatchingParents() }
+                // @formatter:off
+                parameters = function.parameters
+                    .filterNot { it.kind == IrParameterKind.DispatchReceiver }
+                    .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
                 // Copy all annotations except @Template
-                annotations = function.annotations.filterNot {
-                    it.type.getClass()?.isClassWithFqName(KWireNames.Template.fqName) == true
-                }.map { it.deepCopyWithoutPatchingParents() }
+                annotations = function.annotations
+                    .filterNot { it.type.getClass()?.isClassWithFqName(KWireNames.Template.fqName) == true }
+                    .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
                 body = when (val originalBody = function.body) {
                     is IrExpressionBody -> context.irFactory.createExpressionBody(
                         startOffset = SYNTHETIC_OFFSET,
                         endOffset = SYNTHETIC_OFFSET,
-                        expression = originalBody.expression.deepCopyWithoutPatchingParents()
+                        expression = originalBody.expression
+                            .deepCopyWithoutPatchingParents()
+                            .remapSyntheticSourceRanges()
                     )
 
-                    is IrBlockBody -> context.irFactory.createBlockBody( // @formatter:off
+                    is IrBlockBody -> context.irFactory.createBlockBody(
                         startOffset = SYNTHETIC_OFFSET,
                         endOffset = SYNTHETIC_OFFSET
-                    ).apply { // @formatter:on
-                        statements += originalBody.statements.map { it.deepCopyWithoutPatchingParents() }
+                    ).apply {
+                        statements += originalBody.statements
+                            .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
                     }
 
                     else -> null
                 }
+                // @formatter:on
                 // Patch all parameters to reference the newly deep-copied mono-function params
                 replaceParameterRefs(function.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
                 replaceReturnTargets(function.symbol) // Patch all return targets
                 replaceTypes(substitutions) // Substitute all used types recursively
-                patchDeclarationParents(function.parent)
+                remapValueAccesses(function) // Remap all local references accordingly
+                patchDeclarationParents(monoFunctionClass)
+                // Replace dispatch receiver if required
+                parameters += createDispatchReceiverParameterWithClassParent(declOrigin)
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
             }
+            // Register the function as visible and inject it
+            context.metadataDeclarationRegistrar.registerFunctionAsMetadataVisible(function)
+            monoFunctionClass.declarations += function
+            function
         }
     }
 
@@ -114,25 +132,32 @@ internal class FunctionMonomorphizer(
         if (typeArguments.any { it == null }) return call
         typeArguments as List<IrType>
         val function = call.target
+
         val substitutions = function.typeParameters.map { it.symbol }.zip(typeArguments).toMap(LinkedHashMap())
         val monoFunction = monomorphize(function, substitutions)
-        injectIntoParent(function, monoFunction)
-        val extensionReceiverParam = function.parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
-        val hasExtensionReceiver = extensionReceiverParam != null
-        val valueArgumentsCount = function.parameters.count { it.kind == IrParameterKind.Regular }
-        // Create an entirely new call from the original one so we don't mutate the original
+
+        val regularParams = monoFunction.parameters.filter { it.kind == IrParameterKind.Regular }
+        val valueArgumentsCount = regularParams.size
+        val contextParameterCount = monoFunction.parameters.count { it.kind == IrParameterKind.Context }
+        val hasExtensionReceiver = monoFunction.parameters.any { it.kind == IrParameterKind.ExtensionReceiver }
+
         return IrCallImplWithShape(
-            startOffset = call.startOffset,
-            endOffset = call.endOffset,
-            type = call.type,
+            startOffset = SYNTHETIC_OFFSET,
+            endOffset = SYNTHETIC_OFFSET,
+            type = monoFunction.returnType,
             symbol = monoFunction.symbol,
             typeArgumentsCount = 0,
             valueArgumentsCount = valueArgumentsCount,
-            contextParameterCount = 0,
-            hasDispatchReceiver = call.dispatchReceiver != null,
+            contextParameterCount = contextParameterCount,
+            hasDispatchReceiver = true, // This is always true due to relocation
             hasExtensionReceiver = hasExtensionReceiver
         ).apply {
-            copyValueArgumentsFrom(call, monoFunction)
+            dispatchReceiver = context.kwireModuleData.monoFunctionClass.symbol.getObjectInstance()
+            // Copy and remap regular value arguments
+            for (parameter in regularParams) {
+                val originalParam = function.parameters[parameter.indexInParameters]
+                arguments[parameter] = call.arguments[originalParam]
+            }
         }
     }
 }

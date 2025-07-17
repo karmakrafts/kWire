@@ -31,3 +31,6 @@ private val platform: Platform by lazy {
 
 @PublishedApi
 internal actual fun getCurrentPlatform(): Platform = platform
+
+@PublishedApi
+internal actual fun isJvmPlatform(): Boolean = true

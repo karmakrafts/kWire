@@ -21,9 +21,13 @@ import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import dev.karmakrafts.kwire.compiler.util.isTemplate
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 import java.util.*
@@ -31,20 +35,31 @@ import java.util.*
 internal class TemplateTransformer(
     private val context: KWirePluginContext
 ) : IrTransformer<KWirePluginContext>(), MessageCollectorExtensions by context {
-    private var templateStateStack: Stack<Boolean> = Stack()
-    inline val isInsideTemplate: Boolean get() = templateStateStack.lastOrNull() ?: false
+    private var parentStack: Stack<IrDeclarationParent> = Stack()
+    inline val parentOrNull: IrDeclarationParent? get() = parentStack.lastOrNull()
+
+    inline val isInsideTemplate: Boolean
+        get() = (parentOrNull as? IrAnnotationContainer)?.isTemplate() ?: false
+
+    override fun visitFile(declaration: IrFile, data: KWirePluginContext): IrFile {
+        parentStack.push(declaration)
+        val transformedFile = super.visitFile(declaration, data)
+        parentStack.pop()
+        return transformedFile
+    }
 
     override fun visitClass(declaration: IrClass, data: KWirePluginContext): IrStatement {
-        templateStateStack.push(declaration.isTemplate())
+        if (declaration.classId == context.kwireModuleData.monoFunctionClassId) return declaration
+        parentStack.push(declaration)
         val transformedClass = super.visitClass(declaration, data)
-        templateStateStack.pop()
+        parentStack.pop()
         return transformedClass
     }
 
     override fun visitFunction(declaration: IrFunction, data: KWirePluginContext): IrStatement {
-        templateStateStack.push(declaration.isTemplate())
+        parentStack.push(declaration)
         val transformedFunction = super.visitFunction(declaration, data)
-        templateStateStack.pop()
+        parentStack.pop()
         return transformedFunction
     }
 

@@ -41,21 +41,31 @@ import org.jetbrains.kotlin.platform.konan.NativePlatforms
 internal class KWireIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val kwireSymbols = KWireSymbols(pluginContext)
+        val kwireModuleData = KWireModuleData(pluginContext, kwireSymbols, moduleFragment)
 
+        // Checker pass over all files
+        var checkerFailed = false
         for (file in moduleFragment.files) {
-            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols)
-
+            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols, kwireModuleData)
             // Validation
             file.acceptVoid(StructChecker(kwireContext))
             file.accept(ConstChecker(kwireContext), null)
             file.accept(PtrCVoidChecker(kwireContext), null)
             file.accept(PtrCFnChecker(kwireContext), null)
             file.accept(ValueTypeChecker(kwireContext), null)
-            if (kwireContext.checkerFailed) continue // Skip file processing if checkers failed
+            checkerFailed = checkerFailed or kwireContext.checkerFailed
+        }
+        if (checkerFailed) return
 
-            // Template expansion/monomorphization
+        // Expand templates
+        for (file in moduleFragment.files) {
+            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols, kwireModuleData)
             file.transform(TemplateTransformer(kwireContext), kwireContext)
+        }
 
+        // Intrinsic lowering and optimization
+        for (file in moduleFragment.files) {
+            val kwireContext = KWirePluginContext(pluginContext, moduleFragment, file, kwireSymbols, kwireModuleData)
             // Generation
             file.acceptVoid(SharedImportTransformer(kwireContext))
             file.acceptVoid(MemoryLayoutTransformer(kwireContext))

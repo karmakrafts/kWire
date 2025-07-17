@@ -20,6 +20,8 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.visitors.IrVisitor
 
 internal abstract class AbstractChecker<D>(
@@ -33,6 +35,12 @@ internal abstract class AbstractChecker<D>(
     override fun reportError(message: String, element: IrElement) {
         super.reportError(message, element)
         context.checkerFailed = true
+    }
+
+    override fun visitClass(declaration: IrClass, data: D) {
+        // Checkers can skip synthetic module classes
+        if (declaration.classId == context.kwireModuleData.monoFunctionClassId) return
+        super.visitClass(declaration, data)
     }
 
     override fun visitElement(element: IrElement, data: D) {
