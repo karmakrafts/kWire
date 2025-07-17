@@ -17,6 +17,10 @@
 package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.iridium.runCompilerTest
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.target
 import org.junit.jupiter.api.Test
 
 class TemplateTransformerTest {
@@ -44,6 +48,41 @@ class TemplateTransformerTest {
         compiler shouldNotReport { error() }
         result irMatches {
             // TODO: implement this
+        }
+    }
+
+    @Test
+    fun `Monomorphize imported external member function`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.meta.Template
+            import dev.karmakrafts.kwire.meta.ValueType
+            import dev.karmakrafts.kwire.ctype.Ptr
+            import dev.karmakrafts.kwire.ctype.Const
+            import dev.karmakrafts.kwire.ctype.nullptr
+            import dev.karmakrafts.kwire.ctype.toNUInt
+            import dev.karmakrafts.kwire.ctype.NUInt
+            import dev.karmakrafts.kwire.ffi.SharedImport
+            class Foo {
+                @Template
+                @SharedImport(name = "memcpy", libraryNames = ["libc.so.6", "msvcrt.dll", "libSystem.dylib"])
+                external fun <@ValueType T> memcpy(dest: Ptr<T>, src: @Const Ptr<T>, count: NUInt): Ptr<T>            
+            }
+            fun test() {
+                Foo().memcpy(nullptr<Int>(), nullptr<Int>(), 0.toNUInt())
+            }
+        """.trimIndent())
+        // @formatter:on
+        compiler shouldNotReport { error() }
+        result irMatches {
+            val function = getChild<IrFunction> { it.name.asString().startsWith("memcpy_") }
+            function matches {
+                // TODO: implement this
+            }
+            getChild<IrCall> { it.target == function } matches {
+                // TODO: implement this
+            }
         }
     }
 

@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 
-internal class ParameterRefReplacer(
+internal class ValueAccessReplacer(
     private val substitutions: Map<IrValueSymbol, IrValueSymbol>
 ) : IrTransformer<Nothing?>() {
     override fun visitValueAccess(expression: IrValueAccessExpression, data: Nothing?): IrExpression {
@@ -33,6 +33,6 @@ internal class ParameterRefReplacer(
     }
 }
 
-internal fun IrFunction.replaceParameterRefs(substitutions: Map<IrValueSymbol, IrValueSymbol>) {
-    transform(ParameterRefReplacer(substitutions), null)
+internal fun IrFunction.replaceValueAccesses(substitutions: Map<IrValueSymbol, IrValueSymbol>) {
+    transform(ValueAccessReplacer(substitutions), null)
 }
