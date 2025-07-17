@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.compiler.mangler
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.getNativeType
+import dev.karmakrafts.kwire.compiler.util.getPointedType
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrStarProjection
@@ -100,7 +101,10 @@ internal class TypeMangler(
             NativeType.NINT -> return ManglingConstants.NINT_NAME
             NativeType.NUINT -> return ManglingConstants.NUINT_NAME
             NativeType.NFLOAT -> return ManglingConstants.NFLOAT_NAME
-            NativeType.PTR -> return ManglingConstants.PTR_NAME
+            NativeType.PTR -> {
+                val typeArgument = listOf<IrTypeArgument>(getPointedType()!!).mangleTypeParameters()
+                return "${ManglingConstants.PTR_NAME}$typeArgument"
+            }
             else -> { /* fallthrough */
             }
         }
