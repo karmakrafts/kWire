@@ -61,8 +61,8 @@ internal class FunctionMonomorphizer(
         val declOrigin: IrDeclarationOrigin = IrDeclarationOrigin.GeneratedByPlugin(this)
     }
 
-    private fun IrFunction.remapReceivers(oldFunction: IrFunction, monoFunctionClass: IrClass) {
-        val oldDispatchReceiver = oldFunction.parameters.firstOrNull { it.kind == IrParameterKind.DispatchReceiver }
+    private fun IrFunction.remapReceiverParameters(monoFunctionClass: IrClass) {
+        val oldDispatchReceiver = parameters.firstOrNull { it.kind == IrParameterKind.DispatchReceiver }
         val dispatchReceiverParam = buildReceiverParameter {
             startOffset = SYNTHETIC_OFFSET
             endOffset = SYNTHETIC_OFFSET
@@ -89,6 +89,12 @@ internal class FunctionMonomorphizer(
             ) + parameters.filterNot { it.kind == IrParameterKind.DispatchReceiver }
             // Remap old dispatch receiver accesses to new context parameter
             replaceValueAccesses(mapOf(oldDispatchReceiver.symbol to remappedDispatchReceiverParam.symbol))
+        }
+        // Remap old extension receiver if present
+        val oldExtensionReceiver = parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
+        if (oldExtensionReceiver != null) {
+            val newExtensionReceiver = parameters.single { it.kind == IrParameterKind.ExtensionReceiver }
+            replaceValueAccesses(mapOf(oldExtensionReceiver.symbol to newExtensionReceiver.symbol))
         }
     }
 
@@ -131,7 +137,6 @@ internal class FunctionMonomorphizer(
                 visibility =
                     DescriptorVisibilities.PUBLIC // Monomorphized functions are relocated, so they're always public
             }.apply functionScope@{
-                // Only copy value parameters, as type parameters are eliminated
                 // @formatter:off
                 // Copy all annotations except @Template
                 annotations = function.annotations
@@ -139,14 +144,14 @@ internal class FunctionMonomorphizer(
                     .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
                 body = function.copyBody()
                 parameters = function.parameters.map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
+                replaceValueAccesses(function.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
                 patchDeclarationParents(monoFunctionClass)
                 // @formatter:on
                 // Patch all parameters to reference the newly deep-copied mono-function params
-                replaceValueAccesses(function.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
                 replaceReturnTargets(function.symbol) // Patch all return targets
                 replaceTypes(substitutions) // Substitute all used types recursively
-                remapReceivers(function, monoFunctionClass)
                 remapValueAccesses(function) // Remap all local references accordingly
+                remapReceiverParameters(monoFunctionClass)
                 // Mangle function in-place after it is constructed
                 with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
                 // Recursively transform all templates for this newly monomorphized function
@@ -156,6 +161,53 @@ internal class FunctionMonomorphizer(
             context.metadataDeclarationRegistrar.registerFunctionAsMetadataVisible(function)
             monoFunctionClass.declarations += function
             function
+        }
+    }
+
+    private fun IrCall.remapRegularArguments(call: IrCall, function: IrFunction, monoFunction: IrFunction) {
+        // Copy and remap regular value arguments
+        val originalParams = function.parameters.filter { it.kind == IrParameterKind.Regular }
+        val monoParams = monoFunction.parameters.filter { it.kind == IrParameterKind.Regular }
+        check(originalParams.size == monoParams.size) { "Parameter count mismatch while monomorphizing function" }
+        for ((originalParam, monoParam) in originalParams.zip(monoParams)) {
+            arguments[monoParam] = call.arguments[originalParam]
+        }
+    }
+
+    private fun IrCall.remapContextArguments(
+        call: IrCall, function: IrFunction, monoFunction: IrFunction, alreadyHasDispatchReceiver: Boolean
+    ) {
+        // Remap original context parameters
+        val originalContextParams = function.parameters.filter { it.kind == IrParameterKind.Context }
+        var monoContextParams = monoFunction.parameters.filter { it.kind == IrParameterKind.Context }
+        // If we have a relocated dispatch receiver, drop the first parameter as it is synthetic
+        if (alreadyHasDispatchReceiver) monoContextParams = monoContextParams.drop(1)
+        check(originalContextParams.size == monoContextParams.size) { "Context parameter count mismatch while monomorphizing function" }
+        for ((originalParam, monoParam) in originalContextParams.zip(monoContextParams)) {
+            arguments[monoParam] = call.arguments[originalParam]
+        }
+    }
+
+    private fun IrCall.remapDispatchReceiverArgument(
+        call: IrCall, function: IrFunction, monoFunction: IrFunction, alreadyHasDispatchReceiver: Boolean
+    ) {
+        // If the original caller already had a dispatch receiver, add the value as the first context parameter
+        if (alreadyHasDispatchReceiver) {
+            val contextParameter = monoFunction.parameters.first { it.kind == IrParameterKind.Context }
+            val oldDispatchReceiverParam = function.parameters.single { it.kind == IrParameterKind.DispatchReceiver }
+            arguments[contextParameter] = call.arguments[oldDispatchReceiverParam]
+        }
+    }
+
+    private fun IrCall.remapExtensionReceiverArgument(
+        call: IrCall, function: IrFunction, monoFunction: IrFunction, hasExtensionReceiver: Boolean
+    ) {
+        // If the original caller had an extension receiver, populate it
+        if (hasExtensionReceiver) {
+            val oldExtensionReceiverParam = function.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }
+            val newExtensionReceiverParam =
+                monoFunction.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }
+            arguments[newExtensionReceiverParam] = call.arguments[oldExtensionReceiverParam]
         }
     }
 
@@ -195,19 +247,10 @@ internal class FunctionMonomorphizer(
             hasExtensionReceiver = hasExtensionReceiver
         ).apply {
             dispatchReceiver = context.kwireModuleData.monoFunctionClass.symbol.getObjectInstance()
-            // Copy and remap regular value arguments
-            for (parameter in function.parameters) {
-                if (parameter.kind == IrParameterKind.DispatchReceiver) continue
-                val newParameter = monoFunction.parameters.find { it.name == parameter.name } ?: continue
-                arguments[newParameter] = call.arguments[parameter]
-            }
-            // If the original caller already had a dispatch receiver, add the value as the first context parameter
-            if (alreadyHasDispatchReceiver) {
-                val contextParameter = monoFunction.parameters.first { it.kind == IrParameterKind.Context }
-                val oldDispatchReceiverParam =
-                    function.parameters.single { it.kind == IrParameterKind.DispatchReceiver }
-                arguments[contextParameter] = call.arguments[oldDispatchReceiverParam]
-            }
+            remapRegularArguments(call, function, monoFunction)
+            remapContextArguments(call, function, monoFunction, alreadyHasDispatchReceiver)
+            remapDispatchReceiverArgument(call, function, monoFunction, alreadyHasDispatchReceiver)
+            remapExtensionReceiverArgument(call, function, monoFunction, hasExtensionReceiver)
         }
     }
 }

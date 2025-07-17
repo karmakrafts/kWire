@@ -52,7 +52,7 @@ class TemplateTransformerTest {
     }
 
     @Test
-    fun `Monomorphize imported external member function`() = runCompilerTest {
+    fun `Monomorphize member function`() = runCompilerTest {
         kwireTransformerPipeline()
         // @formatter:off
         source("""
@@ -64,21 +64,23 @@ class TemplateTransformerTest {
             import dev.karmakrafts.kwire.ctype.toNUInt
             import dev.karmakrafts.kwire.ctype.NUInt
             import dev.karmakrafts.kwire.ffi.SharedImport
-            class Foo {
+            class Foo(val s: String) {
                 @Template
-                @SharedImport(name = "memcpy", libraryNames = ["libc.so.6", "msvcrt.dll", "libSystem.dylib"])
-                external fun <@ValueType T> memcpy(dest: Ptr<T>, src: @Const Ptr<T>, count: NUInt): Ptr<T>            
+                fun <@ValueType T> foo(): Ptr<T> {
+                    println(s)
+                    return nullptr()
+                }
             }
             fun test() {
-                Foo().memcpy(nullptr<Int>(), nullptr<Int>(), 0.toNUInt())
+                val ptr = Foo("HELLO").foo<Int>()
             }
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            val function = getChild<IrFunction> { it.name.asString().startsWith("memcpy_") }
+            val function = getChild<IrFunction> { it.name.asString().startsWith("foo_") }
             function matches {
-                // TODO: implement this
+                println(element.dump())
             }
             getChild<IrCall> { it.target == function } matches {
                 // TODO: implement this
