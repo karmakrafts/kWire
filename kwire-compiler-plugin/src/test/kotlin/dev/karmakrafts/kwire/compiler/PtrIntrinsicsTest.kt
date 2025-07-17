@@ -188,8 +188,9 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.Ptr
             import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.ref
+            import dev.karmakrafts.kwire.ctype.Const
             fun foo(x: Float, y: Float): Int = 42
-            val test: Ptr<CFn<(Float, Float) -> Int>> = ::foo.ref()
+            val test: @Const Ptr<CFn<(Float, Float) -> Int>> = ::foo.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }
@@ -211,11 +212,12 @@ class PtrIntrinsicsTest {
             import dev.karmakrafts.kwire.ctype.CFn
             import dev.karmakrafts.kwire.ctype.Struct
             import dev.karmakrafts.kwire.ctype.ref
+            import dev.karmakrafts.kwire.ctype.Const
             class Foo(val x: Int = 0) : Struct {
                 fun test(y: Float) = println("Hello, World!")
             }
             val foo: Foo = Foo()
-            val test: Ptr<CFn<(Float) -> Unit>> = foo::test.ref()
+            val test: @Const Ptr<CFn<(Float) -> Unit>> = foo::test.ref()
         """.trimIndent())
         // @formatter:on
         compiler shouldNotReport { error() }

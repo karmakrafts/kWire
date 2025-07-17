@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -57,9 +58,9 @@ internal abstract class TypeChecker<D>(
     override fun visitFunction(declaration: IrFunction, data: D) {
         super.visitFunction(declaration, data)
         checkTypeUsage(declaration.returnType, declaration)
-        val parameterTypes = declaration.parameters.map { it.type }
-        for (type in parameterTypes) {
-            checkTypeUsage(type, declaration)
+        for (parameter in declaration.parameters) {
+            if (parameter.kind == IrParameterKind.DispatchReceiver) continue
+            checkTypeUsage(parameter.type, declaration)
         }
     }
 

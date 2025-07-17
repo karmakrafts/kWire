@@ -26,6 +26,54 @@ class ConstTypeTest {
     }
 
     @Test
+    fun `Non const value parameter rejects const value`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.*
+            fun test(ptr: Ptr<CVoid>) = println(ptr)
+            fun main() {
+                val ptr: @Const Ptr<CVoid> = nullptr()
+                test(ptr)
+            }
+        """.trimIndent())
+        compiler shouldReport {
+            error()
+            atLine(5)
+            inColumn(10)
+        }
+    }
+
+    @Test
+    fun `Const value parameter accepts non const value`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.*
+            fun test(ptr: @Const Ptr<CVoid>) = println(ptr)
+            fun main() {
+                test(nullptr())
+            }
+        """.trimIndent())
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
+    fun `Const value parameter accepts const value`() = runCompilerTest {
+        kwireTransformerPipeline()
+        // @formatter:off
+        source("""
+            import dev.karmakrafts.kwire.ctype.*
+            fun test(ptr: @Const Ptr<CVoid>) = println(ptr)
+            fun main() {
+                val ptr: @Const Ptr<CVoid> = nullptr()
+                test(ptr)
+            }
+        """.trimIndent())
+        compiler shouldNotReport { error() }
+    }
+
+    @Test
     fun `Const type parameter accepts const type`() = runCompilerTest {
         kwireTransformerPipeline()
         // @formatter:off
