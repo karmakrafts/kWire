@@ -33,12 +33,14 @@ import org.jetbrains.kotlin.fir.expressions.builder.buildArrayLiteral
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildGetClassCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildLiteralExpression
+import org.jetbrains.kotlin.fir.expressions.builder.buildThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGenerationApi
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.plugin.createDefaultPrivateConstructor
+import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
@@ -108,14 +110,19 @@ internal class ModuleDataFirGenerationExtension(
             session.getRegularClassSymbolByClassId(KWireNames.Kotlin.ByteArray.id) ?: return emptyList()
         val byteArrayType = byteArraySymbol.defaultType().toFirResolvedTypeRef()
 
+        fun createDispatchReceiver(): FirExpression = buildThisReceiverExpression {
+            coneTypeOrNull = owner.defaultType()
+            calleeReference = buildImplicitThisReference {
+                boundSymbol = owner
+            }
+        }
+
         return listOf( // @formatter:off
-            session.buildSimpleProperty(moduleDataNameId, session.builtinTypes.stringType) {
-                dispatchReceiverType = owner.defaultType()
+            session.buildSimpleProperty(moduleDataNameId, createDispatchReceiver(), session.builtinTypes.stringType) {
                 origin = declOrigin
                 initializer = buildLiteralExpression(null, ConstantValueKind.String, moduleName, setType = true)
             },
-            session.buildSimpleProperty(moduleDataDependenciesId, moduleDataListType) {
-                dispatchReceiverType = owner.defaultType()
+            session.buildSimpleProperty(moduleDataDependenciesId, createDispatchReceiver(), moduleDataListType) {
                 origin = declOrigin
                 initializer = buildFunctionCall {
                     coneTypeOrNull = stringListType.coneType
@@ -138,8 +145,7 @@ internal class ModuleDataFirGenerationExtension(
                     }, LinkedHashMap())
                 }
             },
-            session.buildSimpleProperty(moduleDataSymbolTableDataId, byteArrayType) {
-                dispatchReceiverType = owner.defaultType()
+            session.buildSimpleProperty(moduleDataSymbolTableDataId, createDispatchReceiver(), byteArrayType) {
                 origin = declOrigin
                 initializer = buildArrayLiteral {
                     // This is filled in during the IR lowering after monomorphization

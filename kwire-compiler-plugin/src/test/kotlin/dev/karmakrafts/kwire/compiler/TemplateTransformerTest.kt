@@ -48,6 +48,7 @@ class TemplateTransformerTest {
         compiler shouldNotReport { error() }
         result irMatches {
             // TODO: implement this
+            println(element.dump())
         }
     }
 
