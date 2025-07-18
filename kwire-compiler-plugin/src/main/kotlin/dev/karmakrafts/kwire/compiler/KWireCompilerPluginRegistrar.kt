@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler
 
 import com.google.auto.service.AutoService
+import dev.karmakrafts.kwire.compiler.generation.LoweringIrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -28,7 +29,7 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 @OptIn(ExperimentalCompilerApi::class)
 class KWireCompilerPluginRegistrar : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
-        IrGenerationExtension.registerExtension(KWireIrGenerationExtension())
+        IrGenerationExtension.registerExtension(LoweringIrGenerationExtension())
         FirExtensionRegistrarAdapter.registerExtension(KWireFirExtensionRegistrar(configuration.messageCollector))
     }
 

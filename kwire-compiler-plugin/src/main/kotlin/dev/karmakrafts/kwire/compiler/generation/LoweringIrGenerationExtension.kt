@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler
+package dev.karmakrafts.kwire.compiler.generation
 
+import dev.karmakrafts.kwire.compiler.KWireModuleData
+import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.KWireSymbols
 import dev.karmakrafts.kwire.compiler.checker.ConstTypeChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCFnChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCVoidChecker
@@ -40,7 +43,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.platform.konan.NativePlatforms
 
-internal class KWireIrGenerationExtension : IrGenerationExtension {
+internal class LoweringIrGenerationExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val kwireSymbols = KWireSymbols(pluginContext)
         val kwireModuleData = KWireModuleData(pluginContext, kwireSymbols, moduleFragment)

@@ -20,6 +20,7 @@ import dev.karmakrafts.iridium.CompilerTestDsl
 import dev.karmakrafts.iridium.CompilerTestScope
 import dev.karmakrafts.iridium.pipeline.addJvmClasspathRootByType
 import dev.karmakrafts.iridium.pipeline.defaultPipelineSpec
+import dev.karmakrafts.kwire.compiler.generation.LoweringIrGenerationExtension
 import dev.karmakrafts.kwire.ffi.Marshal
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.jvmTarget
@@ -45,6 +46,6 @@ internal fun CompilerTestScope.kwireTransformerPipeline(moduleName: String = "te
     kwirePipeline(moduleName)
     pipeline {
         firExtensionRegistrar(::KWireFirExtensionRegistrar)
-        irExtension(KWireIrGenerationExtension())
+        irExtension(LoweringIrGenerationExtension())
     }
 }

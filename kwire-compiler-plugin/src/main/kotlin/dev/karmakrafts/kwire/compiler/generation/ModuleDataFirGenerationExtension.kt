@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler
+package dev.karmakrafts.kwire.compiler.generation
 
 import dev.karmakrafts.kwire.compiler.util.ABIConstants
 import dev.karmakrafts.kwire.compiler.util.KWireNames
+import dev.karmakrafts.kwire.compiler.util.buildSimpleObject
+import dev.karmakrafts.kwire.compiler.util.buildSimpleProperty
 import dev.karmakrafts.kwire.compiler.util.getCleanSpecialName
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.descriptors.EffectiveVisibility
-import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
-import org.jetbrains.kotlin.fir.declarations.builder.FirPropertyBuilder
-import org.jetbrains.kotlin.fir.declarations.builder.FirRegularClassBuilder
-import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
-import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyAccessor
-import org.jetbrains.kotlin.fir.declarations.builder.buildRegularClass
-import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.expressions.FirEmptyArgumentList
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
@@ -51,16 +43,12 @@ import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
-import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
-import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildTypeProjectionWithVariance
 import org.jetbrains.kotlin.fir.types.constructType
 import org.jetbrains.kotlin.name.CallableId
@@ -71,19 +59,14 @@ import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.Variance
 
-internal class KWireFirGenerationExtension( // @formatter:off
-    session: FirSession,
-    private val messageCollector: MessageCollector
-) : FirDeclarationGenerationExtension(session) { // @formatter:on
+internal class ModuleDataFirGenerationExtension(
+    session: FirSession, messageCollector: MessageCollector
+) : FirDeclarationGenerationExtension(session) {
     companion object : GeneratedDeclarationKey() {
         val declOrigin: FirDeclarationOrigin = FirDeclarationOrigin.Plugin(this)
     }
 
     private val moduleName: String = session.moduleData.name.getCleanSpecialName()
-
-    private val monoFunctionClassName: Name = Name.identifier("__KWireMonoFunctions\$${moduleName}__")
-    private val monoFunctionClassId: ClassId = ClassId.topLevel(FqName.topLevel(monoFunctionClassName))
-
     private val moduleDataClassName: Name = Name.identifier("__KWireModuleData\$${moduleName}__")
     private val moduleDataClassId: ClassId = ClassId.topLevel(FqName.topLevel(moduleDataClassName))
     private val moduleDataNameId: CallableId = CallableId(moduleDataClassId, ABIConstants.moduleDataNameName)
@@ -91,44 +74,6 @@ internal class KWireFirGenerationExtension( // @formatter:off
         CallableId(moduleDataClassId, ABIConstants.moduleDataDependenciesName)
     private val moduleDataSymbolTableDataId: CallableId =
         CallableId(moduleDataClassId, ABIConstants.moduleDataSymbolTableData)
-
-    private inline fun generateSimpleObject(
-        id: ClassId, init: FirRegularClassBuilder.() -> Unit = {}
-    ): FirClassSymbol<*> = buildRegularClass {
-        name = id.shortClassName
-        classKind = ClassKind.OBJECT
-        status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
-        moduleData = session.moduleData
-        scopeProvider = session.kotlinScopeProvider
-        origin = declOrigin
-        symbol = FirRegularClassSymbol(id)
-        init()
-    }.symbol
-
-    private inline fun generateSimpleProperty( // @formatter:off
-        id: CallableId,
-        type: FirTypeRef,
-        init: FirPropertyBuilder.() -> Unit = {}
-    ): FirPropertySymbol = buildProperty { // @formatter:on
-        name = id.callableName
-        status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
-        moduleData = session.moduleData
-        origin = declOrigin
-        symbol = FirPropertySymbol(id)
-        returnTypeRef = type
-        isVar = false
-        isLocal = false
-        getter = buildPropertyAccessor {
-            symbol = FirPropertyAccessorSymbol()
-            moduleData = session.moduleData
-            propertySymbol = this@buildProperty.symbol
-            status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
-            origin = declOrigin
-            returnTypeRef = type
-            isGetter = true
-        }
-        init()
-    }.symbol
 
     private fun getModuleDataReference(name: Name): FirExpression? {
         // Try to find the module data implementation class for the given module name
@@ -164,12 +109,14 @@ internal class KWireFirGenerationExtension( // @formatter:off
         val byteArrayType = byteArraySymbol.defaultType().toFirResolvedTypeRef()
 
         return listOf( // @formatter:off
-            generateSimpleProperty(moduleDataNameId, session.builtinTypes.stringType) {
+            session.buildSimpleProperty(moduleDataNameId, session.builtinTypes.stringType) {
                 dispatchReceiverType = owner.defaultType()
+                origin = declOrigin
                 initializer = buildLiteralExpression(null, ConstantValueKind.String, moduleName, setType = true)
             },
-            generateSimpleProperty(moduleDataDependenciesId, moduleDataListType) {
+            session.buildSimpleProperty(moduleDataDependenciesId, moduleDataListType) {
                 dispatchReceiverType = owner.defaultType()
+                origin = declOrigin
                 initializer = buildFunctionCall {
                     coneTypeOrNull = stringListType.coneType
                     calleeReference = buildResolvedNamedReference {
@@ -191,8 +138,9 @@ internal class KWireFirGenerationExtension( // @formatter:off
                     }, LinkedHashMap())
                 }
             },
-            generateSimpleProperty(moduleDataSymbolTableDataId, byteArrayType) {
+            session.buildSimpleProperty(moduleDataSymbolTableDataId, byteArrayType) {
                 dispatchReceiverType = owner.defaultType()
+                origin = declOrigin
                 initializer = buildArrayLiteral {
                     // This is filled in during the IR lowering after monomorphization
                     coneTypeOrNull = byteArraySymbol.defaultType()
@@ -205,11 +153,11 @@ internal class KWireFirGenerationExtension( // @formatter:off
     @ExperimentalTopLevelDeclarationsGenerationApi
     override fun generateTopLevelClassLikeDeclaration(classId: ClassId): FirClassLikeSymbol<*>? {
         return when (classId) {
-            monoFunctionClassId -> generateSimpleObject(monoFunctionClassId)
-            moduleDataClassId -> generateSimpleObject(moduleDataClassId) {
+            moduleDataClassId -> session.buildSimpleObject(moduleDataClassId) {
                 // The generated module data object needs to implement ModuleData to bind against the runtime API
                 val moduleDataClass = session.getRegularClassSymbolByClassId(KWireNames.ModuleData.id) ?: return null
                 superTypeRefs += moduleDataClass.defaultType().toFirResolvedTypeRef()
+                origin = declOrigin
             }
 
             else -> null
@@ -219,8 +167,7 @@ internal class KWireFirGenerationExtension( // @formatter:off
     override fun generateConstructors(context: MemberGenerationContext): List<FirConstructorSymbol> {
         val owner = context.owner
         return when (owner.classId) { // @formatter:off
-            monoFunctionClassId,
-            moduleDataClassId -> listOf(createDefaultPrivateConstructor(owner, KWireFirGenerationExtension).symbol)
+            moduleDataClassId -> listOf(createDefaultPrivateConstructor(owner, MonoFunctionClassFirGenerationExtension).symbol)
             else -> emptyList()
         } // @formatter:on
     }
@@ -237,18 +184,16 @@ internal class KWireFirGenerationExtension( // @formatter:off
 
     override fun getCallableNamesForClass(classSymbol: FirClassSymbol<*>, context: MemberGenerationContext): Set<Name> {
         return when (classSymbol.classId) { // @formatter:off
-            monoFunctionClassId -> setOf(SpecialNames.INIT)
             moduleDataClassId -> setOf(
                 SpecialNames.INIT,
                 ABIConstants.moduleDataNameName,
-                ABIConstants.moduleDataDependenciesName
+                ABIConstants.moduleDataDependenciesName,
+                ABIConstants.moduleDataSymbolTableData
             )
             else -> emptySet()
         } // @formatter:on
     }
 
     @ExperimentalTopLevelDeclarationsGenerationApi
-    override fun getTopLevelClassIds(): Set<ClassId> {
-        return setOf(monoFunctionClassId, moduleDataClassId)
-    }
+    override fun getTopLevelClassIds(): Set<ClassId> = setOf(moduleDataClassId)
 }

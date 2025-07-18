@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.compiler
 
+import dev.karmakrafts.kwire.compiler.generation.ModuleDataFirGenerationExtension
+import dev.karmakrafts.kwire.compiler.generation.MonoFunctionClassFirGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
@@ -24,6 +26,7 @@ internal class KWireFirExtensionRegistrar(
     private val messageCollector: MessageCollector
 ) : FirExtensionRegistrar() {
     override fun ExtensionRegistrarContext.configurePlugin() {
-        +FirDeclarationGenerationExtension.Factory { KWireFirGenerationExtension(it, messageCollector) }
+        +FirDeclarationGenerationExtension.Factory { MonoFunctionClassFirGenerationExtension(it, messageCollector) }
+        +FirDeclarationGenerationExtension.Factory { ModuleDataFirGenerationExtension(it, messageCollector) }
     }
 }
