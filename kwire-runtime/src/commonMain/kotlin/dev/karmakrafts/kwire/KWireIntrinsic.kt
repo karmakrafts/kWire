@@ -25,6 +25,7 @@ internal annotation class KWireIntrinsic(val type: Type) {
         ALIGN_OF,
         OFFSET_OF,
         DEFAULT,
+        TYPE_OF,
         PTR_REF,
         PTR_DEREF,
         PTR_SET,
@@ -34,7 +35,8 @@ internal annotation class KWireIntrinsic(val type: Type) {
         PTR_PLUS,
         PTR_MINUS,
         ALLOCATOR_ALLOC,
-        ALLOCATOR_ALLOC_ARRAY
+        ALLOCATOR_ALLOC_ARRAY,
+        ABI_GET_MODULE_DATA
         // @formatter:on
     }
 }

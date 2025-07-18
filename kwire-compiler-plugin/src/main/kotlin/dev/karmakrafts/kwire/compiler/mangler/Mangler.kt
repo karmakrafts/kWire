@@ -22,6 +22,8 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 /**
@@ -54,7 +56,9 @@ internal class Mangler(
         return with(context.typeMangler) { types.mangle() }
     }
 
-    fun IrFunction.mangleName(typeArguments: List<IrType>): Name {
+    fun IrFunction.mangleName(
+        typeArguments: List<IrType>, originalName: FqName = kotlinFqName
+    ): Name {
         // Gather receiver parameters
         val extensionReceiverParameter = parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
         val hasReceiver = extensionReceiverParameter != null
@@ -64,8 +68,7 @@ internal class Mangler(
             with(context.typeMangler) { it.mangle() }
         }
 
-        var newName = name.asString()
-        newName += "_${hashCode()}"
+        var newName = originalName.asString().replace('.', '_')
         newName += if (hasReceiver) "__${receiverSignature}_"
         else "_"
         newName += computeMangledSignature()
@@ -77,8 +80,10 @@ internal class Mangler(
         return Name.identifier(newName)
     }
 
-    fun IrFunction.mangleNameInPlace(typeArguments: List<IrType>) {
-        name = mangleName(typeArguments)
+    fun IrFunction.mangleNameInPlace(
+        typeArguments: List<IrType>, originalName: FqName = kotlinFqName
+    ) {
+        name = mangleName(typeArguments, originalName)
     }
 
     fun IrClass.mangleName(typeArguments: List<IrType>): Name {

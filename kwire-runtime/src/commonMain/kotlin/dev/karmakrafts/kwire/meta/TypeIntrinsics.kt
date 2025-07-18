@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.meta
 
-import org.jetbrains.kotlin.name.Name
+import dev.karmakrafts.kwire.KWireIntrinsic
+import dev.karmakrafts.kwire.KWirePluginNotAppliedException
+import kotlin.reflect.KClass
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
-}
+// TODO: implement transformer for this
+@KWireIntrinsic(KWireIntrinsic.Type.TYPE_OF)
+fun <T : Any> typeOf(): KClass<T> = throw KWirePluginNotAppliedException()

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+@file:JvmName("SymbolTableImpl")
 
-import org.jetbrains.kotlin.name.Name
+package dev.karmakrafts.kwire.abi
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
+import java.util.zip.InflaterInputStream
+
+internal actual fun inflate(data: ByteArray): ByteArray {
+    return data.inputStream().use { inputStream ->
+        InflaterInputStream(inputStream).use { decompressor ->
+            decompressor.readAllBytes()
+        }
     }
-    return rawValue
 }

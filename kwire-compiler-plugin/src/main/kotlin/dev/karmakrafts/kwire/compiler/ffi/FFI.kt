@@ -138,8 +138,7 @@ internal class FFI(
     ): IrExpression {
         val call = ffiType.owner.functions.first { function ->
             if (!function.name.asString().startsWith("call") || (!type.isAssignableFrom(
-                    context,
-                    function.returnType
+                    context, function.returnType
                 ) && !isImplicitReinterpretCast(type, function.returnType))
             ) return@first false
             val params = function.parameters.filter { it.kind == IrParameterKind.Regular }

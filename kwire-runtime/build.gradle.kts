@@ -139,6 +139,8 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.stately.common)
                 implementation(libs.stately.concurrent.collections)
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
 

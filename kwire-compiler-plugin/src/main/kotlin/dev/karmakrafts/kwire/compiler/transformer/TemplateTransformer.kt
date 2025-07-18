@@ -27,6 +27,10 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
@@ -67,8 +71,30 @@ internal class TemplateTransformer(
     override fun visitCall(expression: IrCall, data: KWirePluginContext): IrElement {
         val transformedCall = super.visitCall(expression, data)
         if (transformedCall is IrCall && transformedCall.target.isTemplate() && !isInsideTemplate) {
-            return context.functionMonomorphizer.monomorphize(transformedCall)
+            return context.functionMonomorphizer.monomorphize(transformedCall) { fn, vaCount, cpCount, hasExtRec ->
+                IrCallImplWithShape(
+                    startOffset = SYNTHETIC_OFFSET,
+                    endOffset = SYNTHETIC_OFFSET,
+                    type = fn.returnType,
+                    symbol = fn.symbol,
+                    typeArgumentsCount = 0,
+                    valueArgumentsCount = vaCount,
+                    contextParameterCount = cpCount,
+                    hasDispatchReceiver = true,
+                    hasExtensionReceiver = hasExtRec
+                )
+            }
         }
         return transformedCall
+    }
+
+    // Perform DFS transformation of all function refs
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    override fun visitFunctionReference(expression: IrFunctionReference, data: KWirePluginContext): IrElement {
+        val transformedRef = super.visitFunctionReference(expression, data)
+        if (transformedRef is IrFunctionReference && transformedRef.symbol.owner.isTemplate() && !isInsideTemplate) {
+            reportError("Taking references to template functions is currently not supported", expression)
+        }
+        return transformedRef
     }
 }

@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrField
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
@@ -497,11 +496,6 @@ internal fun IrExpression.getRawAddress(): IrExpression? { // @formatter:off
         ?.getter
         ?.call(dispatchReceiver = this)
 } // @formatter:on
-
-internal fun IrFunction.getFunctionType(context: KWirePluginContext): IrType {
-    val paramTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
-    return context.irBuiltIns.functionN(paramTypes.size).typeWith(paramTypes + returnType)
-}
 
 internal fun IrExpression.reinterpret(context: KWirePluginContext, type: IrType): IrExpression {
     if (this.type.isSameAs(type)) return this

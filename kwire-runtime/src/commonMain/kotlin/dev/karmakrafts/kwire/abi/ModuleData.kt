@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi
 
-import org.jetbrains.kotlin.name.Name
+import dev.karmakrafts.kwire.KWireCompilerApi
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
+@KWireCompilerApi
+interface ModuleData {
+    @KWireCompilerApi
+    val name: String
+
+    @KWireCompilerApi
+    val dependencies: List<ModuleData>
+
+    @KWireCompilerApi
+    val symbolTableData: ByteArray
 }

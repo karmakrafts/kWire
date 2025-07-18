@@ -20,6 +20,8 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImplWithShape
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isNullable
@@ -72,6 +75,16 @@ internal fun IrType.isPointerAssignableFrom(type: IrType, ignoreConstness: Boole
 
 internal fun IrType.isAssignableFrom(context: KWirePluginContext, inType: IrType): Boolean {
     return isSameAs(inType) || inType.isSubtypeOf(this, context.typeSystemContext) || isPointerAssignableFrom(inType)
+}
+
+internal fun IrFunction.getFunctionType(context: KWirePluginContext): IrType {
+    val paramTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
+    return context.irBuiltIns.functionN(paramTypes.size).typeWith(paramTypes + returnType)
+}
+
+internal fun IrFunction.getKFunctionType(context: KWirePluginContext): IrType {
+    val paramTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
+    return context.irBuiltIns.kFunctionN(paramTypes.size).typeWith(paramTypes + returnType)
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)

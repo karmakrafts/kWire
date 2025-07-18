@@ -20,8 +20,8 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.transformer.TemplateTransformer
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.parameterAccessor
 import dev.karmakrafts.kwire.compiler.util.remapSyntheticSourceRanges
-import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
@@ -33,10 +33,10 @@ import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
@@ -45,8 +45,8 @@ import org.jetbrains.kotlin.ir.types.isClassWithFqName
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.deepCopyWithoutPatchingParents
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
-import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.Name
 
 internal data class MonoFunctionSignature( // @formatter:off
@@ -72,7 +72,7 @@ internal class FunctionMonomorphizer(
         }
         if (oldDispatchReceiver == null) {
             // If we didn't originally have a dispatch receiver, we can just slip in our newly created one at index 0
-            parameters = listOf(dispatchReceiverParam) + parameters
+            parameterAccessor.dispatchReceiverParameter = dispatchReceiverParam
         }
         else {
             val remappedDispatchReceiverParam = buildReceiverParameter {
@@ -82,11 +82,8 @@ internal class FunctionMonomorphizer(
                 type = oldDispatchReceiver.type
                 kind = IrParameterKind.Context
             }
-            // If we originally had a dispatch receiver, we need to turn it into a context parameter
-            // DISPATCH_RECEIVER (this), CONTEXT (reloc-this), original params - DISPATCH_RECEIVER
-            parameters = listOf(
-                dispatchReceiverParam, remappedDispatchReceiverParam
-            ) + parameters.filterNot { it.kind == IrParameterKind.DispatchReceiver }
+            parameterAccessor.contextParameters =
+                listOf(remappedDispatchReceiverParam) + parameterAccessor.contextParameters
             // Remap old dispatch receiver accesses to new context parameter
             replaceValueAccesses(mapOf(oldDispatchReceiver.symbol to remappedDispatchReceiverParam.symbol))
         }
@@ -153,7 +150,7 @@ internal class FunctionMonomorphizer(
                 remapValueAccesses(function) // Remap all local references accordingly
                 remapReceiverParameters(monoFunctionClass)
                 // Mangle function in-place after it is constructed
-                with(context.mangler) { mangleNameInPlace(substitutions.values.toList()) }
+                with(context.mangler) { mangleNameInPlace(substitutions.values.toList(), function.kotlinFqName) }
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
             }
@@ -164,18 +161,23 @@ internal class FunctionMonomorphizer(
         }
     }
 
-    private fun IrCall.remapRegularArguments(call: IrCall, function: IrFunction, monoFunction: IrFunction) {
+    private fun <S : IrSymbol> IrMemberAccessExpression<S>.remapRegularArguments(
+        sourceExpr: IrMemberAccessExpression<S>, function: IrFunction, monoFunction: IrFunction
+    ) {
         // Copy and remap regular value arguments
         val originalParams = function.parameters.filter { it.kind == IrParameterKind.Regular }
         val monoParams = monoFunction.parameters.filter { it.kind == IrParameterKind.Regular }
         check(originalParams.size == monoParams.size) { "Parameter count mismatch while monomorphizing function" }
         for ((originalParam, monoParam) in originalParams.zip(monoParams)) {
-            arguments[monoParam] = call.arguments[originalParam]
+            arguments[monoParam] = sourceExpr.arguments[originalParam]
         }
     }
 
-    private fun IrCall.remapContextArguments(
-        call: IrCall, function: IrFunction, monoFunction: IrFunction, alreadyHasDispatchReceiver: Boolean
+    private fun <S : IrSymbol> IrMemberAccessExpression<S>.remapContextArguments(
+        sourceExpr: IrMemberAccessExpression<S>,
+        function: IrFunction,
+        monoFunction: IrFunction,
+        alreadyHasDispatchReceiver: Boolean
     ) {
         // Remap original context parameters
         val originalContextParams = function.parameters.filter { it.kind == IrParameterKind.Context }
@@ -184,73 +186,77 @@ internal class FunctionMonomorphizer(
         if (alreadyHasDispatchReceiver) monoContextParams = monoContextParams.drop(1)
         check(originalContextParams.size == monoContextParams.size) { "Context parameter count mismatch while monomorphizing function" }
         for ((originalParam, monoParam) in originalContextParams.zip(monoContextParams)) {
-            arguments[monoParam] = call.arguments[originalParam]
+            arguments[monoParam] = sourceExpr.arguments[originalParam]
         }
     }
 
-    private fun IrCall.remapDispatchReceiverArgument(
-        call: IrCall, function: IrFunction, monoFunction: IrFunction, alreadyHasDispatchReceiver: Boolean
+    private fun <S : IrSymbol> IrMemberAccessExpression<S>.remapDispatchReceiverArgument(
+        sourceExpr: IrMemberAccessExpression<S>,
+        function: IrFunction,
+        monoFunction: IrFunction,
+        alreadyHasDispatchReceiver: Boolean
     ) {
         // If the original caller already had a dispatch receiver, add the value as the first context parameter
         if (alreadyHasDispatchReceiver) {
-            val contextParameter = monoFunction.parameters.first { it.kind == IrParameterKind.Context }
+            val newDispatchReceiverParam = monoFunction.parameters.first { it.kind == IrParameterKind.Context }
             val oldDispatchReceiverParam = function.parameters.single { it.kind == IrParameterKind.DispatchReceiver }
-            arguments[contextParameter] = call.arguments[oldDispatchReceiverParam]
+            arguments[newDispatchReceiverParam] = sourceExpr.arguments[oldDispatchReceiverParam]
         }
     }
 
-    private fun IrCall.remapExtensionReceiverArgument(
-        call: IrCall, function: IrFunction, monoFunction: IrFunction, hasExtensionReceiver: Boolean
+    private fun <S : IrSymbol> IrMemberAccessExpression<S>.remapExtensionReceiverArgument(
+        sourceExpr: IrMemberAccessExpression<S>,
+        function: IrFunction,
+        monoFunction: IrFunction,
+        hasExtensionReceiver: Boolean
     ) {
         // If the original caller had an extension receiver, populate it
         if (hasExtensionReceiver) {
             val oldExtensionReceiverParam = function.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }
             val newExtensionReceiverParam =
                 monoFunction.parameters.single { it.kind == IrParameterKind.ExtensionReceiver }
-            arguments[newExtensionReceiverParam] = call.arguments[oldExtensionReceiverParam]
+            arguments[newExtensionReceiverParam] = sourceExpr.arguments[oldExtensionReceiverParam]
         }
     }
 
-    @OptIn(DeprecatedForRemovalCompilerApi::class)
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("UNCHECKED_CAST")
-    fun monomorphize(call: IrCall): IrCall {
-        val typeArguments = call.typeArguments
-        if (typeArguments.any { it == null }) return call
+    inline fun <E : IrMemberAccessExpression<S>, S : IrFunctionSymbol> monomorphize( // @formatter:off
+        expression: E,
+        factory: (
+            monoFunction: IrSimpleFunction,
+            valueArgumentsCount: Int,
+            contextParameterCount: Int,
+            hasExtensionReceiver: Boolean
+        ) -> E
+    ): E { // @formatter:on
+        val typeArguments = expression.typeArguments
+        if (typeArguments.any { it == null }) return expression
         typeArguments as List<IrType>
-        val function = call.target
+        val function = expression.symbol.owner
 
-        val substitutions = function.typeParameters.map { it.symbol }.zip(typeArguments).toMap(LinkedHashMap())
-        val monoFunction = monomorphize(function, substitutions)
+        val parameterAccessor = function.parameterAccessor
+        val hasDispatchReceiver = parameterAccessor.dispatchReceiverParameter != null
+        val hasExtensionReceiver = parameterAccessor.extensionReceiverParameter != null
+        var valueArgumentsCount = parameterAccessor.regularParameters.size
+        var contextParameterCount = parameterAccessor.contextParameters.size
 
-        val regularParams = function.parameters.filter { it.kind == IrParameterKind.Regular }
-        var valueArgumentsCount = regularParams.size
-        var contextParameterCount = function.parameters.count { it.kind == IrParameterKind.Context }
-        val hasExtensionReceiver = function.parameters.any { it.kind == IrParameterKind.ExtensionReceiver }
-
-        val alreadyHasDispatchReceiver = function.dispatchReceiverParameter != null
-
-        if (alreadyHasDispatchReceiver) {
+        if (hasDispatchReceiver) {
             // We add our own context parameter to pass the original dispatch receiver
             valueArgumentsCount++
             contextParameterCount++
         }
 
-        return IrCallImplWithShape(
-            startOffset = SYNTHETIC_OFFSET,
-            endOffset = SYNTHETIC_OFFSET,
-            type = monoFunction.returnType,
-            symbol = monoFunction.symbol,
-            typeArgumentsCount = 0,
-            valueArgumentsCount = valueArgumentsCount,
-            contextParameterCount = contextParameterCount,
-            hasDispatchReceiver = true, // This is always true due to relocation
-            hasExtensionReceiver = hasExtensionReceiver
-        ).apply {
+        val substitutions = function.typeParameters.map { it.symbol }.zip(typeArguments).toMap(LinkedHashMap())
+        val monoFunction = monomorphize(function, substitutions)
+
+        return factory(monoFunction, valueArgumentsCount, contextParameterCount, hasExtensionReceiver).apply {
+            origin = expression.origin // Keep the original origin
             dispatchReceiver = context.kwireModuleData.monoFunctionClass.symbol.getObjectInstance()
-            remapRegularArguments(call, function, monoFunction)
-            remapContextArguments(call, function, monoFunction, alreadyHasDispatchReceiver)
-            remapDispatchReceiverArgument(call, function, monoFunction, alreadyHasDispatchReceiver)
-            remapExtensionReceiverArgument(call, function, monoFunction, hasExtensionReceiver)
+            remapRegularArguments(expression, function, monoFunction)
+            remapContextArguments(expression, function, monoFunction, hasDispatchReceiver)
+            remapDispatchReceiverArgument(expression, function, monoFunction, hasDispatchReceiver)
+            remapExtensionReceiverArgument(expression, function, monoFunction, hasExtensionReceiver)
         }
     }
 }

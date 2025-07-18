@@ -59,6 +59,24 @@ internal object KWireNames {
         val max: CallableId = CallableId(mathPackageName, Functions.max)
         val listOf: CallableId = CallableId(collectionsPackageName, Functions.listOf)
 
+        object ByteArray {
+            val name: Name = Name.identifier("ByteArray")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
+        object Array {
+            val name: Name = Name.identifier("Array")
+            val id: ClassId = ClassId(packageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
+        object List {
+            val name: Name = Name.identifier("List")
+            val id: ClassId = ClassId(collectionsPackageName, name)
+            val fqName: FqName = id.asSingleFqName()
+        }
+
         object Byte {
             val name: Name = Name.identifier("Byte")
             val id: ClassId = ClassId(packageName, name)
@@ -125,6 +143,7 @@ internal object KWireNames {
     val ctypePackageName: FqName = FqName("${packageName.asString()}.ctype")
     val ffiPackageName: FqName = FqName("${packageName.asString()}.ffi")
     val metaPackageName: FqName = FqName("${packageName.asString()}.meta")
+    val abiPackageName: FqName = FqName("${packageName.asString()}.abi")
 
     // ------------------------------ dev.karmakrafts.kwire
 
@@ -373,5 +392,13 @@ internal object KWireNames {
     object ValueType {
         val name: Name = Name.identifier("ValueType")
         val id: ClassId = ClassId(metaPackageName, name)
+    }
+
+    // dev.karmakrafts.kwire.abi
+
+    object ModuleData {
+        val name: Name = Name.identifier("ModuleData")
+        val id: ClassId = ClassId(abiPackageName, name)
+        val fqName: FqName = id.asSingleFqName()
     }
 }

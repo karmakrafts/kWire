@@ -24,8 +24,10 @@ import dev.karmakrafts.kwire.compiler.checker.ValueTypeChecker
 import dev.karmakrafts.kwire.compiler.optimizer.JvmDowncallOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.NativeDowncallOptimizer
 import dev.karmakrafts.kwire.compiler.optimizer.PtrOptimizer
+import dev.karmakrafts.kwire.compiler.transformer.ABIIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.AllocatorIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.IntrinsicContext
+import dev.karmakrafts.kwire.compiler.transformer.IntrinsicsValidationVisitor
 import dev.karmakrafts.kwire.compiler.transformer.MemoryIntrinsicsTransformer
 import dev.karmakrafts.kwire.compiler.transformer.MemoryLayoutTransformer
 import dev.karmakrafts.kwire.compiler.transformer.PtrIntrinsicsTransformer
@@ -75,9 +77,11 @@ internal class KWireIrGenerationExtension : IrGenerationExtension {
 
             // Intrinsics lowering
             val intrinsicContext = IntrinsicContext(kwireContext)
+            file.transform(ABIIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(MemoryIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(PtrIntrinsicsTransformer(kwireContext), intrinsicContext)
             file.transform(AllocatorIntrinsicsTransformer(kwireContext), intrinsicContext)
+            file.acceptVoid(IntrinsicsValidationVisitor(kwireContext))
 
             // Optimization post-processing passes
             when (pluginContext.platform) {

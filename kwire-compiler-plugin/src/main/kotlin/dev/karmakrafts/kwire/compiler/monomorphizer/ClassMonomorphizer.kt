@@ -17,7 +17,12 @@
 package dev.karmakrafts.kwire.compiler.monomorphizer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import org.jetbrains.kotlin.ir.declarations.IrClass
 
 internal class ClassMonomorphizer(
     private val context: KWirePluginContext
-)
+) {
+    fun monomorphize(clazz: IrClass): IrClass {
+        return clazz
+    }
+}

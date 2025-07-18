@@ -18,10 +18,8 @@ package dev.karmakrafts.kwire.compiler.util
 
 import org.jetbrains.kotlin.name.Name
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
+object ABIConstants {
+    val moduleDataNameName: Name = Name.identifier("name")
+    val moduleDataDependenciesName: Name = Name.identifier("dependencies")
+    val moduleDataSymbolTableData: Name = Name.identifier("symbolTableData")
 }

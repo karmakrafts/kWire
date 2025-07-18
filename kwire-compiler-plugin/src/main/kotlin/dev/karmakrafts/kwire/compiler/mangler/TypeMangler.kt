@@ -105,6 +105,7 @@ internal class TypeMangler(
                 val typeArgument = listOf<IrTypeArgument>(getPointedType()!!).mangleTypeParameters()
                 return "${ManglingConstants.PTR_NAME}$typeArgument"
             }
+
             else -> { /* fallthrough */
             }
         }

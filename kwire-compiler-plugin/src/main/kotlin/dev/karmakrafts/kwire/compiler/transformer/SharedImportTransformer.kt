@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.toIrConst
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
-import java.util.Stack
+import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 
 internal class SharedImportTransformer(

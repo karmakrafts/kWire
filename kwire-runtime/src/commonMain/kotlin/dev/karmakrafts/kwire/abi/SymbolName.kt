@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi
 
-import org.jetbrains.kotlin.name.Name
+import kotlinx.serialization.Serializable
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
-}
+@Serializable
+data class SymbolName(val value: String)

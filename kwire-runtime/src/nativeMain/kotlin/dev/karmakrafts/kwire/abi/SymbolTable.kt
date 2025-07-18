@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi
 
-import org.jetbrains.kotlin.name.Name
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.usePinned
+import platform.zlib.z_stream
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun inflate(data: ByteArray): ByteArray = memScoped {
+    alloc<z_stream>()
+    data.usePinned { pinnedSrc ->
+        data.size
+        ByteArray(0)
     }
-    return rawValue
 }
