@@ -56,19 +56,19 @@ enum class BuiltinType(
     ;
 
     companion object {
-        val voidPtr: ConeType = ptrOf(VOID)
-        val starPtr: ConeType = ptrOf(TypeArgument.Star)
-
-        fun ptrOf(type: TypeArgument): ConeType = ConeType(PTR, listOf(type))
+        val voidPtr: ConeType = PTR.withArguments(VOID)
+        val starPtr: ConeType = PTR.withArguments(TypeArgument.Star)
     }
 
-    constructor(
+    constructor( // @formatter:off
         isBuiltIn: Boolean,
         symbolName: String,
         mangledName: String,
         size: Int
-    ) : this(SymbolName(
-        if(isBuiltIn) "${ABIConstants.KOTLIN_PACKAGE}.$symbolName"
-        else "${ABIConstants.CTYPE_PACKAGE}.$symbolName"
-    ), mangledName, size, size)
+    ) : this( // @formatter:on
+        SymbolName(
+            if (isBuiltIn) "${ABIConstants.KOTLIN_PACKAGE}.$symbolName"
+            else "${ABIConstants.CTYPE_PACKAGE}.$symbolName", symbolName
+        ), mangledName, size, size
+    )
 }

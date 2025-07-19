@@ -16,17 +16,21 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Polymorphic
 @Serializable
 sealed interface TypeArgument {
-    val symbolName: SymbolName
+    @Transient
+    val mangledName: String
 
     @Serializable
+    @SerialName("star")
     data object Star : TypeArgument {
-        override val symbolName: SymbolName = SymbolName("*")
+        @Transient
+        override val mangledName: String = "_"
     }
 }

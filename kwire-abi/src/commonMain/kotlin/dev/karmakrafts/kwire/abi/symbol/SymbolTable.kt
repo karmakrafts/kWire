@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 @ConsistentCopyVisibility
 @Serializable
 data class SymbolTable internal constructor(
-    val entries: List<SymbolTableEntry>
+    val entries: List<Symbol>
 ) : ByteSerializable {
     operator fun plus(other: SymbolTable): SymbolTable = SymbolTable(entries + other.entries)
 }

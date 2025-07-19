@@ -16,7 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.serialization
 
-import dev.karmakrafts.kwire.abi.symbol.SymbolTableEntry
+import dev.karmakrafts.kwire.abi.symbol.Symbol
+import dev.karmakrafts.kwire.abi.type.ArrayType
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.ConeType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
@@ -34,15 +35,16 @@ interface ByteSerializable {
         internal val serializer: Json = Json {
             ignoreUnknownKeys = true
             serializersModule = SerializersModule {
-                polymorphic(SymbolTableEntry::class) {
-                    subclass(SymbolTableEntry.Function::class)
-                    subclass(SymbolTableEntry.Class::class)
+                polymorphic(Symbol::class) {
+                    subclass(Symbol.Function::class)
+                    subclass(Symbol.Class::class)
                 }
                 polymorphic(Type::class) {
                     subclass(BuiltinType::class)
                     subclass(ReferenceType::class)
                     subclass(StructType::class)
                     subclass(ConeType::class)
+                    subclass(ArrayType::class)
                 }
                 polymorphic(TypeArgument::class) {
                     subclass(Type::class)

@@ -20,7 +20,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SymbolInfo(
-    val name: SymbolName, val line: Int, val column: Int, val file: String
+    val name: SymbolName,
+    val line: Int,
+    val column: Int,
+    val file: String
 ) {
     fun toTraceString(): String = "$file:$line:$column"
 }

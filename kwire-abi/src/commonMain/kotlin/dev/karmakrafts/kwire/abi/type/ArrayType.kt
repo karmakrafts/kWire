@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.abi.symbol
+package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * @param fullName The fully qualified name of the symbol.
- * @param shortName The local name of the symbol, including nested classes.
- */
 @Serializable
-data class SymbolName(
-    val fullName: String,
-    val shortName: String
-) {
-    companion object {
-        const val SEPARATOR = "."
+@SerialName("array")
+class ArrayType( // @formatter:off
+    override val symbolName: SymbolName,
+    val elementType: Type,
+    val dimensions: Int
+) : Type { // @formatter:on
+    override val size: Int by lazy { elementType.size * dimensions }
+    override val alignment: Int get() = elementType.alignment
+
+    override val mangledName: String by lazy {
+        "${"A".repeat(dimensions)}${elementType.mangledName}${"\$A".repeat(dimensions)}"
     }
-
-    val packageName: String
-        get() = fullName.replace(shortName, "")
-
-    fun segments(): List<String> = fullName.split(SEPARATOR)
-
-    fun packageSegments(): List<String> = packageName.split(SEPARATOR)
-
-    fun nameSegments(): List<String> = shortName.split(SEPARATOR)
 }

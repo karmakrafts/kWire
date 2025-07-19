@@ -16,26 +16,15 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
-import kotlinx.serialization.Polymorphic
+import dev.karmakrafts.kwire.abi.type.Type
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Polymorphic
-sealed interface SymbolTableEntry {
-    val id: Int
-    val info: SymbolInfo
-    val originalInfo: SymbolInfo?
-
-    @Serializable
-    @SerialName("fn")
-    data class Function(
-        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
-    ) : SymbolTableEntry
-
-    @Serializable
-    @SerialName("cl")
-    data class Class(
-        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
-    ) : SymbolTableEntry
-}
+@SerialName("cls")
+data class ClassSymbol(
+    override val id: Int,
+    override val info: SymbolInfo,
+    override val originalInfo: SymbolInfo?,
+    override val typeArguments: List<Type>
+) : Symbol

@@ -16,27 +16,15 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.type.Type
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 
-/**
- * @param fullName The fully qualified name of the symbol.
- * @param shortName The local name of the symbol, including nested classes.
- */
 @Serializable
-data class SymbolName(
-    val fullName: String,
-    val shortName: String
-) {
-    companion object {
-        const val SEPARATOR = "."
-    }
-
-    val packageName: String
-        get() = fullName.replace(shortName, "")
-
-    fun segments(): List<String> = fullName.split(SEPARATOR)
-
-    fun packageSegments(): List<String> = packageName.split(SEPARATOR)
-
-    fun nameSegments(): List<String> = shortName.split(SEPARATOR)
+@Polymorphic
+sealed interface Symbol {
+    val id: Int
+    val info: SymbolInfo
+    val originalInfo: SymbolInfo?
+    val typeArguments: List<Type>
 }

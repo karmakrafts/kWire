@@ -21,11 +21,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("cone")
-class ConeType(
+class ConeType( // @formatter:off
     val type: Type,
     val typeArguments: List<TypeArgument>
-) : Type by type {
+) : Type by type { // @formatter:on
     override val mangledName: String by lazy {
-        ""
+        val arguments = typeArguments.joinToString("") { it.mangledName }
+        "${type.mangledName}T$arguments\$T"
     }
 }
+
+fun Type.withArguments(arguments: List<TypeArgument>): ConeType = ConeType(this, arguments)
+
+fun Type.withArguments(vararg arguments: TypeArgument): ConeType = ConeType(this, arguments.toList())

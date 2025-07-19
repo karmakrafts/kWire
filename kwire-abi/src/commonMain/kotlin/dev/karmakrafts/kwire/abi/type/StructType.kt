@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.PACKAGE_DELIMITER
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -28,7 +29,10 @@ data class StructType( // @formatter:off
 ) : Type { // @formatter:on
     override val size: Int by lazy { fields.sumOf { it.size } }
     override val alignment: Int by lazy { fields.maxOf { it.alignment } }
+
     override val mangledName: String by lazy {
-        symbolName.toString() // TODO: implement this
+        val pkg = symbolName.packageSegments().joinToString(PACKAGE_DELIMITER)
+        val name = symbolName.shortName
+        "S$pkg$PACKAGE_DELIMITER$name\$S"
     }
 }
