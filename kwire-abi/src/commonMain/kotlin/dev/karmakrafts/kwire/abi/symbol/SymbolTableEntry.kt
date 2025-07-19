@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.abi
+package dev.karmakrafts.kwire.abi.symbol
 
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SymbolInfo(
-    val name: SymbolName, val line: Int, val column: Int, val file: String
-) {
-    fun toTraceString(): String = "$file:$line:$column"
+@Polymorphic
+sealed interface SymbolTableEntry {
+    val id: Int
+    val info: SymbolInfo
+    val originalInfo: SymbolInfo?
+
+    @Serializable
+    @SerialName("fn")
+    data class Function(
+        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
+    ) : SymbolTableEntry
+
+    @Serializable
+    @SerialName("cl")
+    data class Class(
+        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
+    ) : SymbolTableEntry
 }

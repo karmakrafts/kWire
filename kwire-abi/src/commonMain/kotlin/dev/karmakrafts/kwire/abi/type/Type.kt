@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.abi
+package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.KWireCompilerApi
+import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-@KWireCompilerApi
-interface ModuleData {
-    @KWireCompilerApi
-    val name: String
+@Serializable
+@Polymorphic
+sealed interface Type : ByteSerializable {
+    val symbolName: SymbolName
 
-    @KWireCompilerApi
-    val dependencies: List<ModuleData>
+    @Transient
+    val size: Int
 
-    @KWireCompilerApi
-    val symbolTableData: ByteArray
+    @Transient
+    val alignment: Int
+
+    fun getMangledName(): String
 }

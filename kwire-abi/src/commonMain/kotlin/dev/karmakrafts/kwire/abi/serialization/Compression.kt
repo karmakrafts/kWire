@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi.serialization
 
-import org.jetbrains.kotlin.name.Name
+@PublishedApi
+internal expect fun deflate(data: ByteArray): ByteArray
 
-object ABIConstants {
-    val moduleDataNameName: Name = Name.identifier("name")
-    val moduleDataDependenciesName: Name = Name.identifier("dependencies")
-    val moduleDataSymbolTableData: Name = Name.identifier("symbolTableData")
-}
+@PublishedApi
+internal expect fun inflate(data: ByteArray): ByteArray

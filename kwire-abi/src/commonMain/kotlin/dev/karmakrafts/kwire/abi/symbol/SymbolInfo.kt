@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.ctype
+package dev.karmakrafts.kwire.abi.symbol
 
-internal actual val pointerSize: Int = Int.SIZE_BYTES
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SymbolInfo(
+    val name: SymbolName, val line: Int, val column: Int, val file: String
+) {
+    fun toTraceString(): String = "$file:$line:$column"
+}

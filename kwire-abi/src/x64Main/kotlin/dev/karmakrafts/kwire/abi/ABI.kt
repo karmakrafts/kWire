@@ -16,7 +16,8 @@
 
 package dev.karmakrafts.kwire.abi
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class SymbolName(val value: String)
+actual object ABI {
+    actual val pointerStorageSize: Int = Int.SIZE_BYTES
+    actual val pointerSize: Int = Int.SIZE_BYTES
+    actual val booleanSize: Int = 1
+}

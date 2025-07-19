@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-@file:JvmName("PtrImpl")
+package dev.karmakrafts.kwire.abi
 
-package dev.karmakrafts.kwire.ctype
-
-internal actual val pointerSize: Int by lazy {
-    System.getProperty("sun.arch.data.model")?.toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
+actual object ABI {
+    actual val pointerStorageSize: Int = Int.SIZE_BYTES
+    actual val pointerSize: Int = Int.SIZE_BYTES
+    actual val booleanSize: Int = 1
 }

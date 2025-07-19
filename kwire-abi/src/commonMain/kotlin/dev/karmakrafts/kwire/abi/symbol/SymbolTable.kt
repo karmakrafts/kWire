@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.abi
+package dev.karmakrafts.kwire.abi.symbol
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.usePinned
-import platform.zlib.z_stream
+import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
+import kotlinx.serialization.Serializable
 
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun inflate(data: ByteArray): ByteArray = memScoped {
-    alloc<z_stream>()
-    data.usePinned { pinnedSrc ->
-        data.size
-        ByteArray(0)
-    }
+@ConsistentCopyVisibility
+@Serializable
+data class SymbolTable internal constructor(
+    val entries: List<SymbolTableEntry>
+) : ByteSerializable {
+    operator fun plus(other: SymbolTable): SymbolTable = SymbolTable(entries + other.entries)
 }

@@ -141,6 +141,7 @@ kotlin {
                 implementation(libs.stately.concurrent.collections)
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.kotlinx.serialization.json)
+                api(projects.kwireAbi)
             }
         }
 

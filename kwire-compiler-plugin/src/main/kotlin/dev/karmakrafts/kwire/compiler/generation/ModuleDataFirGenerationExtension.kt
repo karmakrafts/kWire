@@ -16,7 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.generation
 
-import dev.karmakrafts.kwire.compiler.util.ABIConstants
+import dev.karmakrafts.kwire.compiler.util.ABINames
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.buildSimpleObject
 import dev.karmakrafts.kwire.compiler.util.buildSimpleProperty
@@ -70,11 +70,11 @@ internal class ModuleDataFirGenerationExtension(
     private val moduleName: String = session.moduleData.name.getABIFriendlyName()
     private val moduleDataClassName: Name = Name.identifier("__KWireModuleData\$${moduleName}__")
     private val moduleDataClassId: ClassId = ClassId.topLevel(FqName.topLevel(moduleDataClassName))
-    private val moduleDataNameId: CallableId = CallableId(moduleDataClassId, ABIConstants.moduleDataNameName)
+    private val moduleDataNameId: CallableId = CallableId(moduleDataClassId, ABINames.moduleDataNameName)
     private val moduleDataDependenciesId: CallableId =
-        CallableId(moduleDataClassId, ABIConstants.moduleDataDependenciesName)
+        CallableId(moduleDataClassId, ABINames.moduleDataDependenciesName)
     private val moduleDataSymbolTableDataId: CallableId =
-        CallableId(moduleDataClassId, ABIConstants.moduleDataSymbolTableData)
+        CallableId(moduleDataClassId, ABINames.moduleDataSymbolTableData)
 
     @OptIn(SymbolInternals::class)
     inner class SymbolsAndTypes {
@@ -221,9 +221,9 @@ internal class ModuleDataFirGenerationExtension(
         return when (classSymbol.classId) { // @formatter:off
             moduleDataClassId -> setOf(
                 SpecialNames.INIT,
-                ABIConstants.moduleDataNameName,
-                ABIConstants.moduleDataDependenciesName,
-                ABIConstants.moduleDataSymbolTableData
+                ABINames.moduleDataNameName,
+                ABINames.moduleDataDependenciesName,
+                ABINames.moduleDataSymbolTableData
             )
             else -> emptySet()
         } // @formatter:on

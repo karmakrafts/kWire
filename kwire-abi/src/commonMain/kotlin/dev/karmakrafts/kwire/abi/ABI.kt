@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-@file:JvmName("SymbolTableImpl")
-
 package dev.karmakrafts.kwire.abi
 
-import java.util.zip.InflaterInputStream
-
-internal actual fun inflate(data: ByteArray): ByteArray {
-    return data.inputStream().use { inputStream ->
-        InflaterInputStream(inputStream).use { decompressor ->
-            decompressor.readAllBytes()
-        }
-    }
+expect object ABI {
+    val pointerStorageSize: Int
+    val pointerSize: Int
+    val booleanSize: Int
 }

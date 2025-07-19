@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.ctype
+package dev.karmakrafts.kwire.abi
 
-internal actual val pointerSize: Int = Long.SIZE_BYTES
+object ABIConstants {
+    const val KOTLIN_PACKAGE: String = "kotlin"
+    const val KWIRE_PACKAGE: String = "dev.karmakrafts.kwire"
+    const val CTYPE_PACKAGE: String = "$KWIRE_PACKAGE.ctype"
+}

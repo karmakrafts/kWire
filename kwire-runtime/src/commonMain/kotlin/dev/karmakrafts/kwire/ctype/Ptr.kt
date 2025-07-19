@@ -21,11 +21,10 @@ package dev.karmakrafts.kwire.ctype
 import dev.karmakrafts.kwire.KWireCompilerApi
 import dev.karmakrafts.kwire.KWireIntrinsic
 import dev.karmakrafts.kwire.KWirePluginNotAppliedException
+import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.memory.Memory
 import dev.karmakrafts.kwire.meta.ValueType
 import kotlin.jvm.JvmInline
-
-internal expect val pointerSize: Int
 
 /**
  * Represents a typed pointer to a memory location in the C type system.
@@ -46,7 +45,7 @@ value class Ptr<@ValueType T>
         /**
          * The size of a pointer in bytes on the current platform.
          */
-        val SIZE_BYTES: Int get() = pointerSize
+        val SIZE_BYTES: Int get() = ABI.pointerSize
     }
 
     @ConstCallable

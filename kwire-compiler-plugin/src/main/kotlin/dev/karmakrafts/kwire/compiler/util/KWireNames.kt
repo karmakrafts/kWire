@@ -143,7 +143,7 @@ internal object KWireNames {
     val ctypePackageName: FqName = FqName("${packageName.asString()}.ctype")
     val ffiPackageName: FqName = FqName("${packageName.asString()}.ffi")
     val metaPackageName: FqName = FqName("${packageName.asString()}.meta")
-    val abiPackageName: FqName = FqName("${packageName.asString()}.abi")
+
 
     // ------------------------------ dev.karmakrafts.kwire
 
@@ -156,6 +156,12 @@ internal object KWireNames {
             val name: FqName = FqName("KWireIntrinsic.Type")
             val id: ClassId = ClassId(packageName, name, false)
         }
+    }
+
+    object ModuleData {
+        val name: Name = Name.identifier("ModuleData")
+        val id: ClassId = ClassId(packageName, name)
+        val fqName: FqName = id.asSingleFqName()
     }
 
     // ------------------------------ dev.karmakrafts.kwire.ctype
@@ -392,13 +398,5 @@ internal object KWireNames {
     object ValueType {
         val name: Name = Name.identifier("ValueType")
         val id: ClassId = ClassId(metaPackageName, name)
-    }
-
-    // dev.karmakrafts.kwire.abi
-
-    object ModuleData {
-        val name: Name = Name.identifier("ModuleData")
-        val id: ClassId = ClassId(abiPackageName, name)
-        val fqName: FqName = id.asSingleFqName()
     }
 }

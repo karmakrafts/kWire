@@ -16,26 +16,10 @@
 
 package dev.karmakrafts.kwire.abi
 
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
-@Serializable
-@Polymorphic
-sealed interface SymbolTableEntry {
-    val id: Int
-    val info: SymbolInfo
-    val originalInfo: SymbolInfo?
-
-    @Serializable
-    @SerialName("fn")
-    data class Function(
-        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
-    ) : SymbolTableEntry
-
-    @Serializable
-    @SerialName("cl")
-    data class Class(
-        override val id: Int, override val info: SymbolInfo, override val originalInfo: SymbolInfo?
-    ) : SymbolTableEntry
+actual object ABI {
+    actual val pointerStorageSize: Int = Long.SIZE_BYTES
+    actual val pointerSize: Int by lazy {
+        System.getProperty("sun.arch.data.model")?.toIntOrNull()?.let { it shr 3 } ?: Int.SIZE_BYTES
+    }
+    actual val booleanSize: Int = 1
 }
