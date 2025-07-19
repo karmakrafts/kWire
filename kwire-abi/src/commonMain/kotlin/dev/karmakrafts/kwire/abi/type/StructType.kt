@@ -16,36 +16,19 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("struct")
-data class StructType
-@Deprecated(
-    message = "Don't use the constructor of StructType directly as it only exists for serialization purposes",
-    replaceWith = ReplaceWith("StructType.of()")
-) constructor(
-    override val symbolName: SymbolName, val fields: List<Type>
-) : Type {
-    companion object {
-        private val cache: ConcurrentMutableMap<String, StructType> = ConcurrentMutableMap()
-
-        @Suppress("DEPRECATION")
-        fun of(name: SymbolName, fields: List<Type>): StructType = cache.getOrPut(name.value) { StructType(name, fields) }
-
-        fun of(name: String, fields: List<Type>): StructType = of(SymbolName(name), fields)
-    }
-
-    override val size: Int
-        get() = fields.sumOf { it.size }
-
-    override val alignment: Int
-        get() = fields.maxOf { it.alignment }
-
-    override fun getMangledName(): String {
-        return symbolName.toString() // TODO: implement this
+data class StructType( // @formatter:off
+    override val symbolName: SymbolName,
+    val fields: List<Type>
+) : Type { // @formatter:on
+    override val size: Int by lazy { fields.sumOf { it.size } }
+    override val alignment: Int by lazy { fields.maxOf { it.alignment } }
+    override val mangledName: String by lazy {
+        symbolName.toString() // TODO: implement this
     }
 }

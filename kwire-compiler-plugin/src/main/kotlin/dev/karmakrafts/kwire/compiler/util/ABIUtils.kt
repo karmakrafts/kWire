@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
+import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -23,40 +24,57 @@ import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.name.Name
-import dev.karmakrafts.kwire.abi.type.BuiltinType as BuiltinABIType
+import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
+import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
+import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
+import dev.karmakrafts.kwire.abi.type.Type as ABIType
 
-object ABINames {
+internal object ABINames {
     val moduleDataNameName: Name = Name.identifier("name")
     val moduleDataDependenciesName: Name = Name.identifier("dependencies")
     val moduleDataSymbolTableData: Name = Name.identifier("symbolTableData")
 }
 
-fun IrType.getBuiltinABIType(): BuiltinABIType? {
-    if (isUnit()) return BuiltinABIType.VOID
+internal fun IrType.getABIBuiltinType(): ABIBuiltinType? {
+    if (isUnit()) return ABIBuiltinType.VOID
     when (getPrimitiveType()) {
-        PrimitiveType.BYTE -> return BuiltinABIType.BYTE
-        PrimitiveType.SHORT -> return BuiltinABIType.SHORT
-        PrimitiveType.INT -> return BuiltinABIType.INT
-        PrimitiveType.LONG -> return BuiltinABIType.LONG
-        PrimitiveType.FLOAT -> return BuiltinABIType.FLOAT
-        PrimitiveType.DOUBLE -> return BuiltinABIType.DOUBLE
-        PrimitiveType.CHAR -> return BuiltinABIType.CHAR
-        PrimitiveType.BOOLEAN -> return BuiltinABIType.BOOL
+        PrimitiveType.BYTE -> return ABIBuiltinType.BYTE
+        PrimitiveType.SHORT -> return ABIBuiltinType.SHORT
+        PrimitiveType.INT -> return ABIBuiltinType.INT
+        PrimitiveType.LONG -> return ABIBuiltinType.LONG
+        PrimitiveType.FLOAT -> return ABIBuiltinType.FLOAT
+        PrimitiveType.DOUBLE -> return ABIBuiltinType.DOUBLE
+        PrimitiveType.CHAR -> return ABIBuiltinType.CHAR
+        PrimitiveType.BOOLEAN -> return ABIBuiltinType.BOOL
         else -> {}
     }
     when (getUnsignedType()) {
-        UnsignedType.UBYTE -> return BuiltinABIType.UBYTE
-        UnsignedType.USHORT -> return BuiltinABIType.USHORT
-        UnsignedType.UINT -> return BuiltinABIType.UINT
-        UnsignedType.ULONG -> return BuiltinABIType.ULONG
+        UnsignedType.UBYTE -> return ABIBuiltinType.UBYTE
+        UnsignedType.USHORT -> return ABIBuiltinType.USHORT
+        UnsignedType.UINT -> return ABIBuiltinType.UINT
+        UnsignedType.ULONG -> return ABIBuiltinType.ULONG
         else -> {}
     }
     when (getNativeType()) {
-        NativeType.NINT -> return BuiltinABIType.NINT
-        NativeType.NUINT -> return BuiltinABIType.NUINT
-        NativeType.NFLOAT -> return BuiltinABIType.NFLOAT
-        NativeType.PTR -> return BuiltinABIType.PTR
+        NativeType.NINT -> return ABIBuiltinType.NINT
+        NativeType.NUINT -> return ABIBuiltinType.NUINT
+        NativeType.NFLOAT -> return ABIBuiltinType.NFLOAT
+        NativeType.PTR -> return ABIBuiltinType.PTR
         else -> {}
     }
     return null
+}
+
+internal fun IrType.getABIStructType(context: KWirePluginContext): ABIStructType? {
+    if(!isStruct(context)) return null
+    return ABIStructType()
+}
+
+internal fun IrType.getABIReferenceType(context: KWirePluginContext): ABIReferenceType? {
+    if(!isStruct(context)) return null
+    return ABIReferenceType()
+}
+
+internal fun IrType.getABIType(context: KWirePluginContext): ABIType? {
+    return getABIBuiltinType() ?: getABIStructType(context) ?: getABIReferenceType(context)
 }

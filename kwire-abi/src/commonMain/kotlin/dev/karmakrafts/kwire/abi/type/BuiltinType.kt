@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 @SerialName("builtin")
 enum class BuiltinType(
     override val symbolName: SymbolName,
-    private val mangledName: String,
+    override val mangledName: String,
     override val size: Int,
     override val alignment: Int
 ) : Type {
@@ -55,6 +55,13 @@ enum class BuiltinType(
     // @formatter:on
     ;
 
+    companion object {
+        val voidPtr: ConeType = ptrOf(VOID)
+        val starPtr: ConeType = ptrOf(TypeArgument.Star)
+
+        fun ptrOf(type: TypeArgument): ConeType = ConeType(PTR, listOf(type))
+    }
+
     constructor(
         isBuiltIn: Boolean,
         symbolName: String,
@@ -64,6 +71,4 @@ enum class BuiltinType(
         if(isBuiltIn) "${ABIConstants.KOTLIN_PACKAGE}.$symbolName"
         else "${ABIConstants.CTYPE_PACKAGE}.$symbolName"
     ), mangledName, size, size)
-
-    override fun getMangledName(): String = mangledName
 }

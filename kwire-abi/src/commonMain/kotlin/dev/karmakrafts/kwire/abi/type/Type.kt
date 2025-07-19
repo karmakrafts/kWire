@@ -17,21 +17,18 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
-import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
 @Polymorphic
-sealed interface Type : ByteSerializable {
-    val symbolName: SymbolName
+sealed interface Type : TypeArgument, ByteSerializable {
+    val mangledName: String
 
     @Transient
     val size: Int
 
     @Transient
     val alignment: Int
-
-    fun getMangledName(): String
 }

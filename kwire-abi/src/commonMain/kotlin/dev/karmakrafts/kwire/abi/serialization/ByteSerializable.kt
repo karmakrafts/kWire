@@ -18,9 +18,11 @@ package dev.karmakrafts.kwire.abi.serialization
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolTableEntry
 import dev.karmakrafts.kwire.abi.type.BuiltinType
+import dev.karmakrafts.kwire.abi.type.ConeType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType
 import dev.karmakrafts.kwire.abi.type.Type
+import dev.karmakrafts.kwire.abi.type.TypeArgument
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -40,6 +42,11 @@ interface ByteSerializable {
                     subclass(BuiltinType::class)
                     subclass(ReferenceType::class)
                     subclass(StructType::class)
+                    subclass(ConeType::class)
+                }
+                polymorphic(TypeArgument::class) {
+                    subclass(Type::class)
+                    subclass(TypeArgument.Star::class)
                 }
             }
         }

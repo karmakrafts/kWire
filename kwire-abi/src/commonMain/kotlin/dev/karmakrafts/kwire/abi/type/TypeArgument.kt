@@ -16,19 +16,17 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
-import kotlinx.serialization.SerialName
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 
+@Polymorphic
 @Serializable
-@SerialName("ref")
-class ReferenceType(
-    override val symbolName: SymbolName
-) : Type {
-    override val size: Int = ABI.pointerSize
-    override val alignment: Int = ABI.pointerSize
-    override val mangledName: String by lazy {
-        symbolName.toString() // TODO: implement this
+sealed interface TypeArgument {
+    val symbolName: SymbolName
+
+    @Serializable
+    data object Star : TypeArgument {
+        override val symbolName: SymbolName = SymbolName("*")
     }
 }

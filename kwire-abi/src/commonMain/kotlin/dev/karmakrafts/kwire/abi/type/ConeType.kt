@@ -16,19 +16,16 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.ABI
-import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName("ref")
-class ReferenceType(
-    override val symbolName: SymbolName
-) : Type {
-    override val size: Int = ABI.pointerSize
-    override val alignment: Int = ABI.pointerSize
+@SerialName("cone")
+class ConeType(
+    val type: Type,
+    val typeArguments: List<TypeArgument>
+) : Type by type {
     override val mangledName: String by lazy {
-        symbolName.toString() // TODO: implement this
+        ""
     }
 }
