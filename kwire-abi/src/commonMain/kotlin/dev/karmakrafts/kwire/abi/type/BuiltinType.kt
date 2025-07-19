@@ -31,25 +31,27 @@ enum class BuiltinType(
     override val alignment: Int
 ) : Type {
     // @formatter:off
-    BYTE    (true,  "Byte",    "a", Byte.SIZE_BYTES),
-    SHORT   (true,  "Short",   "b", Short.SIZE_BYTES),
-    INT     (true,  "Int",     "c", Int.SIZE_BYTES),
-    LONG    (true,  "Long",    "d", Long.SIZE_BYTES),
-    NINT    (false, "NInt",    "e", ABI.pointerSize),
+    VOID    (true,  "Unit",    "a", 0),
 
-    UBYTE   (true,  "UByte",   "f", UByte.SIZE_BYTES),
-    USHORT  (true,  "UShort",  "g", UShort.SIZE_BYTES),
-    UINT    (true,  "UInt",    "h", UInt.SIZE_BYTES),
-    ULONG   (true,  "ULong",   "i", ULong.SIZE_BYTES),
-    NUINT   (false, "NUInt",   "j", ABI.pointerSize),
+    BYTE    (true,  "Byte",    "b", Byte.SIZE_BYTES),
+    SHORT   (true,  "Short",   "c", Short.SIZE_BYTES),
+    INT     (true,  "Int",     "d", Int.SIZE_BYTES),
+    LONG    (true,  "Long",    "e", Long.SIZE_BYTES),
+    NINT    (false, "NInt",    "f", ABI.pointerSize),
 
-    FLOAT   (true,  "Float",   "k", Float.SIZE_BYTES),
-    DOUBLE  (true,  "Double",  "l", Double.SIZE_BYTES),
-    NFLOAT  (false, "NFloat",  "m", ABI.pointerSize),
+    UBYTE   (true,  "UByte",   "g", UByte.SIZE_BYTES),
+    USHORT  (true,  "UShort",  "h", UShort.SIZE_BYTES),
+    UINT    (true,  "UInt",    "i", UInt.SIZE_BYTES),
+    ULONG   (true,  "ULong",   "j", ULong.SIZE_BYTES),
+    NUINT   (false, "NUInt",   "k", ABI.pointerSize),
 
-    BOOL    (true,  "Boolean", "n", ABI.booleanSize),
-    CHAR    (true,  "Char",    "o", Char.SIZE_BYTES),
-    PTR     (false, "Ptr",     "p", ABI.pointerSize)
+    FLOAT   (true,  "Float",   "l", Float.SIZE_BYTES),
+    DOUBLE  (true,  "Double",  "m", Double.SIZE_BYTES),
+    NFLOAT  (false, "NFloat",  "n", ABI.pointerSize),
+
+    BOOL    (true,  "Boolean", "o", ABI.booleanSize),
+    CHAR    (true,  "Char",    "p", Char.SIZE_BYTES),
+    PTR     (false, "Ptr",     "q", ABI.pointerSize)
     // @formatter:on
     ;
 

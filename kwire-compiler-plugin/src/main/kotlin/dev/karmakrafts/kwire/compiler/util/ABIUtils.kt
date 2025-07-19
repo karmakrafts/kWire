@@ -32,7 +32,7 @@ object ABINames {
 }
 
 fun IrType.getBuiltinABIType(): BuiltinABIType? {
-    if (isUnit()) return null
+    if (isUnit()) return BuiltinABIType.VOID
     when (getPrimitiveType()) {
         PrimitiveType.BYTE -> return BuiltinABIType.BYTE
         PrimitiveType.SHORT -> return BuiltinABIType.SHORT
