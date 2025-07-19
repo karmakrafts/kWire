@@ -26,7 +26,11 @@ internal class KWireFirExtensionRegistrar(
     private val messageCollector: MessageCollector
 ) : FirExtensionRegistrar() {
     override fun ExtensionRegistrarContext.configurePlugin() {
-        +FirDeclarationGenerationExtension.Factory { MonoFunctionClassFirGenerationExtension(it, messageCollector) }
-        +FirDeclarationGenerationExtension.Factory { ModuleDataFirGenerationExtension(it, messageCollector) }
+        +FirDeclarationGenerationExtension.Factory {
+            MonoFunctionClassFirGenerationExtension(it, messageCollector)
+        }
+        +FirDeclarationGenerationExtension.Factory {
+            ModuleDataFirGenerationExtension(it, messageCollector)
+        }
     }
 }

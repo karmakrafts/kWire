@@ -25,3 +25,8 @@ internal fun Name.getCleanSpecialName(): String {
     }
     return rawValue
 }
+
+internal fun Name.getABIFriendlyName(): String = getCleanSpecialName()
+    .replace('.', '_')
+    .replace('-', '_')
+    .replace('/', '_')

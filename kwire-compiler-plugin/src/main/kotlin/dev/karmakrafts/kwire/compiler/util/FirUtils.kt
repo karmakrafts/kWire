@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.name.ClassId
 @OptIn(UnresolvedExpressionTypeAccess::class, SymbolInternals::class)
 internal inline fun FirSession.buildSimpleProperty( // @formatter:off
     id: CallableId,
+    symbol: FirPropertySymbol = FirPropertySymbol(id),
     dispatchReceiver: FirExpression?,
     type: FirTypeRef,
     init: FirPropertyBuilder.() -> Unit = {}
@@ -61,7 +62,7 @@ internal inline fun FirSession.buildSimpleProperty( // @formatter:off
     name = id.callableName
     status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
     moduleData = this@buildSimpleProperty.moduleData
-    symbol = FirPropertySymbol(id)
+    this.symbol = symbol
     returnTypeRef = type
     isVar = false
     isLocal = false
@@ -71,7 +72,7 @@ internal inline fun FirSession.buildSimpleProperty( // @formatter:off
         moduleData = this@buildSimpleProperty.moduleData
         origin = this@buildProperty.origin
         returnTypeRef = type
-        symbol = FirBackingFieldSymbol(id)
+        this.symbol = FirBackingFieldSymbol(id)
         propertySymbol = this@buildProperty.symbol
         status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
         isVar = false
@@ -80,7 +81,7 @@ internal inline fun FirSession.buildSimpleProperty( // @formatter:off
     val returnTarget = FirFunctionTarget(null, false)
     getter = buildPropertyAccessor {
         origin = this@buildProperty.origin
-        symbol = FirPropertyAccessorSymbol()
+        this.symbol = FirPropertyAccessorSymbol()
         moduleData = this@buildSimpleProperty.moduleData
         propertySymbol = this@buildProperty.symbol
         status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
@@ -105,13 +106,15 @@ internal inline fun FirSession.buildSimpleProperty( // @formatter:off
 }.symbol
 
 internal inline fun FirSession.buildSimpleObject(
-    id: ClassId, init: FirRegularClassBuilder.() -> Unit = {}
+    id: ClassId,
+    symbol: FirRegularClassSymbol = FirRegularClassSymbol(id),
+    init: FirRegularClassBuilder.() -> Unit = {}
 ): FirClassSymbol<*> = buildRegularClass {
     name = id.shortClassName
     classKind = ClassKind.OBJECT
     status = FirResolvedDeclarationStatusImpl(Visibilities.Public, Modality.FINAL, EffectiveVisibility.Public)
     moduleData = this@buildSimpleObject.moduleData
     scopeProvider = kotlinScopeProvider
-    symbol = FirRegularClassSymbol(id)
+    this.symbol = symbol
     init()
 }.symbol

@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.generation
 
 import dev.karmakrafts.kwire.compiler.util.buildSimpleObject
+import dev.karmakrafts.kwire.compiler.util.getABIFriendlyName
 import dev.karmakrafts.kwire.compiler.util.getCleanSpecialName
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -43,7 +44,7 @@ internal class MonoFunctionClassFirGenerationExtension( // @formatter:off
         val declOrigin: FirDeclarationOrigin = FirDeclarationOrigin.Plugin(this)
     }
 
-    private val moduleName: String = session.moduleData.name.getCleanSpecialName()
+    private val moduleName: String = session.moduleData.name.getABIFriendlyName()
 
     private val monoFunctionClassName: Name = Name.identifier("__KWireMonoFunctions\$${moduleName}__")
     private val monoFunctionClassId: ClassId = ClassId.topLevel(FqName.topLevel(monoFunctionClassName))
@@ -75,5 +76,9 @@ internal class MonoFunctionClassFirGenerationExtension( // @formatter:off
     }
 
     @ExperimentalTopLevelDeclarationsGenerationApi
-    override fun getTopLevelClassIds(): Set<ClassId> = setOf(monoFunctionClassId)
+    override fun getTopLevelClassIds(): Set<ClassId> {
+        val moduleData = session.moduleData
+        return if (moduleData.isCommon) emptySet()
+        else setOf(monoFunctionClassId)
+    }
 }

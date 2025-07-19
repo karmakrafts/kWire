@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.util.ABIConstants
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.buildSimpleObject
 import dev.karmakrafts.kwire.compiler.util.buildSimpleProperty
+import dev.karmakrafts.kwire.compiler.util.getABIFriendlyName
 import dev.karmakrafts.kwire.compiler.util.getCleanSpecialName
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -64,11 +65,9 @@ import org.jetbrains.kotlin.types.Variance
 internal class ModuleDataFirGenerationExtension(
     session: FirSession, messageCollector: MessageCollector
 ) : FirDeclarationGenerationExtension(session) {
-    companion object : GeneratedDeclarationKey() {
-        val declOrigin: FirDeclarationOrigin = FirDeclarationOrigin.Plugin(this)
-    }
+    companion object : GeneratedDeclarationKey()
 
-    private val moduleName: String = session.moduleData.name.getCleanSpecialName()
+    private val moduleName: String = session.moduleData.name.getABIFriendlyName()
     private val moduleDataClassName: Name = Name.identifier("__KWireModuleData\$${moduleName}__")
     private val moduleDataClassId: ClassId = ClassId.topLevel(FqName.topLevel(moduleDataClassName))
     private val moduleDataNameId: CallableId = CallableId(moduleDataClassId, ABIConstants.moduleDataNameName)
@@ -76,6 +75,26 @@ internal class ModuleDataFirGenerationExtension(
         CallableId(moduleDataClassId, ABIConstants.moduleDataDependenciesName)
     private val moduleDataSymbolTableDataId: CallableId =
         CallableId(moduleDataClassId, ABIConstants.moduleDataSymbolTableData)
+
+    @OptIn(SymbolInternals::class)
+    inner class SymbolsAndTypes {
+        val listSymbol = session.getRegularClassSymbolByClassId(KWireNames.Kotlin.List.id)!!
+        val arraySymbol = session.getRegularClassSymbolByClassId(KWireNames.Kotlin.Array.id)!!
+        val listOfSymbol = session.symbolProvider.getTopLevelFunctionSymbols(
+            KWireNames.Kotlin.collectionsPackageName, KWireNames.Functions.listOf
+        ).first { it.fir.valueParameters.first().isVararg }
+
+        val stringListType =
+            listSymbol.constructType(arrayOf(session.builtinTypes.stringType.coneType)).toFirResolvedTypeRef()
+
+        val moduleDataSymbol = session.getRegularClassSymbolByClassId(KWireNames.ModuleData.id)!!
+        val moduleDataType = moduleDataSymbol.defaultType()
+        val moduleDataListType = listSymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()
+        val moduleDataArrayType = arraySymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()
+
+        val byteArraySymbol = session.getRegularClassSymbolByClassId(KWireNames.Kotlin.ByteArray.id)!!
+        val byteArrayType = byteArraySymbol.defaultType().toFirResolvedTypeRef()
+    }
 
     private fun getModuleDataReference(name: Name): FirExpression? {
         // Try to find the module data implementation class for the given module name
@@ -90,70 +109,65 @@ internal class ModuleDataFirGenerationExtension(
         }
     }
 
-    @OptIn(SymbolInternals::class)
-    private fun generateModuleDataProperties(owner: FirClassSymbol<*>): List<FirPropertySymbol> {
-        val listSymbol = session.getRegularClassSymbolByClassId(KWireNames.Kotlin.List.id) ?: return emptyList()
-        val arraySymbol = session.getRegularClassSymbolByClassId(KWireNames.Kotlin.Array.id) ?: return emptyList()
-        val listOfSymbol = session.symbolProvider.getTopLevelFunctionSymbols(
-            KWireNames.Kotlin.collectionsPackageName, KWireNames.Functions.listOf
-        ).first { it.fir.valueParameters.first().isVararg }
-
-        val stringListType =
-            listSymbol.constructType(arrayOf(session.builtinTypes.stringType.coneType)).toFirResolvedTypeRef()
-
-        val moduleDataSymbol = session.getRegularClassSymbolByClassId(KWireNames.ModuleData.id) ?: return emptyList()
-        val moduleDataType = moduleDataSymbol.defaultType()
-        val moduleDataListType = listSymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()
-        val moduleDataArrayType = arraySymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()
-
-        val byteArraySymbol =
-            session.getRegularClassSymbolByClassId(KWireNames.Kotlin.ByteArray.id) ?: return emptyList()
-        val byteArrayType = byteArraySymbol.defaultType().toFirResolvedTypeRef()
-
-        fun createDispatchReceiver(): FirExpression = buildThisReceiverExpression {
-            coneTypeOrNull = owner.defaultType()
-            calleeReference = buildImplicitThisReference {
-                boundSymbol = owner
-            }
-        }
-
-        return listOf( // @formatter:off
-            session.buildSimpleProperty(moduleDataNameId, createDispatchReceiver(), session.builtinTypes.stringType) {
-                origin = declOrigin
-                initializer = buildLiteralExpression(null, ConstantValueKind.String, moduleName, setType = true)
-            },
-            session.buildSimpleProperty(moduleDataDependenciesId, createDispatchReceiver(), moduleDataListType) {
-                origin = declOrigin
-                initializer = buildFunctionCall {
-                    coneTypeOrNull = stringListType.coneType
-                    calleeReference = buildResolvedNamedReference {
-                        name = listOfSymbol.name
-                        resolvedSymbol = listOfSymbol
-                    }
-                    typeArguments += buildTypeProjectionWithVariance {
-                        typeRef = moduleDataType.toFirResolvedTypeRef()
-                        variance = Variance.INVARIANT
-                    }
-                    argumentList = buildResolvedArgumentList(buildArgumentList {
-                        buildVarargArgumentsExpression {
-                            coneTypeOrNull = moduleDataArrayType.coneType
-                            coneElementTypeOrNull = moduleDataType
-                            arguments += session.moduleData.dependencies.mapNotNull {
-                                getModuleDataReference(it.name)
-                            }
-                        }
-                    }, LinkedHashMap())
-                }
-            },
-            session.buildSimpleProperty(moduleDataSymbolTableDataId, createDispatchReceiver(), byteArrayType) {
-                origin = declOrigin
-                initializer = buildArrayLiteral {
-                    // This is filled in during the IR lowering after monomorphization
-                    coneTypeOrNull = byteArraySymbol.defaultType()
-                    argumentList = FirEmptyArgumentList
-                }
-            }
+    private fun generateNameProperty(
+        dispatchReceiver: FirExpression
+    ): FirPropertySymbol = session.buildSimpleProperty( // @formatter:off
+        id = moduleDataNameId,
+        dispatchReceiver = dispatchReceiver,
+        type = session.builtinTypes.stringType
+    ) { // @formatter:on
+        origin = FirDeclarationOrigin.Plugin(ModuleDataFirGenerationExtension)
+        initializer = buildLiteralExpression( // @formatter:off
+            source = null,
+            kind = ConstantValueKind.String,
+            value = moduleName,
+            setType = true
         ) // @formatter:on
+    }
+
+    private fun generateDependenciesProperty(
+        symbolsAndTypes: SymbolsAndTypes, dispatchReceiver: FirExpression
+    ): FirPropertySymbol = session.buildSimpleProperty( // @formatter:off
+        id = moduleDataDependenciesId,
+        dispatchReceiver = dispatchReceiver,
+        type = symbolsAndTypes.moduleDataListType
+    ) { // @formatter:on
+        origin = FirDeclarationOrigin.Plugin(ModuleDataFirGenerationExtension)
+        initializer = buildFunctionCall {
+            coneTypeOrNull = symbolsAndTypes.stringListType.coneType
+            calleeReference = buildResolvedNamedReference {
+                name = symbolsAndTypes.listOfSymbol.name
+                resolvedSymbol = symbolsAndTypes.listOfSymbol
+            }
+            typeArguments += buildTypeProjectionWithVariance {
+                typeRef = symbolsAndTypes.moduleDataType.toFirResolvedTypeRef()
+                variance = Variance.INVARIANT
+            }
+            argumentList = buildResolvedArgumentList(buildArgumentList {
+                buildVarargArgumentsExpression {
+                    coneTypeOrNull = symbolsAndTypes.moduleDataArrayType.coneType
+                    coneElementTypeOrNull = symbolsAndTypes.moduleDataType
+                    arguments += session.moduleData.dependencies.mapNotNull {
+                        getModuleDataReference(it.name)
+                    }
+                }
+            }, LinkedHashMap())
+        }
+    }
+
+    private fun generateSymbolTableDataProperty(
+        symbolsAndTypes: SymbolsAndTypes, dispatchReceiver: FirExpression
+    ): FirPropertySymbol = session.buildSimpleProperty( // @formatter:off
+        id = moduleDataSymbolTableDataId,
+        dispatchReceiver = dispatchReceiver,
+        type = symbolsAndTypes.byteArrayType
+    ) { // @formatter:on
+        origin = FirDeclarationOrigin.Plugin(ModuleDataFirGenerationExtension)
+        initializer = buildArrayLiteral {
+            // This is filled in during the IR lowering after monomorphization
+            coneTypeOrNull = symbolsAndTypes.byteArraySymbol.defaultType()
+            argumentList = FirEmptyArgumentList
+        }
     }
 
     @ExperimentalTopLevelDeclarationsGenerationApi
@@ -163,7 +177,7 @@ internal class ModuleDataFirGenerationExtension(
                 // The generated module data object needs to implement ModuleData to bind against the runtime API
                 val moduleDataClass = session.getRegularClassSymbolByClassId(KWireNames.ModuleData.id) ?: return null
                 superTypeRefs += moduleDataClass.defaultType().toFirResolvedTypeRef()
-                origin = declOrigin
+                origin = FirDeclarationOrigin.Plugin(ModuleDataFirGenerationExtension)
             }
 
             else -> null
@@ -182,8 +196,23 @@ internal class ModuleDataFirGenerationExtension(
         callableId: CallableId, context: MemberGenerationContext?
     ): List<FirPropertySymbol> {
         val owner = context?.owner ?: return emptyList()
-        return when (owner.classId) {
-            moduleDataClassId -> generateModuleDataProperties(owner)
+        fun createDispatchReceiver(): FirExpression = buildThisReceiverExpression {
+            coneTypeOrNull = owner.defaultType()
+            calleeReference = buildImplicitThisReference {
+                boundSymbol = owner
+            }
+        }
+
+        val symbolsAndTypes = SymbolsAndTypes()
+        return when (callableId) {
+            moduleDataNameId -> listOf(generateNameProperty(createDispatchReceiver()))
+            moduleDataDependenciesId -> listOf(generateDependenciesProperty(symbolsAndTypes, createDispatchReceiver()))
+            moduleDataSymbolTableDataId -> listOf(
+                generateSymbolTableDataProperty(
+                    symbolsAndTypes, createDispatchReceiver()
+                )
+            )
+
             else -> emptyList()
         }
     }
@@ -201,5 +230,9 @@ internal class ModuleDataFirGenerationExtension(
     }
 
     @ExperimentalTopLevelDeclarationsGenerationApi
-    override fun getTopLevelClassIds(): Set<ClassId> = setOf(moduleDataClassId)
+    override fun getTopLevelClassIds(): Set<ClassId> {
+        val moduleData = session.moduleData
+        return if (moduleData.isCommon) emptySet()
+        else setOf(moduleDataClassId)
+    }
 }

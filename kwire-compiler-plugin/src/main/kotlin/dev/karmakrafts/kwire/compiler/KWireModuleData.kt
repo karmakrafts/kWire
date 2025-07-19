@@ -18,7 +18,7 @@ package dev.karmakrafts.kwire.compiler
 
 import dev.karmakrafts.kwire.compiler.monomorphizer.MonoFunctionSignature
 import dev.karmakrafts.kwire.compiler.util.findChild
-import dev.karmakrafts.kwire.compiler.util.getCleanSpecialName
+import dev.karmakrafts.kwire.compiler.util.getABIFriendlyName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -35,7 +35,7 @@ internal class KWireModuleData( // @formatter:off
     val monomorphizedFunctions: HashMap<MonoFunctionSignature, IrSimpleFunction> = HashMap()
 
     // Allows making a reference to the synthetic class generated in FIR
-    val moduleName = module.name.getCleanSpecialName()
+    val moduleName = module.name.getABIFriendlyName()
 
     val monoFunctionClassName: Name = Name.identifier("__KWireMonoFunctions\$${moduleName}__")
     val monoFunctionClassId: ClassId = ClassId.topLevel(FqName.topLevel(monoFunctionClassName))

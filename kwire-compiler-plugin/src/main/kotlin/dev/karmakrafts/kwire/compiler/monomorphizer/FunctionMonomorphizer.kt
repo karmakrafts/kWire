@@ -118,39 +118,44 @@ internal class FunctionMonomorphizer(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     fun monomorphize( // @formatter:off
-        function: IrFunction,
+        originalFunction: IrFunction,
         substitutions: LinkedHashMap<IrTypeParameterSymbol, IrType>
     ): IrSimpleFunction { // @formatter:on
-        val signature = MonoFunctionSignature(function.symbol, substitutions)
+        val signature = MonoFunctionSignature(originalFunction.symbol, substitutions)
         return context.kwireModuleData.monomorphizedFunctions.getOrPut(signature) {
             val monoFunctionClass = context.kwireModuleData.monoFunctionClass
             val function = context.irFactory.buildFun {
-                updateFrom(function) // Copy base properties like visibility and modality
+                updateFrom(originalFunction) // Copy base properties like visibility and modality
                 startOffset = SYNTHETIC_OFFSET
                 endOffset = SYNTHETIC_OFFSET
-                name = function.name // Copy original name as it is mangled after construction
+                name = originalFunction.name // Copy original name as it is mangled after construction
                 origin = declOrigin
-                returnType = function.returnType
+                returnType = originalFunction.returnType
                 visibility =
                     DescriptorVisibilities.PUBLIC // Monomorphized functions are relocated, so they're always public
+                originalDeclaration = originalFunction
             }.apply functionScope@{
                 // @formatter:off
                 // Copy all annotations except @Template
-                annotations = function.annotations
+                annotations = originalFunction.annotations
                     .filterNot { it.type.getClass()?.isClassWithFqName(KWireNames.Template.fqName) == true }
                     .map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
-                body = function.copyBody()
-                parameters = function.parameters.map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
-                replaceValueAccesses(function.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
+                body = originalFunction.copyBody()
+                parameters = originalFunction.parameters.map { it.deepCopyWithoutPatchingParents().remapSyntheticSourceRanges() }
+                replaceValueAccesses(originalFunction.parameters.map { it.symbol }.zip(parameters.map { it.symbol }).toMap())
                 patchDeclarationParents(monoFunctionClass)
                 // @formatter:on
                 // Patch all parameters to reference the newly deep-copied mono-function params
-                replaceReturnTargets(function.symbol) // Patch all return targets
+                replaceReturnTargets(originalFunction.symbol) // Patch all return targets
                 replaceTypes(substitutions) // Substitute all used types recursively
-                remapValueAccesses(function) // Remap all local references accordingly
+                remapValueAccesses(originalFunction) // Remap all local references accordingly
                 remapReceiverParameters(monoFunctionClass)
                 // Mangle function in-place after it is constructed
-                with(context.mangler) { mangleNameInPlace(substitutions.values.toList(), function.kotlinFqName) }
+                with(context.mangler) {
+                    mangleNameInPlace(
+                        substitutions.values.toList(), originalFunction.kotlinFqName
+                    )
+                }
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
             }
