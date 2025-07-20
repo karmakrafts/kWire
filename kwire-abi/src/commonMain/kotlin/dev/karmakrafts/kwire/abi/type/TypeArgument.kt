@@ -18,8 +18,21 @@ package dev.karmakrafts.kwire.abi.type
 
 import kotlinx.io.Buffer
 
+/**
+ * Represents a type argument in a generic type in the ABI system.
+ *
+ * Type arguments can be either a wildcard (*) represented by [Star],
+ * or a concrete type represented by [Concrete].
+ */
 sealed interface TypeArgument {
     companion object {
+        /**
+         * Deserializes a [TypeArgument] from the given [buffer].
+         *
+         * @param buffer The buffer to read from
+         * @return The deserialized [TypeArgument] (either [Star] or [Concrete])
+         * @throws IllegalStateException if the type argument kind is unknown
+         */
         fun deserialize(buffer: Buffer): TypeArgument {
             val kind = buffer.peek().readByte()
             return when (kind) {
@@ -30,19 +43,50 @@ sealed interface TypeArgument {
         }
     }
 
+    /**
+     * The mangled name of this type argument, used for ABI compatibility.
+     */
     val mangledName: String
 
+    /**
+     * Serializes this type argument to the given [buffer].
+     *
+     * @param buffer The buffer to write to
+     */
     fun serialize(buffer: Buffer)
 
+    /**
+     * Represents a wildcard type argument (*) in the ABI system.
+     */
     data object Star : TypeArgument {
+        /**
+         * The kind byte that identifies a Star type argument during serialization/deserialization.
+         */
         const val KIND: Byte = 0
 
+        /**
+         * The mangled name of this wildcard type argument, which is always "_".
+         */
         override val mangledName: String = "_"
 
+        /**
+         * Serializes this wildcard type argument to the given [buffer].
+         *
+         * The serialization format is simply the kind byte ([KIND]).
+         *
+         * @param buffer The buffer to write to
+         */
         override fun serialize(buffer: Buffer) {
             buffer.writeByte(KIND)
         }
 
+        /**
+         * Deserializes a [Star] from the given [buffer].
+         *
+         * @param buffer The buffer to read from
+         * @return The [Star] singleton
+         * @throws IllegalStateException if the type argument kind is not [KIND]
+         */
         fun deserialize(buffer: Buffer): Star {
             val kind = buffer.readByte()
             check(kind == KIND) { "Expected star type argument kind ($KIND) while deserializing but got $kind" }
@@ -50,10 +94,25 @@ sealed interface TypeArgument {
         }
     }
 
+    /**
+     * Represents a concrete type argument in the ABI system.
+     *
+     * @property type The concrete type
+     */
     data class Concrete(val type: Type) : TypeArgument {
         companion object {
+            /**
+             * The kind byte that identifies a Concrete type argument during serialization/deserialization.
+             */
             const val KIND: Byte = 1
 
+            /**
+             * Deserializes a [Concrete] from the given [buffer].
+             *
+             * @param buffer The buffer to read from
+             * @return The deserialized [Concrete]
+             * @throws IllegalStateException if the type argument kind is not [KIND]
+             */
             fun deserialize(buffer: Buffer): Concrete {
                 val kind = buffer.readByte()
                 check(kind == Star.KIND) { "Expected concrete type argument kind (${KIND}) while deserializing but got $kind" }
@@ -61,8 +120,20 @@ sealed interface TypeArgument {
             }
         }
 
+        /**
+         * The mangled name of this concrete type argument, which is the same as the mangled name of the underlying type.
+         */
         override val mangledName: String get() = type.mangledName
 
+        /**
+         * Serializes this concrete type argument to the given [buffer].
+         *
+         * The serialization format is:
+         * 1. The kind byte ([KIND])
+         * 2. The concrete type
+         *
+         * @param buffer The buffer to write to
+         */
         override fun serialize(buffer: Buffer) {
             buffer.writeByte(KIND)
             type.serialize(buffer)

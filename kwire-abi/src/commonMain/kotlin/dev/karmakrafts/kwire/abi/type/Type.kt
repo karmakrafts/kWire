@@ -21,8 +21,21 @@ import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.io.Buffer
 
+/**
+ * Base interface for all types in the ABI system.
+ * 
+ * This interface defines the common properties and methods that all types must implement,
+ * including serialization and deserialization capabilities.
+ */
 sealed interface Type {
     companion object {
+        /**
+         * Deserializes a [Type] from the given [buffer].
+         *
+         * @param buffer The buffer to read from
+         * @return The deserialized [Type]
+         * @throws IllegalStateException if the type kind is unknown
+         */
         fun deserialize(buffer: Buffer): Type {
             val kind = buffer.peek().readByte()
             return when (kind) {
@@ -35,8 +48,20 @@ sealed interface Type {
             }
         }
 
+        /**
+         * Decompresses and deserializes a [Type] from the given [buffer].
+         *
+         * @param buffer The compressed buffer to read from
+         * @return The deserialized [Type]
+         */
         fun decompressAndDeserialize(buffer: Buffer): Type = deserialize(inflate(buffer))
 
+        /**
+         * Decompresses and deserializes a [Type] from the given byte array.
+         *
+         * @param data The compressed byte array to read from
+         * @return The deserialized [Type]
+         */
         fun decompressAndDeserialize(data: ByteArray): Type {
             val buffer = Buffer()
             buffer.write(data)
@@ -44,13 +69,38 @@ sealed interface Type {
         }
     }
 
+    /**
+     * The name of the symbol associated with this type.
+     */
     val symbolName: SymbolName
+
+    /**
+     * The mangled name of this type, used for ABI compatibility.
+     */
     val mangledName: String
+
+    /**
+     * The size of this type in bytes.
+     */
     val size: Int
+
+    /**
+     * The alignment requirement of this type in bytes.
+     */
     val alignment: Int
 
+    /**
+     * Serializes this type to the given [buffer].
+     *
+     * @param buffer The buffer to write to
+     */
     fun serialize(buffer: Buffer)
 
+    /**
+     * Serializes and compresses this type.
+     *
+     * @return A buffer containing the compressed serialized type
+     */
     fun serializeAndCompress(): Buffer {
         val buffer = Buffer()
         serialize(buffer)

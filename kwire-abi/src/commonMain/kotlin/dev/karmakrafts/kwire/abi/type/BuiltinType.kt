@@ -21,6 +21,23 @@ import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import kotlinx.io.Buffer
 
+/**
+ * Represents built-in primitive types in the ABI system.
+ *
+ * This enum defines all the primitive types supported by the ABI, including:
+ * - Void/Unit type
+ * - Signed integer types (BYTE, SHORT, INT, LONG, NINT)
+ * - Unsigned integer types (UBYTE, USHORT, UINT, ULONG, NUINT)
+ * - Floating point types (FLOAT, DOUBLE, NFLOAT)
+ * - Other types (BOOL, CHAR, PTR)
+ *
+ * Each built-in type has a symbol name, mangled name, size, and alignment.
+ *
+ * @property symbolName The name of the symbol associated with this built-in type
+ * @property mangledName The mangled name of this built-in type, used for ABI compatibility
+ * @property size The size of this built-in type in bytes
+ * @property alignment The alignment requirement of this built-in type in bytes
+ */
 enum class BuiltinType(
     override val symbolName: SymbolName,
     override val mangledName: String,
@@ -53,8 +70,18 @@ enum class BuiltinType(
     ;
 
     companion object {
+        /**
+         * The kind byte that identifies a BuiltinType during serialization/deserialization.
+         */
         const val KIND: Byte = 0
 
+        /**
+         * Deserializes a [BuiltinType] from the given [buffer].
+         *
+         * @param buffer The buffer to read from
+         * @return The deserialized [BuiltinType]
+         * @throws IllegalStateException if the type kind is not [KIND]
+         */
         fun deserialize(buffer: Buffer): BuiltinType {
             val kind = buffer.readByte()
             check(kind == KIND) { "Expected builtin type kind ($KIND) while deserializing but got $kind" }
@@ -62,6 +89,14 @@ enum class BuiltinType(
         }
     }
 
+    /**
+     * Secondary constructor for creating a BuiltinType with a simple string symbol name.
+     *
+     * @param isBuiltIn Whether this type is a built-in Kotlin type (true) or a C type (false)
+     * @param symbolName The simple name of the symbol
+     * @param mangledName The mangled name of this built-in type
+     * @param size The size of this built-in type in bytes (also used as alignment)
+     */
     constructor( // @formatter:off
         isBuiltIn: Boolean,
         symbolName: String,
@@ -74,12 +109,26 @@ enum class BuiltinType(
         ), mangledName, size, size
     )
 
+    /**
+     * Serializes this built-in type to the given [buffer].
+     *
+     * The serialization format is:
+     * 1. The kind byte ([KIND])
+     * 2. The ordinal of this enum constant as a byte
+     *
+     * @param buffer The buffer to write to
+     */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(KIND)
         buffer.writeByte(ordinal.toByte())
     }
 }
 
+/**
+ * Extension function to check if a [Type] is a pointer type.
+ *
+ * @return `true` if this type is a pointer type, `false` otherwise
+ */
 fun Type.isPtr(): Boolean = when (this) {
     BuiltinType.PTR -> true
     is ConeType -> genericType.isPtr()
