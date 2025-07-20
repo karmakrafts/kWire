@@ -17,10 +17,11 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.ResolvedType
 import dev.karmakrafts.kwire.compiler.util.constNUInt
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.getCustomAlignment
 import dev.karmakrafts.kwire.compiler.util.hasCustomAlignment
 import dev.karmakrafts.kwire.compiler.util.resolveFromReceiver
@@ -32,6 +33,7 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
 
 internal class MemoryIntrinsicsTransformer(
@@ -55,7 +57,12 @@ internal class MemoryIntrinsicsTransformer(
             reportError("default intrinsic requires concrete type", call)
             return call
         }
-        return resolvedType.type.computeMemoryLayout(context).emitDefault(context)
+        val layout = resolvedType.type.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for default value of type ${resolvedType.type.render()}", call)
+            return call
+        }
+        return layout.emitDefault(context)
     }
 
     private fun emitSizeOf(call: IrCall): IrExpression {
@@ -70,7 +77,11 @@ internal class MemoryIntrinsicsTransformer(
             reportError("sizeOf intrinsic requires concrete type", call)
             return call
         }
-        val layout = resolvedType.type.computeMemoryLayout(context)
+        val layout = resolvedType.type.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for sizeOf intrinsic", call)
+            return call
+        }
         return context.toNUInt(layout.emitSize(context))
     }
 
@@ -90,7 +101,11 @@ internal class MemoryIntrinsicsTransformer(
         if (type.hasCustomAlignment()) {
             return constNUInt(context, type.getCustomAlignment()!!.toULong())
         }
-        val layout = type.computeMemoryLayout(context)
+        val layout = type.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for alignOf intrinsic", call)
+            return call
+        }
         return context.toNUInt(layout.emitAlignment(context))
     }
 
@@ -104,7 +119,11 @@ internal class MemoryIntrinsicsTransformer(
         }
         val property = ref.symbol.owner
         val clazz = property.parentAsClass
-        val layout = clazz.defaultType.computeMemoryLayout(context)
+        val layout = clazz.defaultType.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for offsetOf intrinsic", call)
+            return call
+        }
         val index = clazz.properties.indexOf(property)
         if (index == -1) {
             reportError("Could not determine field index for offsetOf", call)

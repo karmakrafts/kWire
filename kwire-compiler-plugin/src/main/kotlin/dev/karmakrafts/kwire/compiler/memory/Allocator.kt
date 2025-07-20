@@ -17,8 +17,9 @@
 package dev.karmakrafts.kwire.compiler.memory
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.call
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
@@ -52,7 +53,9 @@ internal interface Allocator {
     fun allocate(
         type: IrType, dispatchReceiver: IrExpression = get()
     ): IrCall {
-        val layout = type.computeMemoryLayout(context)
+        val abiType = type.getABIType(context)
+        val layout = abiType?.getMemoryLayout()
+            ?: error("Could not compute memory layout for ABI type ${abiType?.symbolName}")
         return allocate( // @formatter:off
             size = context.toNUInt(layout.emitSize(context)),
             alignment = context.toNUInt(layout.emitAlignment(context)),

@@ -16,14 +16,34 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
+import kotlinx.io.readString
+import kotlinx.io.writeString
 
-@Serializable
-data class SymbolInfo(
+data class SymbolInfo( // @formatter:off
     val name: SymbolName,
     val line: Int,
     val column: Int,
     val file: String
-) {
+) { // @formatter:on
+    companion object {
+        fun deserialize(buffer: Buffer): SymbolInfo {
+            val name = SymbolName.deserialize(buffer)
+            val line = buffer.readInt()
+            val column = buffer.readInt()
+            val fileNameLength = buffer.readInt()
+            val fileName = buffer.readString(fileNameLength.toLong())
+            return SymbolInfo(name, line, column, fileName)
+        }
+    }
+
     fun toTraceString(): String = "$file:$line:$column"
+
+    fun serialize(buffer: Buffer) {
+        name.serialize(buffer)
+        buffer.writeInt(line)
+        buffer.writeInt(column)
+        buffer.writeInt(file.length)
+        buffer.writeString(file)
+    }
 }

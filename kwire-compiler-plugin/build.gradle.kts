@@ -21,7 +21,6 @@ import java.time.ZonedDateTime
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.kapt)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     `maven-publish`
 }
@@ -31,19 +30,13 @@ configureJava(rootProject.libs.versions.java)
 dependencies {
     compileOnly(libs.kotlin.compiler.embeddable)
     implementation(projects.kwireAbi)
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.msgpack)
     compileOnly(libs.autoService)
     kapt(libs.autoService)
 
+    testImplementation(projects.kwireRuntime)
     testImplementation(projects.kwireAbi)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.iridium)
-    testImplementation(libs.kotlinx.serialization.core)
-    testImplementation(libs.kotlinx.serialization.json)
-    testImplementation(libs.kotlinx.serialization.msgpack)
-    testImplementation(projects.kwireRuntime)
 }
 
 tasks {

@@ -16,43 +16,26 @@
 
 package dev.karmakrafts.kwire.compiler.memory.layout
 
-import com.ensarsarajcic.kotlinx.serialization.msgpack.MsgPack
+import dev.karmakrafts.kwire.abi.type.isPtr
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.isStruct
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
+import dev.karmakrafts.kwire.compiler.util.getIrType
+import kotlinx.io.readByteArray
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.name.ClassId
+import dev.karmakrafts.kwire.abi.type.ArrayType as ABIArrayType
+import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
+import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
+import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
+import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
+import dev.karmakrafts.kwire.abi.type.Type as ABIType
 
-private val serializer: MsgPack = MsgPack(serializersModule = SerializersModule {
-    polymorphic(MemoryLayout::class) {
-        subclass(BuiltinMemoryLayout::class)
-        subclass(StructMemoryLayout::class)
-        subclass(ReferenceMemoryLayout::class)
-    }
-})
-
-@Serializable
-@Polymorphic
 internal sealed interface MemoryLayout {
     companion object {
-        fun deserialize(data: ByteArray): MemoryLayout = serializer.decodeFromByteArray(data)
+        fun deserialize(data: ByteArray): MemoryLayout? = ABIType.decompressAndDeserialize(data).getMemoryLayout()
     }
 
-    val typeName: String?
-
-    fun getType(context: KWirePluginContext): IrType? {
-        return typeName?.let { context.referenceClass(ClassId.fromString(it))?.defaultType }
-    }
+    val abiType: ABIType
 
     fun emitSize(context: KWirePluginContext): IrExpression
     fun emitAlignment(context: KWirePluginContext): IrExpression
@@ -62,18 +45,23 @@ internal sealed interface MemoryLayout {
     fun emitRead(context: KWirePluginContext, address: IrExpression): IrExpression
     fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression
 
-    fun serialize(): ByteArray = serializer.encodeToByteArray(this)
+    fun serialize(): ByteArray = abiType.serializeAndCompress().readByteArray()
+
+    fun getType(context: KWirePluginContext): IrType? = abiType.getIrType(context)
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrType.computeMemoryLayout(context: KWirePluginContext): MemoryLayout {
-    // Handle Unit/void type
-    if (type.isUnit()) return BuiltinMemoryLayout.VOID
-    // Handle builtin/primitive types
-    val builtinLayout = type.getBuiltinMemoryLayout()
-    if (builtinLayout != null) return builtinLayout
-    // Handle reference objects
-    if (!type.isStruct(context)) return ReferenceMemoryLayout.of(type)
-    // Handle user defined types
-    return type.computeStructMemoryLayout(context) ?: BuiltinMemoryLayout.VOID
+internal fun ABIType.getMemoryLayout(): MemoryLayout? {
+    if (isPtr()) return BuiltinMemoryLayout.PTR // No matter the variance, pointer layout is always the same
+    return when (this) {
+        is ABIBuiltinType -> getBuiltinMemoryLayout()
+        is ABIReferenceType -> ReferenceMemoryLayout(this)
+        is ABIStructType -> StructMemoryLayout(this)
+        // TODO: Right now we translate arrays into flat structs, because its easy and i'm lazy
+        is ABIArrayType -> StructMemoryLayout(ABIStructType(symbolName, ArrayList<ABIType>(dimensions).apply {
+            fill(elementType)
+        }))
+
+        is ABIConeType -> null
+    }
 }

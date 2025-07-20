@@ -20,6 +20,7 @@ import dev.karmakrafts.iridium.CompilerTestDsl
 import dev.karmakrafts.iridium.CompilerTestScope
 import dev.karmakrafts.iridium.pipeline.addJvmClasspathRootByType
 import dev.karmakrafts.iridium.pipeline.defaultPipelineSpec
+import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.compiler.generation.LoweringIrGenerationExtension
 import dev.karmakrafts.kwire.ffi.Marshal
 import org.jetbrains.kotlin.config.JvmTarget
@@ -37,6 +38,7 @@ internal fun CompilerTestScope.kwirePipeline(moduleName: String = "test") {
         config {
             jvmTarget = JvmTarget.JVM_21
             addJvmClasspathRootByType<Marshal<*>>()
+            addJvmClasspathRootByType<ABI>()
         }
     }
 }

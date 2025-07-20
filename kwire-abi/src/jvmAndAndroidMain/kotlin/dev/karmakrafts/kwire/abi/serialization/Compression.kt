@@ -18,23 +18,14 @@
 
 package dev.karmakrafts.kwire.abi.serialization
 
-import java.util.zip.DeflaterInputStream
-import java.util.zip.InflaterInputStream
+import kotlinx.io.Buffer
 
 @PublishedApi
-internal actual fun deflate(data: ByteArray): ByteArray {
-    return data.inputStream().use { inputStream ->
-        DeflaterInputStream(inputStream).use { compressor ->
-            compressor.readAllBytes()
-        }
-    }
+internal actual fun deflate(buffer: Buffer): Buffer {
+    return buffer
 }
 
 @PublishedApi
-internal actual fun inflate(data: ByteArray): ByteArray {
-    return data.inputStream().use { inputStream ->
-        InflaterInputStream(inputStream).use { decompressor ->
-            decompressor.readAllBytes()
-        }
-    }
+internal actual fun inflate(buffer: Buffer): Buffer {
+    return buffer
 }

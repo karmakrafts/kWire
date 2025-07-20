@@ -17,11 +17,8 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.type.Type
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@SerialName("fun")
 data class FunctionSymbol(
     override val id: Int,
     override val info: SymbolInfo,
@@ -29,4 +26,37 @@ data class FunctionSymbol(
     override val typeArguments: List<Type>,
     val returnType: Type,
     val parameterTypes: List<Type>
-) : Symbol
+) : Symbol {
+    companion object {
+        const val KIND: Byte = 0
+
+        fun deserialize(buffer: Buffer): FunctionSymbol {
+            val kind = buffer.readByte()
+            check(kind == KIND) { "Expected function symbol kind ($KIND) while deserializing but got $kind" }
+            return FunctionSymbol(
+                id = buffer.readInt(),
+                info = SymbolInfo.deserialize(buffer),
+                originalInfo = if (buffer.readByte() == 1.toByte()) SymbolInfo.deserialize(buffer) else null,
+                typeArguments = (0..<buffer.readInt()).map { Type.deserialize(buffer) },
+                returnType = Type.deserialize(buffer),
+                parameterTypes = (0..<buffer.readInt()).map { Type.deserialize(buffer) })
+        }
+    }
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(KIND)
+        buffer.writeInt(id)
+        info.serialize(buffer)
+        buffer.writeByte(if (originalInfo != null) 1 else 0)
+        originalInfo?.serialize(buffer)
+        buffer.writeInt(typeArguments.size)
+        for (type in typeArguments) {
+            type.serialize(buffer)
+        }
+        returnType.serialize(buffer)
+        buffer.writeInt(parameterTypes.size)
+        for (type in parameterTypes) {
+            type.serialize(buffer)
+        }
+    }
+}

@@ -16,31 +16,23 @@
 
 package dev.karmakrafts.kwire.compiler.memory.layout
 
+import dev.karmakrafts.kwire.abi.type.isPtr
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.NativeType
 import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.constInt
 import dev.karmakrafts.kwire.compiler.util.constNFloat
 import dev.karmakrafts.kwire.compiler.util.constNInt
 import dev.karmakrafts.kwire.compiler.util.constNUInt
-import dev.karmakrafts.kwire.compiler.util.getNativeType
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.reinterpret
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import org.jetbrains.kotlin.builtins.PrimitiveType
-import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.getPrimitiveType
-import org.jetbrains.kotlin.ir.types.getUnsignedType
-import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.toIrConst
+import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
 
 // This code gets its own object because of initialization order. See KT-74926
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -78,10 +70,8 @@ private object BuiltinMemoryOps {
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-@SerialName("builtin")
-@Serializable
 internal enum class BuiltinMemoryLayout(
-    @Transient override val typeName: String,
+    @Transient private val abiTypeGetter: () -> ABIBuiltinType,
     @Transient private val typeGetter: KWirePluginContext.() -> IrType,
     @Transient private val sizeEmitter: (KWirePluginContext) -> IrExpression,
     @Transient private val alignmentEmitter: (KWirePluginContext) -> IrExpression,
@@ -89,7 +79,7 @@ internal enum class BuiltinMemoryLayout(
     @Transient private val writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
 ) : MemoryLayout {
     // @formatter:off
-    VOID("kotlin.Unit",
+    VOID({ ABIBuiltinType.VOID },
         { irBuiltIns.unitType },
         { constInt(it, 0) },
         { _, _ -> error("Unit/void type cannot be read from memory") },
@@ -97,31 +87,31 @@ internal enum class BuiltinMemoryLayout(
 
     // Signed types
 
-    BYTE("kotlin.Byte",
+    BYTE({ ABIBuiltinType.BYTE },
         { irBuiltIns.byteType },
         { constInt(it, Byte.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.byteType } },
         BuiltinMemoryOps::write),
 
-    SHORT("kotlin.Short",
+    SHORT({ ABIBuiltinType.SHORT },
         { irBuiltIns.shortType },
         { constInt(it, Short.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.shortType } },
         BuiltinMemoryOps::write),
 
-    INT("kotlin.Int",
+    INT({ ABIBuiltinType.INT },
         { irBuiltIns.intType },
         { constInt(it, Int.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.intType } },
         BuiltinMemoryOps::write),
 
-    LONG("kotlin.Long",
+    LONG({ ABIBuiltinType.LONG },
         { irBuiltIns.longType },
         { constInt(it, Long.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.longType } },
         BuiltinMemoryOps::write),
 
-    NINT("dev.karmakrafts.kwire.ctype.NInt",
+    NINT({ ABIBuiltinType.NINT },
         { kwireSymbols.nIntType.owner.expandedType },
         { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nIntType.owner.expandedType } },
@@ -129,31 +119,31 @@ internal enum class BuiltinMemoryLayout(
 
     // Unsigned types
 
-    UBYTE("kotlin.UByte",
+    UBYTE({ ABIBuiltinType.UBYTE },
         { kwireSymbols.uByteType.defaultType },
         { constInt(it, UByte.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uByteType.defaultType } },
         BuiltinMemoryOps::write),
 
-    USHORT("kotlin.UShort",
+    USHORT({ ABIBuiltinType.USHORT },
         { kwireSymbols.uShortType.defaultType },
         { constInt(it, UShort.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uShortType.defaultType } },
         BuiltinMemoryOps::write),
 
-    UINT("kotlin.UInt",
+    UINT({ ABIBuiltinType.UINT },
         { kwireSymbols.uIntType.defaultType },
         { constInt(it, UInt.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uIntType.defaultType } },
         BuiltinMemoryOps::write),
 
-    ULONG("kotlin.ULong",
+    ULONG({ ABIBuiltinType.ULONG },
         { kwireSymbols.uLongType.defaultType },
         { constInt(it, ULong.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.uLongType.defaultType } },
         BuiltinMemoryOps::write),
 
-    NUINT("dev.karmakrafts.kwire.ctype.NUInt",
+    NUINT({ ABIBuiltinType.NUINT },
         { kwireSymbols.nUIntType.defaultType },
         { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nUIntType.defaultType } },
@@ -161,19 +151,19 @@ internal enum class BuiltinMemoryLayout(
 
     // IEEE-754 types
 
-    FLOAT("kotlin.Float",
+    FLOAT({ ABIBuiltinType.FLOAT },
         { irBuiltIns.floatType },
         { constInt(it, Float.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.floatType } },
         BuiltinMemoryOps::write),
 
-    DOUBLE("kotlin.Double",
+    DOUBLE({ ABIBuiltinType.DOUBLE },
         { irBuiltIns.doubleType },
         { constInt(it, Double.SIZE_BYTES) },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.irBuiltIns.doubleType } },
         BuiltinMemoryOps::write),
 
-    NFLOAT("dev.karmakrafts.kwire.ctype.NFloat",
+    NFLOAT({ ABIBuiltinType.NFLOAT },
         { kwireSymbols.nFloatType.owner.expandedType },
         { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.kwireSymbols.nFloatType.owner.expandedType } },
@@ -181,7 +171,7 @@ internal enum class BuiltinMemoryLayout(
 
     // Pointer types
 
-    PTR("dev.karmakrafts.kwire.ctype.Ptr",
+    PTR({ ABIBuiltinType.PTR },
         { anyPtr },
         { it.emitPointerSize() },
         { ctx, addr -> BuiltinMemoryOps.read(ctx, addr) { it.voidPtr } },
@@ -189,12 +179,14 @@ internal enum class BuiltinMemoryLayout(
     // @formatter:on
 
     constructor(
-        typeName: String,
+        abiTypeGetter: () -> ABIBuiltinType,
         typeGetter: KWirePluginContext.() -> IrType,
         sizeEmitter: (KWirePluginContext) -> IrExpression,
         readEmitter: (KWirePluginContext, IrExpression) -> IrExpression,
         writeEmitter: (KWirePluginContext, IrExpression, IrExpression) -> IrExpression
-    ) : this(typeName, typeGetter, sizeEmitter, sizeEmitter, readEmitter, writeEmitter)
+    ) : this(abiTypeGetter, typeGetter, sizeEmitter, sizeEmitter, readEmitter, writeEmitter)
+
+    override val abiType: ABIBuiltinType get() = abiTypeGetter()
 
     override fun getType(context: KWirePluginContext): IrType? = typeGetter(context)
     override fun emitSize(context: KWirePluginContext): IrExpression = sizeEmitter(context)
@@ -231,34 +223,9 @@ internal enum class BuiltinMemoryLayout(
         writeEmitter(context, address, value)
 }
 
-internal fun IrType.getBuiltinMemoryLayout(): BuiltinMemoryLayout? {
-    if (isUnit()) return BuiltinMemoryLayout.VOID
-    // Handle signed integer types and IEEE-754 types
-    val primitiveType = type.getPrimitiveType()
-    if (primitiveType != null) return when (primitiveType) {
-        PrimitiveType.BYTE -> BuiltinMemoryLayout.BYTE
-        PrimitiveType.SHORT -> BuiltinMemoryLayout.SHORT
-        PrimitiveType.INT -> BuiltinMemoryLayout.INT
-        PrimitiveType.LONG -> BuiltinMemoryLayout.LONG
-        PrimitiveType.FLOAT -> BuiltinMemoryLayout.FLOAT
-        PrimitiveType.DOUBLE -> BuiltinMemoryLayout.DOUBLE
-        else -> error("Unsupported primitive type $primitiveType")
+internal fun ABIBuiltinType.getBuiltinMemoryLayout(): BuiltinMemoryLayout {
+    if (isPtr()) {
+        return BuiltinMemoryLayout.PTR // No matter the variance of the pointer, the layout is always the same
     }
-    // Handle unsigned integer types
-    val unsignedType = type.getUnsignedType()
-    if (unsignedType != null) return when (unsignedType) {
-        UnsignedType.UBYTE -> BuiltinMemoryLayout.UBYTE
-        UnsignedType.USHORT -> BuiltinMemoryLayout.USHORT
-        UnsignedType.UINT -> BuiltinMemoryLayout.UINT
-        UnsignedType.ULONG -> BuiltinMemoryLayout.ULONG
-    }
-    // Handle native builtin types
-    val nativeType = type.getNativeType()
-    if (nativeType != null) return when (nativeType) {
-        NativeType.NINT -> BuiltinMemoryLayout.NINT
-        NativeType.NUINT -> BuiltinMemoryLayout.NUINT
-        NativeType.NFLOAT -> BuiltinMemoryLayout.NFLOAT
-        NativeType.PTR -> BuiltinMemoryLayout.PTR
-    }
-    return null
+    return BuiltinMemoryLayout.entries.single { it.abiType === this }
 }

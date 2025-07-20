@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-import dev.karmakrafts.conventions.GitLabPackage
-import dev.karmakrafts.conventions.configureJava
-import dev.karmakrafts.conventions.dependsOn
-import dev.karmakrafts.conventions.getBinaryBaseName
-import dev.karmakrafts.conventions.getBinaryTaskSuffix
-import dev.karmakrafts.conventions.gitlab
 import dev.karmakrafts.conventions.setProjectInfo
-import org.gradle.internal.extensions.stdlib.capitalized
-import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.div
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.kotlin.serialization)
     signing
     `maven-publish`
 }
@@ -71,8 +59,7 @@ kotlin {
             dependencies {
                 implementation(libs.stately.common)
                 implementation(libs.stately.concurrent.collections)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.io.core)
             }
         }
         val jvmAndAndroidMain by creating { dependsOn(commonMain) }

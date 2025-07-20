@@ -16,22 +16,44 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
+import dev.karmakrafts.kwire.abi.serialization.deflate
+import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.io.Buffer
 
-@Serializable
-@Polymorphic
-@SerialName("type")
-sealed interface Type : TypeArgument, ByteSerializable {
+sealed interface Type {
+    companion object {
+        fun deserialize(buffer: Buffer): Type {
+            val kind = buffer.peek().readByte()
+            return when (kind) {
+                BuiltinType.KIND -> BuiltinType.deserialize(buffer)
+                ArrayType.KIND -> ArrayType.deserialize(buffer)
+                StructType.KIND -> StructType.deserialize(buffer)
+                ReferenceType.KIND -> ReferenceType.deserialize(buffer)
+                ConeType.KIND -> ConeType.deserialize(buffer)
+                else -> error("Unknown ABI type kind")
+            }
+        }
+
+        fun decompressAndDeserialize(buffer: Buffer): Type = deserialize(inflate(buffer))
+
+        fun decompressAndDeserialize(data: ByteArray): Type {
+            val buffer = Buffer()
+            buffer.write(data)
+            return deserialize(inflate(buffer))
+        }
+    }
+
     val symbolName: SymbolName
-
-    @Transient
+    val mangledName: String
     val size: Int
-
-    @Transient
     val alignment: Int
+
+    fun serialize(buffer: Buffer)
+
+    fun serializeAndCompress(): Buffer {
+        val buffer = Buffer()
+        serialize(buffer)
+        return deflate(buffer)
+    }
 }

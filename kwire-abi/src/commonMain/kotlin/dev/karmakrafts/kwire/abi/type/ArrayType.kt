@@ -17,20 +17,40 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@SerialName("array")
-class ArrayType( // @formatter:off
+data class ArrayType( // @formatter:off
     override val symbolName: SymbolName,
     val elementType: Type,
     val dimensions: Int
 ) : Type { // @formatter:on
+    companion object {
+        const val KIND: Byte = 1
+
+        fun deserialize(buffer: Buffer): ArrayType {
+            val kind = buffer.readByte()
+            check(kind == KIND) { "Expected array type kind ($KIND) while deserializing but got $kind" }
+            return ArrayType(
+                symbolName = SymbolName.deserialize(buffer),
+                elementType = Type.deserialize(buffer),
+                dimensions = buffer.readInt()
+            )
+        }
+    }
+
     override val size: Int by lazy { elementType.size * dimensions }
     override val alignment: Int get() = elementType.alignment
 
     override val mangledName: String by lazy {
         "${"A".repeat(dimensions)}${elementType.mangledName}${"\$A".repeat(dimensions)}"
     }
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(KIND)
+        symbolName.serialize(buffer)
+        elementType.serialize(buffer)
+        buffer.writeInt(dimensions)
+    }
 }
+
+fun Type.asArray(dimensions: Int): ArrayType = ArrayType(symbolName, this, dimensions)

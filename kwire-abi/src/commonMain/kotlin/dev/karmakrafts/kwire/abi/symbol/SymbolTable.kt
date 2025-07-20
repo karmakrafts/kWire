@@ -16,13 +16,40 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
-import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
-import kotlinx.serialization.Serializable
+import dev.karmakrafts.kwire.abi.serialization.deflate
+import dev.karmakrafts.kwire.abi.serialization.inflate
+import kotlinx.io.Buffer
 
 @ConsistentCopyVisibility
-@Serializable
 data class SymbolTable internal constructor(
     val entries: List<Symbol>
-) : ByteSerializable {
+) {
+    companion object {
+        fun deserialize(buffer: Buffer): SymbolTable {
+            return SymbolTable((0..<buffer.readInt()).map { Symbol.deserialize(buffer) })
+        }
+
+        fun decompressAndDeserialize(buffer: Buffer): SymbolTable = deserialize(inflate(buffer))
+
+        fun decompressAndDeserialize(data: ByteArray): SymbolTable {
+            val buffer = Buffer()
+            buffer.write(data)
+            return decompressAndDeserialize(buffer)
+        }
+    }
+
     operator fun plus(other: SymbolTable): SymbolTable = SymbolTable(entries + other.entries)
+
+    fun serialize(buffer: Buffer) {
+        buffer.writeInt(entries.size)
+        for (entry in entries) {
+            entry.serialize(buffer)
+        }
+    }
+
+    fun serializeAndCompress(): Buffer {
+        val buffer = Buffer()
+        serialize(buffer)
+        return deflate(buffer)
+    }
 }

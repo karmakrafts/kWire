@@ -19,25 +19,19 @@ package dev.karmakrafts.kwire.abi.serialization
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.usePinned
+import kotlinx.io.Buffer
 import platform.zlib.z_stream
 
 @PublishedApi
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun deflate(data: ByteArray): ByteArray = memScoped {
+internal actual fun deflate(buffer: Buffer): Buffer = memScoped {
     alloc<z_stream>()
-    data.usePinned { pinnedSrc ->
-        data.size
-        ByteArray(0)
-    }
+    buffer
 }
 
 @PublishedApi
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun inflate(data: ByteArray): ByteArray = memScoped {
+internal actual fun inflate(buffer: Buffer): Buffer = memScoped {
     alloc<z_stream>()
-    data.usePinned { pinnedSrc ->
-        data.size
-        ByteArray(0)
-    }
+    buffer
 }

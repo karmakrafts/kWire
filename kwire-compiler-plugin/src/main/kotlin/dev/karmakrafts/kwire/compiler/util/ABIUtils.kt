@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
+import dev.karmakrafts.kwire.abi.type.ConeType
 import dev.karmakrafts.kwire.abi.type.withArguments
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
@@ -26,13 +27,17 @@ import org.jetbrains.kotlin.ir.types.IrStarProjection
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
-import org.jetbrains.kotlin.ir.types.classFqName
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.types.getUnsignedType
+import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.util.fields
-import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.types.typeWithArguments
+import org.jetbrains.kotlin.ir.util.classIdOrFail
+import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import dev.karmakrafts.kwire.abi.symbol.SymbolName as ABISymbolName
@@ -48,8 +53,75 @@ internal object ABINames {
     val moduleDataSymbolTableData: Name = Name.identifier("symbolTableData")
 }
 
-internal fun FqName.toABISymbolName(): ABISymbolName {
-    return ABISymbolName(asString(), shortName().asString())
+internal fun ABITypeArgument.toIrTypeArgument(context: KWirePluginContext): IrTypeArgument? {
+    return when (this) {
+        is ABITypeArgument.Star -> IrStarProjectionImpl
+        is ABITypeArgument.Concrete -> type.getIrType(context)
+    }
+}
+
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun ABIType.getIrType(context: KWirePluginContext): IrType? {
+    return when (this) {
+        ABIBuiltinType.VOID -> context.irBuiltIns.unitType
+
+        ABIBuiltinType.BYTE -> context.irBuiltIns.byteType
+        ABIBuiltinType.SHORT -> context.irBuiltIns.shortType
+        ABIBuiltinType.INT -> context.irBuiltIns.intType
+        ABIBuiltinType.LONG -> context.irBuiltIns.longType
+        ABIBuiltinType.NINT -> context.kwireSymbols.nIntType.owner.expandedType
+
+        ABIBuiltinType.UBYTE -> context.irBuiltIns.ubyteType
+        ABIBuiltinType.USHORT -> context.irBuiltIns.ushortType
+        ABIBuiltinType.UINT -> context.irBuiltIns.uintType
+        ABIBuiltinType.ULONG -> context.irBuiltIns.ulongType
+        ABIBuiltinType.NUINT -> context.kwireSymbols.nUIntType.defaultType
+
+        ABIBuiltinType.FLOAT -> context.irBuiltIns.floatType
+        ABIBuiltinType.DOUBLE -> context.irBuiltIns.doubleType
+        ABIBuiltinType.NFLOAT -> context.kwireSymbols.nFloatType.owner.expandedType
+
+        ABIBuiltinType.BOOL -> context.irBuiltIns.booleanType
+        ABIBuiltinType.CHAR -> context.irBuiltIns.charType
+        ABIBuiltinType.PTR -> context.anyPtr
+
+        else -> {
+            val baseType = context.referenceClass(symbolName.toClassId()) ?: return null
+            if (this is ConeType) {
+                return baseType.typeWithArguments(typeArguments.map {
+                    it.toIrTypeArgument(context)
+                        ?: error("Could not convert type arguments during ABI type conversion to Kotlin IR")
+                }.toList())
+            }
+            baseType.defaultType
+        }
+    }
+}
+
+internal fun ABISymbolName.toClassId(): ClassId {
+    return if(packageName.isEmpty()) ClassId.topLevel(FqName.topLevel(Name.identifier(shortName)))
+    else ClassId(FqName(packageName), FqName(shortName), false)
+}
+
+internal fun ABISymbolName.toCallableId(): CallableId {
+    val nameSegments = nameSegments()
+    val className = FqName("$packageName.${nameSegments.dropLast(1).joinToString(".")}")
+    val name = Name.identifier(nameSegments.last())
+    return CallableId(FqName(packageName), className, name)
+}
+
+internal fun ClassId.toABISymbolName(): ABISymbolName {
+    val shortName = relativeClassName.asString()
+    val packageName = packageFqName.asString()
+    return if (packageName.isEmpty()) ABISymbolName(shortName, shortName)
+    else ABISymbolName("$packageName.$shortName", shortName)
+}
+
+internal fun CallableId.toABISymbolName(): ABISymbolName {
+    val shortName = "${className?.asString()?.let { "$it." } ?: ""}.${callableName.asString()}"
+    val packageName = packageName.asString()
+    return if (packageName.isEmpty()) ABISymbolName(shortName, shortName)
+    else ABISymbolName("$packageName.$shortName", shortName)
 }
 
 internal fun IrType.getABIBuiltinType(context: KWirePluginContext): ABIBuiltinType? {
@@ -76,10 +148,11 @@ internal fun IrType.getABIBuiltinType(context: KWirePluginContext): ABIBuiltinTy
         NativeType.NINT -> return ABIBuiltinType.NINT
         NativeType.NUINT -> return ABIBuiltinType.NUINT
         NativeType.NFLOAT -> return ABIBuiltinType.NFLOAT
-        NativeType.PTR -> ABIBuiltinType.PTR.withArguments(
-            getPointedTypeArgument()?.getABITypeArgument(context)
-                ?: ABIBuiltinType.VOID // Try to save the conversion by converting to Ptr<CVoid>
-        )
+        NativeType.PTR -> { // @formatter:off
+            val typeArg = getPointedTypeArgument()?.getABITypeArgument(context)
+                ?: ABITypeArgument.Concrete(ABIBuiltinType.VOID)
+            ABIBuiltinType.PTR.withArguments(typeArg)
+        } // @formatter:on
 
         else -> {}
     }
@@ -90,11 +163,9 @@ internal fun IrType.getABIBuiltinType(context: KWirePluginContext): ABIBuiltinTy
 internal fun IrType.getABIStructType(context: KWirePluginContext): ABIType? {
     if (!isStruct(context)) return null
     val clazz = getClass() ?: return null
-    val name = clazz.kotlinFqName
-    val fields = clazz.fields.map {
-        it.type.getABIType(context) ?: error("Could not determine struct field type")
-    }.toList()
-    val abiType = ABIStructType(name.toABISymbolName(), fields)
+    val id = clazz.classIdOrFail
+    val fields = clazz.properties.mapNotNull { it.backingField?.type?.getABIType(context) }.toList()
+    val abiType = ABIStructType(id.toABISymbolName(), fields)
     if (this is IrSimpleType) {
         return abiType.withArguments(arguments.map {
             it.getABITypeArgument(context) ?: error("Could not determine type arguments for struct type")
@@ -105,8 +176,8 @@ internal fun IrType.getABIStructType(context: KWirePluginContext): ABIType? {
 
 internal fun IrType.getABIReferenceType(context: KWirePluginContext): ABIType? {
     if (getABIBuiltinType(context) != null || isStruct(context)) return null
-    val name = classFqName ?: return null
-    val abiType = ABIReferenceType(name.toABISymbolName())
+    val id = getClass()?.classIdOrFail ?: return null
+    val abiType = ABIReferenceType(id.toABISymbolName())
     if (this is IrSimpleType) {
         return abiType.withArguments(arguments.map {
             it.getABITypeArgument(context) ?: error("Could not determine type arguments for reference type")
@@ -122,6 +193,8 @@ internal fun IrType.getABIType(context: KWirePluginContext): ABIType? {
 internal fun IrTypeArgument.getABITypeArgument(context: KWirePluginContext): ABITypeArgument? {
     return when (this) {
         is IrStarProjection -> ABITypeArgument.Star
-        is IrTypeProjection -> type.getABIType(context)
+        is IrTypeProjection -> ABITypeArgument.Concrete(
+            type.getABIType(context) ?: error("Could not resolve IrTypeProjection to ABITypeArgument")
+        )
     }
 }

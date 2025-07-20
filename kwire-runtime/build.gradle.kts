@@ -22,6 +22,7 @@ import dev.karmakrafts.conventions.getBinaryTaskSuffix
 import dev.karmakrafts.conventions.gitlab
 import dev.karmakrafts.conventions.setProjectInfo
 import org.gradle.internal.extensions.stdlib.capitalized
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.ZonedDateTime
@@ -139,8 +140,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.stately.common)
                 implementation(libs.stately.concurrent.collections)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.kotlinx.serialization.json)
                 api(projects.kwireAbi)
             }
         }

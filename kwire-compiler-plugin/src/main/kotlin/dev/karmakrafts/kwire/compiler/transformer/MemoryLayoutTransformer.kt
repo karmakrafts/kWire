@@ -17,7 +17,8 @@
 package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.isStruct
 import org.jetbrains.kotlin.ir.IrElement
@@ -36,8 +37,8 @@ internal class MemoryLayoutTransformer(
     // Pre-compute memory layout and attach to class using @Struct.Layout annotation
     override fun visitClass(declaration: IrClass) {
         super.visitClass(declaration)
-        if (!declaration.isStruct(context) || declaration.hasStructLayoutData()) return
-        val layout = declaration.defaultType.computeMemoryLayout(context)
+        if (!declaration.isStruct(context) || declaration.hasStructLayoutData() || declaration.typeParameters.isNotEmpty()) return
+        val layout = declaration.defaultType.getABIType(context)?.getMemoryLayout() ?: return
         context.attachMemoryLayout(declaration, layout)
     }
 }

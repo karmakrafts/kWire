@@ -18,7 +18,8 @@ package dev.karmakrafts.kwire.compiler.ffi
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.getEnumValue
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -61,7 +62,8 @@ internal enum class FFIType(
     internal fun getType(context: KWirePluginContext): IrType = context.typeGetter()
 
     internal fun getMemoryLayout(context: KWirePluginContext): MemoryLayout =
-        getType(context).computeMemoryLayout(context)
+        getType(context).getABIType(context)?.getMemoryLayout()
+            ?: error("Could not compute memory layout for FFIType $this")
 }
 
 internal fun IrType.getFFIType(context: KWirePluginContext): FFIType? =

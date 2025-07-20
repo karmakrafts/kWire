@@ -18,30 +18,12 @@ package dev.karmakrafts.kwire.compiler.memory.layout
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.constInt
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.util.classId
+import dev.karmakrafts.kwire.abi.type.Type as ABIType
 
-@SerialName("ref")
-@Serializable
-internal class ReferenceMemoryLayout
-@Deprecated( // @formatter:off
-    message = "ReferenceMemoryLayout shouldn't be constructed directly",
-    replaceWith = ReplaceWith("ReferenceMemoryLayout.of")
-) // @formatter:on
-constructor(
-    override val typeName: String?
+internal class ReferenceMemoryLayout(
+    override val abiType: ABIType
 ) : MemoryLayout {
-    companion object {
-        @Suppress("DEPRECATION")
-        fun of(type: IrType): ReferenceMemoryLayout {
-            return ReferenceMemoryLayout(type.getClass()?.classId?.asString())
-        }
-    }
-
     override fun emitSize(context: KWirePluginContext): IrExpression {
         return context.emitPointerSize()
     }

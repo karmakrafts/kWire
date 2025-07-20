@@ -16,8 +16,10 @@
 
 package dev.karmakrafts.kwire.abi.serialization
 
-@PublishedApi
-internal expect fun deflate(data: ByteArray): ByteArray
+import kotlinx.io.Buffer
 
 @PublishedApi
-internal expect fun inflate(data: ByteArray): ByteArray
+internal expect fun deflate(buffer: Buffer): Buffer
+
+@PublishedApi
+internal expect fun inflate(buffer: Buffer): Buffer

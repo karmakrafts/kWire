@@ -17,14 +17,37 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.type.Type
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@SerialName("cls")
 data class ClassSymbol(
     override val id: Int,
     override val info: SymbolInfo,
     override val originalInfo: SymbolInfo?,
     override val typeArguments: List<Type>
-) : Symbol
+) : Symbol {
+    companion object {
+        const val KIND: Byte = 1
+
+        fun deserialize(buffer: Buffer): ClassSymbol {
+            val kind = buffer.readByte()
+            check(kind == KIND) { "Expected class symbol kind ($KIND) while deserializing but got $kind" }
+            return ClassSymbol(
+                id = buffer.readInt(),
+                info = SymbolInfo.deserialize(buffer),
+                originalInfo = if (buffer.readByte() == 1.toByte()) SymbolInfo.deserialize(buffer) else null,
+                typeArguments = (0..<buffer.readInt()).map { Type.deserialize(buffer) })
+        }
+    }
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(KIND)
+        buffer.writeInt(id)
+        info.serialize(buffer)
+        buffer.writeByte(if (originalInfo != null) 1 else 0)
+        originalInfo?.serialize(buffer)
+        buffer.writeInt(typeArguments.size)
+        for (type in typeArguments) {
+            type.serialize(buffer)
+        }
+    }
+}

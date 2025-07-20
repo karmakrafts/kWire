@@ -21,10 +21,11 @@ import dev.karmakrafts.kwire.compiler.ffi.CallingConvention
 import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.layout.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
 import dev.karmakrafts.kwire.compiler.util.ResolvedType
 import dev.karmakrafts.kwire.compiler.util.call
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.getFunctionType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.getRawAddress
@@ -73,6 +74,7 @@ import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.name.Name
 import kotlin.uuid.ExperimentalUuidApi
@@ -251,7 +253,12 @@ internal class PtrIntrinsicsTransformer(
 
         val statements = ArrayList<IrStatement>()
         if (insertAddressInLine) statements += addressVariable
-        statements += pointedType.computeMemoryLayout(context).emitWrite(context, addressVariable.load(), reference)
+        val pointedLayout = pointedType.getABIType(context)?.getMemoryLayout()
+        if (pointedLayout == null) {
+            reportError("Could not compute memory layout for pointed type ${pointedType.render()}")
+            return call
+        }
+        statements += pointedLayout.emitWrite(context, addressVariable.load(), reference)
         statements += addressVariable.load()
 
         return statements.toBlock(pointerType, ptrIntrinsicOrigin)
@@ -302,7 +309,11 @@ internal class PtrIntrinsicsTransformer(
             return call
         }
         val pointerType = address.type
-        val layout = resolvedType.type.computeMemoryLayout(context)
+        val layout = resolvedType.type.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for dereference", call)
+            return call
+        }
 
         val indexParam = function.parameters.firstOrNull { it.kind == IrParameterKind.Regular }
         val index = indexParam?.let { call.arguments[it] }
@@ -343,7 +354,11 @@ internal class PtrIntrinsicsTransformer(
         }
 
         val pointerType = dispatchReceiver.type
-        val layout = resolvedType.type.computeMemoryLayout(context)
+        val layout = resolvedType.type.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for pointer write", call)
+            return call
+        }
         val value = call.arguments[valueParam]
         if (value == null) {
             reportError("Could not determine value expression for pointer write", call)
@@ -505,7 +520,11 @@ internal class PtrIntrinsicsTransformer(
 
         val layout = when (resolvedPointedType) {
             is ResolvedType.Star -> BuiltinMemoryLayout.BYTE // Assume byte data on wildcard with no type size
-            is ResolvedType.Concrete -> resolvedPointedType.type.computeMemoryLayout(context)
+            is ResolvedType.Concrete -> resolvedPointedType.type.getABIType(context)?.getMemoryLayout()
+        }
+        if (layout == null) {
+            reportError("Could not compute memory layout for pointer arithmetic operation", call)
+            return call
         }
         if (layout is ReferenceMemoryLayout) {
             reportError("Cannot perform pointer arithmetic operation on pointer to reference type", call)

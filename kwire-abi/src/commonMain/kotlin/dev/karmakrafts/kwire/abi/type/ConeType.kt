@@ -16,21 +16,45 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@SerialName("cone")
-class ConeType( // @formatter:off
-    val type: Type,
+data class ConeType( // @formatter:off
+    val genericType: Type,
     val typeArguments: List<TypeArgument>
-) : Type by type { // @formatter:on
+) : Type by genericType { // @formatter:on
+    companion object {
+        const val KIND: Byte = 4
+
+        fun deserialize(buffer: Buffer): ConeType {
+            val kind = buffer.readByte()
+            check(kind == KIND) { "Expected cone type kind ($KIND) while deserializing but got $kind" }
+            return ConeType(
+                genericType = Type.deserialize(buffer),
+                typeArguments = (0..<buffer.readInt()).map { TypeArgument.deserialize(buffer) })
+        }
+    }
+
     override val mangledName: String by lazy {
         val arguments = typeArguments.joinToString("") { it.mangledName }
-        "${type.mangledName}T$arguments\$T"
+        "${genericType.mangledName}T$arguments\$T"
+    }
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(KIND)
+        genericType.serialize(buffer)
+        buffer.writeInt(typeArguments.size)
+        for (type in typeArguments) {
+            type.serialize(buffer)
+        }
     }
 }
 
-fun Type.withArguments(arguments: List<TypeArgument>): ConeType = ConeType(this, arguments)
+fun Type.withArguments(arguments: List<TypeArgument>): Type {
+    return if (arguments.isNotEmpty()) ConeType(this, arguments)
+    else this
+}
 
-fun Type.withArguments(vararg arguments: TypeArgument): ConeType = ConeType(this, arguments.toList())
+fun Type.withArguments(vararg arguments: TypeArgument): Type {
+    return if (arguments.isNotEmpty()) ConeType(this, arguments.toList())
+    else this
+}

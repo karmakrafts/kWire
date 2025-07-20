@@ -18,7 +18,7 @@ package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
@@ -126,7 +126,7 @@ internal fun IrType.isValueType(context: KWirePluginContext): Boolean {
         // If the type parameter has the @ValueType annotation, any non value type would fail the checker stage
         return (classifierOrNull as? IrTypeParameterSymbol)?.owner?.hasAnnotation(KWireNames.ValueType.id) == true
     }
-    return computeMemoryLayout(context) !is ReferenceMemoryLayout || isCFn()
+    return getABIType(context)?.getMemoryLayout() !is ReferenceMemoryLayout || isCFn()
 }
 
 internal fun IrTypeParameter.isValueType(): Boolean {

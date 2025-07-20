@@ -17,7 +17,8 @@
 package dev.karmakrafts.kwire.compiler.memory.scope
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.load
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.IrElement
@@ -90,7 +91,9 @@ internal abstract class AbstractAllocationScope( // @formatter:off
     }
 
     fun allocate(type: IrType): IrExpression {
-        val layout = type.computeMemoryLayout(context)
+        val abiType = type.getABIType(context)
+        val layout = abiType?.getMemoryLayout()
+            ?: error("Could not compute memory layout for ABI type ${abiType?.symbolName}")
         return allocate( // @formatter:off
             size = context.toNUInt(layout.emitSize(context)),
             alignment = context.toNUInt(layout.emitAlignment(context))

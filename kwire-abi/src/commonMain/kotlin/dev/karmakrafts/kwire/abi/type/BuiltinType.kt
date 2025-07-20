@@ -19,11 +19,8 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@SerialName("builtin")
 enum class BuiltinType(
     override val symbolName: SymbolName,
     override val mangledName: String,
@@ -56,8 +53,13 @@ enum class BuiltinType(
     ;
 
     companion object {
-        val voidPtr: ConeType = PTR.withArguments(VOID)
-        val starPtr: ConeType = PTR.withArguments(TypeArgument.Star)
+        const val KIND: Byte = 0
+
+        fun deserialize(buffer: Buffer): BuiltinType {
+            val kind = buffer.readByte()
+            check(kind == KIND) { "Expected builtin type kind ($KIND) while deserializing but got $kind" }
+            return BuiltinType.entries[buffer.readByte().toInt()]
+        }
     }
 
     constructor( // @formatter:off
@@ -71,4 +73,15 @@ enum class BuiltinType(
             else "${ABIConstants.CTYPE_PACKAGE}.$symbolName", symbolName
         ), mangledName, size, size
     )
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(KIND)
+        buffer.writeByte(ordinal.toByte())
+    }
+}
+
+fun Type.isPtr(): Boolean = when (this) {
+    BuiltinType.PTR -> true
+    is ConeType -> genericType.isPtr()
+    else -> false
 }

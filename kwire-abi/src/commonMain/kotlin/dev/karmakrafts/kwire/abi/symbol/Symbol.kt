@@ -17,14 +17,24 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.type.Type
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.Serializable
+import kotlinx.io.Buffer
 
-@Serializable
-@Polymorphic
 sealed interface Symbol {
+    companion object {
+        fun deserialize(buffer: Buffer): Symbol {
+            val kind = buffer.peek().readByte() // Peek at the first byte to figure out symbol kind
+            return when (kind) {
+                FunctionSymbol.KIND -> FunctionSymbol.deserialize(buffer)
+                ClassSymbol.KIND -> ClassSymbol.deserialize(buffer)
+                else -> error("Unknown ABI symbol kind")
+            }
+        }
+    }
+
     val id: Int
     val info: SymbolInfo
     val originalInfo: SymbolInfo?
     val typeArguments: List<Type>
+
+    fun serialize(buffer: Buffer)
 }

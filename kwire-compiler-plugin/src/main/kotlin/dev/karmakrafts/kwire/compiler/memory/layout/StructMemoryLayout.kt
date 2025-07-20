@@ -18,73 +18,60 @@ package dev.karmakrafts.kwire.compiler.memory.layout
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.util.constInt
-import dev.karmakrafts.kwire.compiler.util.getStructLayoutData
-import dev.karmakrafts.kwire.compiler.util.hasStructLayoutData
 import dev.karmakrafts.kwire.compiler.util.max
 import dev.karmakrafts.kwire.compiler.util.plus
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.util.classId
-import org.jetbrains.kotlin.ir.util.properties
+import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
 
-@SerialName("struct")
-@Serializable
-internal data class StructMemoryLayout
-@Deprecated( // @formatter:off
-    message = "StructMemoryLayout shouldn't be constructed directly",
-    replaceWith = ReplaceWith("StructMemoryLayout.of")
-) // @formatter:on
-constructor(
-    override val typeName: String?, // FQN of IrClass for serialization
-    val fields: List<MemoryLayout>
+internal data class StructMemoryLayout(
+    override val abiType: ABIStructType
 ) : MemoryLayout {
-    companion object {
-        @Suppress("DEPRECATION")
-        fun of(type: IrType, fields: List<MemoryLayout>): StructMemoryLayout {
-            return StructMemoryLayout(type.getClass()?.classId?.asString(), fields)
+    val fields: List<MemoryLayout>
+        get() = abiType.fields.map { it.getMemoryLayout() ?: error("Could not get field memory layout") }
+
+    override fun emitSize(context: KWirePluginContext): IrExpression {
+        return when (fields.size) {
+            0 -> constInt(context, 0)
+            1 -> fields.first().emitSize(context)
+            else -> {
+                val (first, second) = fields
+                var expr = first.emitSize(context).plus(second.emitSize(context))
+                for (index in 2..<fields.size) {
+                    expr = expr.plus(fields[index].emitSize(context))
+                }
+                expr
+            }
         }
     }
 
-    override fun emitSize(context: KWirePluginContext): IrExpression = when (fields.size) {
-        0 -> constInt(context, 0)
-        1 -> fields.first().emitSize(context)
-        else -> {
-            val (first, second) = fields
-            var expr = first.emitSize(context).plus(second.emitSize(context))
-            for (index in 2..<fields.size) {
-                expr = expr.plus(fields[index].emitSize(context))
+    override fun emitAlignment(context: KWirePluginContext): IrExpression {
+        return when (fields.size) {
+            0 -> constInt(context, 0)
+            1 -> fields.first().emitAlignment(context)
+            else -> {
+                val (first, second) = fields
+                var expr = first.emitAlignment(context).max(context, second.emitAlignment(context))
+                for (index in 2..<fields.size) {
+                    expr = expr.max(context, fields[index].emitAlignment(context))
+                }
+                expr
             }
-            expr
         }
     }
 
-    override fun emitAlignment(context: KWirePluginContext): IrExpression = when (fields.size) {
-        0 -> constInt(context, 0)
-        1 -> fields.first().emitAlignment(context)
-        else -> {
-            val (first, second) = fields
-            var expr = first.emitAlignment(context).max(context, second.emitAlignment(context))
-            for (index in 2..<fields.size) {
-                expr = expr.max(context, fields[index].emitAlignment(context))
+    override fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression {
+        return when (index) {
+            0 -> constInt(context, 0)
+            1 -> fields.first().emitSize(context)
+            else -> {
+                val (first, second) = fields
+                var expr = first.emitSize(context).plus(second.emitSize(context))
+                for (fieldIndex in 2..<index) {
+                    expr = expr.plus(fields[fieldIndex].emitSize(context))
+                }
+                expr
             }
-            expr
-        }
-    }
-
-    override fun emitOffsetOf(context: KWirePluginContext, index: Int): IrExpression = when (index) {
-        0 -> constInt(context, 0)
-        1 -> fields.first().emitSize(context)
-        else -> {
-            val (first, second) = fields
-            var expr = first.emitSize(context).plus(second.emitSize(context))
-            for (fieldIndex in 2..<index) {
-                expr = expr.plus(fields[fieldIndex].emitSize(context))
-            }
-            expr
         }
     }
 
@@ -101,21 +88,4 @@ constructor(
     override fun emitWrite(context: KWirePluginContext, address: IrExpression, value: IrExpression): IrExpression {
         TODO("Finish implementation")
     }
-}
-
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrType.computeStructMemoryLayout(context: KWirePluginContext): StructMemoryLayout? {
-    val clazz = type.getClass() ?: return null
-    if (clazz.hasStructLayoutData()) {
-        // If this struct already has layout data attached, deserialize it
-        return MemoryLayout.deserialize(clazz.getStructLayoutData()!!) as? StructMemoryLayout
-    }
-    val fields = ArrayList<MemoryLayout>()
-    // Use .properties so we get constructor props + member props
-    for (property in clazz.properties) {
-        val propertyType = property.backingField?.type
-        check(propertyType != null) { "Struct field must have a backing field" }
-        fields += propertyType.computeMemoryLayout(context)
-    }
-    return StructMemoryLayout.of(this, fields)
 }

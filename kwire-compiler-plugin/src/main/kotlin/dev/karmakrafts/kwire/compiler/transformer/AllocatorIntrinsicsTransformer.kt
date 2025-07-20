@@ -18,8 +18,9 @@ package dev.karmakrafts.kwire.compiler.transformer
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.Allocator
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.KWireIntrinsicType
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import dev.karmakrafts.kwire.compiler.util.getPointedType
 import dev.karmakrafts.kwire.compiler.util.reinterpret
 import dev.karmakrafts.kwire.compiler.util.times
@@ -77,7 +78,11 @@ internal class AllocatorIntrinsicsTransformer( // @formatter:off
             reportError("Could not determine pointed type for allocation intrinsic", call)
             return call
         }
-        val layout = pointedType.computeMemoryLayout(context)
+        val layout = pointedType.getABIType(context)?.getMemoryLayout()
+        if (layout == null) {
+            reportError("Could not compute memory layout for allocateArray intrinsic", call)
+            return call
+        }
         val countParam = function.parameters.firstOrNull { it.name.asString() == "count" }
         if (countParam == null) {
             reportError("Could not retrieve count parameter for array allocation intrinsic", call)

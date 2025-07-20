@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire
 
-import dev.karmakrafts.kwire.abi.serialization.ByteSerializable
 import dev.karmakrafts.kwire.abi.symbol.SymbolTable
 
 @KWireCompilerApi
@@ -54,7 +53,7 @@ interface ModuleData {
      * Decompress and parse a [SymbolTable] instance from the
      * [ModuleData.symbolTableData] in the given module data instance.
      */
-    fun loadSymbolTable(): SymbolTable = ByteSerializable.decompressAndDeserialize(symbolTableData)
+    fun loadSymbolTable(): SymbolTable = SymbolTable.decompressAndDeserialize(symbolTableData)
 
     /**
      * Recursively decompress and parse all symbol tables from

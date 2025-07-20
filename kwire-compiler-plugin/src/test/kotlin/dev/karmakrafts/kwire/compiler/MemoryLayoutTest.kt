@@ -22,7 +22,8 @@ import dev.karmakrafts.kwire.compiler.memory.layout.BuiltinMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.ReferenceMemoryLayout
 import dev.karmakrafts.kwire.compiler.memory.layout.StructMemoryLayout
-import dev.karmakrafts.kwire.compiler.memory.layout.computeMemoryLayout
+import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -54,10 +55,10 @@ class MemoryLayoutTest {
                 val symbols = KWireSymbols(pluginContext)
                 val moduleData = KWireModuleData(pluginContext, symbols, element)
                 val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
-                val layout = type.typeGetter(context).computeMemoryLayout(context)
+                val layout = type.typeGetter(context).getABIType(context)!!.getMemoryLayout()!!
                 val data = layout.serialize()
                 val deserializedLayout = MemoryLayout.deserialize(data)
-                deserializedLayout::class shouldBe BuiltinMemoryLayout::class
+                deserializedLayout!!::class shouldBe BuiltinMemoryLayout::class
                 deserializedLayout shouldBe type.layout
             }
             evaluate()
@@ -83,12 +84,12 @@ class MemoryLayoutTest {
             val moduleData = KWireModuleData(pluginContext, symbols, element)
             val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = struct.defaultType.computeMemoryLayout(context)
+            val layout = struct.defaultType.getABIType(context)!!.getMemoryLayout()!!
 
             val data = layout.serialize()
 
             val deserializedLayout = MemoryLayout.deserialize(data)
-            deserializedLayout::class shouldBe StructMemoryLayout::class
+            deserializedLayout!!::class shouldBe StructMemoryLayout::class
             val fields = (deserializedLayout as StructMemoryLayout).fields
             fields[0] shouldBe BuiltinMemoryLayout.BYTE
             fields[1] shouldBe BuiltinMemoryLayout.SHORT
@@ -117,12 +118,12 @@ class MemoryLayoutTest {
             val moduleData = KWireModuleData(pluginContext, symbols, element)
             val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = struct.defaultType.computeMemoryLayout(context)
+            val layout = struct.defaultType.getABIType(context)!!.getMemoryLayout()!!
 
             val data = layout.serialize()
 
             val deserializedLayout = MemoryLayout.deserialize(data)
-            deserializedLayout::class shouldBe StructMemoryLayout::class
+            deserializedLayout!!::class shouldBe StructMemoryLayout::class
             val fields = (deserializedLayout as StructMemoryLayout).fields
             fields[0] shouldBe BuiltinMemoryLayout.BYTE
             fields[1] shouldBe BuiltinMemoryLayout.SHORT
@@ -150,15 +151,15 @@ class MemoryLayoutTest {
             val moduleData = KWireModuleData(pluginContext, symbols, element)
             val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = struct.defaultType.computeMemoryLayout(context)
+            val layout = struct.defaultType.getABIType(context)!!.getMemoryLayout()!!
             layout::class shouldBe ReferenceMemoryLayout::class
-            layout.typeName shouldBe "Foo"
+            layout.abiType.symbolName.shortName shouldBe "Foo"
 
             val data = layout.serialize()
 
             val deserializedLayout = MemoryLayout.deserialize(data)
-            deserializedLayout::class shouldBe ReferenceMemoryLayout::class
-            deserializedLayout.typeName shouldBe "Foo"
+            deserializedLayout!!::class shouldBe ReferenceMemoryLayout::class
+            deserializedLayout.abiType.symbolName.shortName shouldBe "Foo"
         }
     }
 }
