@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.compiler.mangler
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
+import dev.karmakrafts.kwire.compiler.util.getABIType
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
@@ -53,7 +54,7 @@ internal class Mangler(
     private fun IrFunction.computeMangledSignature(): String {
         val parameterTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
         val types = listOf(returnType) + parameterTypes
-        return with(context.typeMangler) { types.mangle() }
+        return types.joinToString("") { it.getABIType(context)!!.mangledName }
     }
 
     fun IrFunction.mangleName(
@@ -65,7 +66,7 @@ internal class Mangler(
 
         // Construct receiver signature
         val receiverSignature = extensionReceiverParameter?.type?.let {
-            with(context.typeMangler) { it.mangle() }
+            it.getABIType(context)?.mangledName
         }
 
         var newName = originalName.asString().replace('.', '_')
@@ -74,7 +75,7 @@ internal class Mangler(
         newName += computeMangledSignature()
 
         if (typeArguments.isNotEmpty()) {
-            newName += "_${with(context.typeMangler) { typeArguments.mangle() }}"
+            newName += "_${typeArguments.joinToString("") { it.getABIType(context)!!.mangledName }}"
         }
 
         return Name.identifier(newName)
@@ -87,7 +88,7 @@ internal class Mangler(
     }
 
     fun IrClass.mangleName(typeArguments: List<IrType>): Name {
-        val suffix = with(context.typeMangler) { typeWith(typeArguments).mangle() }
+        val suffix = typeWith(typeArguments).getABIType(context)!!.mangledName
         return Name.identifier("${name.asString()}\$${hashCode()}\$${suffix}")
     }
 
