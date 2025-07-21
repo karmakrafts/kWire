@@ -68,3 +68,21 @@ Kotlin compiler.
 
 The Gradle plugin simply exists to inject the compiler plugin into the Kotlin compiler (daemon),  
 however it is planned to be extended with code generation capabilities similar to **kotlinx.cinterop**.
+
+## Credits & Licenses
+
+| Project Name                                                             | License      | Author            |
+|--------------------------------------------------------------------------|--------------|-------------------|
+| [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines)       | Apache-2.0   | JetBrains         |
+| [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) | Apache-2.0   | JetBrains         |
+| [kotlinx.io](https://github.com/Kotlin/kotlinx.serialization)            | Apache-2.0   | JetBrains         |
+| [AutoService](https://github.com/google/auto/tree/main/service)          | Apache-2.0   | Google            |
+| [Stately](https://github.com/touchlab/Stately)                           | Apache-2.0   | Touchlab          |
+| [LWJGL 3](https://github.com/LWJGL/lwjgl3)                               | BSD-3-Clause | Ioannis Tsakpinis |
+| [OSHI](https://github.com/oshi/oshi)                                     | MIT          | Daniel Widdis     |
+| [PanamaPort](https://github.com/vova7878/PanamaPort)                     | GPL2         | Vladimir Kozelkov |
+| [libffi](https://github.com/libffi/libffi)                               | MIT          | Anthony Green     |
+
+Special thanks to everyone involved in providing the libraries and tools  
+this project so heavily relies on, and for pouring countless hours of their
+time into these projects.
