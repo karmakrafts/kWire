@@ -18,7 +18,7 @@ gradleNexus = "2.0.0" # https://github.com/gradle-nexus/publish-plugin/releases
 stately = "2.1.0"
 kotlinPoet = "2.2.0"
 lwjgl = "3.3.6"
-panamaPort = "v0.0.7-preview" # https://github.com/vova7878/PanamaPort/releases
+panamaPort = "v0.0.8-preview" # https://github.com/vova7878/PanamaPort/releases
 oshi = "6.8.2"
 
 libffi = "3.5.1-1" # https://git.karmakrafts.dev/kk/prebuilts/libffi/-/packages
