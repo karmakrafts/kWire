@@ -19,6 +19,17 @@ package dev.karmakrafts.kwire.abi.symbol
 import dev.karmakrafts.kwire.abi.type.Type
 import kotlinx.io.Buffer
 
+/**
+ * Represents a class symbol in the ABI.
+ *
+ * A class symbol contains information about a class definition, including its
+ * name, location in the source code, and type arguments.
+ *
+ * @property id Unique identifier for this symbol
+ * @property info Information about this symbol, including its name and location
+ * @property originalInfo Original information about this symbol, if it was derived from another symbol
+ * @property typeArguments List of type arguments associated with this class
+ */
 data class ClassSymbol(
     override val id: Int,
     override val info: SymbolInfo,
@@ -26,8 +37,18 @@ data class ClassSymbol(
     override val typeArguments: List<Type>
 ) : Symbol {
     companion object {
+        /**
+         * The kind identifier for class symbols.
+         */
         const val KIND: Byte = 1
 
+        /**
+         * Deserializes a ClassSymbol from the given buffer.
+         *
+         * @param buffer The buffer to read from
+         * @return The deserialized ClassSymbol
+         * @throws IllegalStateException if the symbol kind is not a class symbol
+         */
         fun deserialize(buffer: Buffer): ClassSymbol {
             val kind = buffer.readByte()
             check(kind == KIND) { "Expected class symbol kind ($KIND) while deserializing but got $kind" }
@@ -39,6 +60,11 @@ data class ClassSymbol(
         }
     }
 
+    /**
+     * Serializes this ClassSymbol to the given buffer.
+     *
+     * @param buffer The buffer to write to
+     */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(KIND)
         buffer.writeInt(id)

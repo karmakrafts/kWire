@@ -16,8 +16,27 @@
 
 package dev.karmakrafts.kwire.abi
 
+/**
+ * Application Binary Interface (ABI) information for the current platform.
+ * This object provides platform-specific size information for fundamental types.
+ * It is expected to have platform-specific implementations.
+ */
 expect object ABI {
+    /**
+     * The storage size of a pointer in bytes.
+     * This represents how many bytes are used to store a pointer in memory.
+     */
     val pointerStorageSize: Int
+    
+    /**
+     * The size of a pointer in bytes.
+     * This represents the actual size of a pointer when used in operations.
+     */
     val pointerSize: Int
+    
+    /**
+     * The size of a boolean value in bytes.
+     * This represents how many bytes are used to store a boolean value in memory.
+     */
     val booleanSize: Int
 }

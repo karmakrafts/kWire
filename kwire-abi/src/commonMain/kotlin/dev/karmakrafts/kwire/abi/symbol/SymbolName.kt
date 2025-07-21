@@ -21,16 +21,30 @@ import kotlinx.io.readString
 import kotlinx.io.writeString
 
 /**
- * @param fullName The fully qualified name of the symbol.
- * @param shortName The local name of the symbol, including nested classes.
+ * Represents the name of a symbol with both fully qualified and short forms.
+ *
+ * This class stores both the fully qualified name (including package) and the
+ * short name (local name) of a symbol, and provides methods to work with these names.
+ *
+ * @property fullName The fully qualified name of the symbol, including package.
+ * @property shortName The local name of the symbol, including nested classes.
  */
 data class SymbolName( // @formatter:off
     val fullName: String,
     val shortName: String
 ) { // @formatter:on
     companion object {
+        /**
+         * The separator used in symbol names to separate segments.
+         */
         const val SEPARATOR = "."
 
+        /**
+         * Deserializes a SymbolName from the given buffer.
+         *
+         * @param buffer The buffer to read from
+         * @return The deserialized SymbolName
+         */
         fun deserialize(buffer: Buffer): SymbolName {
             val fullNameLength = buffer.readInt()
             val fullName = buffer.readString(fullNameLength.toLong())
@@ -40,15 +54,40 @@ data class SymbolName( // @formatter:off
         }
     }
 
+    /**
+     * The package name part of the fully qualified name.
+     *
+     * This is derived by removing the short name from the full name.
+     */
     val packageName: String
         get() = fullName.replace(shortName, "")
 
+    /**
+     * Splits the fully qualified name into segments using the separator.
+     *
+     * @return A list of name segments
+     */
     fun segments(): List<String> = fullName.split(SEPARATOR)
 
+    /**
+     * Splits the package name into segments using the separator.
+     *
+     * @return A list of package segments
+     */
     fun packageSegments(): List<String> = packageName.split(SEPARATOR)
 
+    /**
+     * Splits the short name into segments using the separator.
+     *
+     * @return A list of name segments
+     */
     fun nameSegments(): List<String> = shortName.split(SEPARATOR)
 
+    /**
+     * Serializes this SymbolName to the given buffer.
+     *
+     * @param buffer The buffer to write to
+     */
     fun serialize(buffer: Buffer) {
         buffer.writeInt(fullName.length)
         buffer.writeString(fullName)

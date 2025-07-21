@@ -16,8 +16,27 @@
 
 package dev.karmakrafts.kwire.abi
 
+/**
+ * Constants related to the Application Binary Interface (ABI).
+ * This object contains package name constants used throughout the kwire project
+ * for consistent package naming and references.
+ */
 object ABIConstants {
+    /**
+     * The standard Kotlin package name.
+     * Used for referencing Kotlin standard library types.
+     */
     const val KOTLIN_PACKAGE: String = "kotlin"
+    
+    /**
+     * The base package name for the kwire project.
+     * All kwire-related packages are prefixed with this value.
+     */
     const val KWIRE_PACKAGE: String = "dev.karmakrafts.kwire"
+    
+    /**
+     * The package name for C-type related classes in kwire.
+     * Contains C-compatible type definitions and utilities.
+     */
     const val CTYPE_PACKAGE: String = "$KWIRE_PACKAGE.ctype"
 }
