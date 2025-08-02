@@ -43,6 +43,8 @@ private class TypeConversionVisitor(
 
     override fun defaultResult(): List<Type> = emptyList()
 
+    override fun aggregateResult(aggregate: List<Type>, nextResult: List<Type>): List<Type> = aggregate + nextResult
+
     override fun visitSignature(ctx: DemanglerParser.SignatureContext): List<Type> {
         return ctx.type().flatMap(::visitType)
     }

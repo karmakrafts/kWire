@@ -23,9 +23,11 @@ import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.ConeType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType
+import dev.karmakrafts.kwire.abi.type.NullableType
 import dev.karmakrafts.kwire.abi.type.Type
 import dev.karmakrafts.kwire.abi.type.TypeArgument
 import dev.karmakrafts.kwire.abi.type.asArray
+import dev.karmakrafts.kwire.abi.type.asNullable
 import dev.karmakrafts.kwire.abi.type.withArguments
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -76,6 +78,24 @@ class DemanglerTest {
         val demangledReferenceType = demangledTypes.first() as ReferenceType
         assertEquals(symbolName.fullName, demangledReferenceType.symbolName.fullName, "Full name mismatch")
         assertEquals(symbolName.shortName, demangledReferenceType.symbolName.shortName, "Short name mismatch")
+    }
+
+    @Test
+    fun `demangle method returns correct Type for NullableType`() {
+        // Create a ReferenceType
+        val symbolName = SymbolName("dev.karmakrafts.kwire.test.MyClass", "MyClass")
+        val referenceType = ReferenceType(symbolName).asNullable()
+        val mangledName = referenceType.mangledName
+
+        val demangledTypes = Demangler.demangle(mangledName, mockStructResolver)
+
+        assertEquals(1, demangledTypes.size, "Expected one type")
+        assertTrue(demangledTypes.first() is NullableType, "Expected NullableType")
+
+        val demangledReferenceType = demangledTypes.first() as NullableType
+        val actualType = demangledReferenceType.actualType as ReferenceType
+        assertEquals(symbolName.fullName, actualType.symbolName.fullName, "Full name mismatch")
+        assertEquals(symbolName.shortName, actualType.symbolName.shortName, "Short name mismatch")
     }
 
     @Test
