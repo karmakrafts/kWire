@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
-import dev.karmakrafts.kwire.abi.type.ConeType
 import dev.karmakrafts.kwire.abi.type.withArguments
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
@@ -46,6 +45,7 @@ import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
 import dev.karmakrafts.kwire.abi.type.Type as ABIType
 import dev.karmakrafts.kwire.abi.type.TypeArgument as ABITypeArgument
+import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
 
 internal object ABINames {
     val moduleDataNameName: Name = Name.identifier("name")
@@ -87,7 +87,7 @@ internal fun ABIType.getIrType(context: KWirePluginContext): IrType? {
 
         else -> {
             val baseType = context.referenceClass(symbolName.toClassId()) ?: return null
-            if (this is ConeType) {
+            if (this is ABIConeType) {
                 return baseType.typeWithArguments(typeArguments.map {
                     it.toIrTypeArgument(context)
                         ?: error("Could not convert type arguments during ABI type conversion to Kotlin IR")
@@ -166,7 +166,7 @@ internal fun IrType.getABIStructType(context: KWirePluginContext): ABIType? {
     val id = clazz.classIdOrFail
     val fields = clazz.properties.mapNotNull { it.backingField?.type?.getABIType(context) }.toList()
     val abiType = ABIStructType(id.toABISymbolName(), fields)
-    if (this is IrSimpleType) {
+    if (this is IrSimpleType && arguments.isNotEmpty()) {
         return abiType.withArguments(arguments.map {
             it.getABITypeArgument(context) ?: error("Could not determine type arguments for struct type")
         }.toList())
@@ -178,7 +178,7 @@ internal fun IrType.getABIReferenceType(context: KWirePluginContext): ABIType? {
     if (getABIBuiltinType(context) != null || isStruct(context)) return null
     val id = getClass()?.classIdOrFail ?: return null
     val abiType = ABIReferenceType(id.toABISymbolName())
-    if (this is IrSimpleType) {
+    if (this is IrSimpleType && arguments.isNotEmpty()) {
         return abiType.withArguments(arguments.map {
             it.getABITypeArgument(context) ?: error("Could not determine type arguments for reference type")
         }.toList())

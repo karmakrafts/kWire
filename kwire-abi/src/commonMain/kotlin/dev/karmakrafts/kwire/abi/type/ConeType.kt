@@ -99,10 +99,7 @@ data class ConeType( // @formatter:off
  * @return A new [ConeType] with this type as the generic type and the specified arguments,
  *         or this type unchanged if arguments is empty
  */
-fun Type.withArguments(arguments: List<TypeArgument>): Type {
-    return if (arguments.isNotEmpty()) ConeType(this, arguments)
-    else this
-}
+fun Type.withArguments(arguments: List<TypeArgument>): ConeType = ConeType(this, arguments)
 
 /**
  * Extension function to add type arguments to any [Type], converting it to a [ConeType].
@@ -113,7 +110,4 @@ fun Type.withArguments(arguments: List<TypeArgument>): Type {
  * @return A new [ConeType] with this type as the generic type and the specified arguments,
  *         or this type unchanged if no arguments are provided
  */
-fun Type.withArguments(vararg arguments: TypeArgument): Type {
-    return if (arguments.isNotEmpty()) ConeType(this, arguments.toList())
-    else this
-}
+fun Type.withArguments(vararg arguments: TypeArgument): ConeType = ConeType(this, arguments.toList())

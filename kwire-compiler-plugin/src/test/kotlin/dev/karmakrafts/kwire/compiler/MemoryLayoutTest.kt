@@ -151,8 +151,11 @@ class MemoryLayoutTest {
             val moduleData = KWireModuleData(pluginContext, symbols, element)
             val context = KWirePluginContext(pluginContext, element, element.files.first(), symbols, moduleData)
             val struct = getChild<IrClass> { it.name.asString() == "Foo" }
-            val layout = struct.defaultType.getABIType(context)!!.getMemoryLayout()!!
-            layout::class shouldBe ReferenceMemoryLayout::class
+            val abiType = struct.defaultType.getABIType(context)
+            abiType shouldNotBe null
+            val layout = abiType!!.getMemoryLayout()
+            layout shouldNotBe null
+            layout!!::class shouldBe ReferenceMemoryLayout::class
             layout.abiType.symbolName.shortName shouldBe "Foo"
 
             val data = layout.serialize()
