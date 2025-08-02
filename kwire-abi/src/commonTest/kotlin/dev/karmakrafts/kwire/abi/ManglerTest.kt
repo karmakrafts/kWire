@@ -44,7 +44,7 @@ class ManglerTest {
     fun `mangle method returns correct mangled name for ArrayType`() {
         val elementType = BuiltinType.INT
         val arrayType = elementType.asArray(2)
-        val expectedMangledName = "AAd\$A"
+        val expectedMangledName = "A\$A\$d\$A"
         
         val mangledName = Mangler.mangle(arrayType)
         
@@ -55,7 +55,7 @@ class ManglerTest {
     fun `mangle method returns correct mangled name for NullableType`() {
         val elementType = BuiltinType.INT
         val arrayType = elementType.asArray(2).asNullable()
-        val expectedMangledName = "AAd\$AN"
+        val expectedMangledName = "A\$A\$d\$AN"
 
         val mangledName = Mangler.mangle(arrayType)
 
@@ -66,7 +66,7 @@ class ManglerTest {
     fun `mangle method returns correct mangled name for ReferenceType`() {
         val elementType = ReferenceType(SymbolName("dog.Woof", "Woof"))
         val arrayType = elementType.asArray(2)
-        val expectedMangledName = "AACdog_Woof\$C\$A"
+        val expectedMangledName = "A\$A\$C\$dog_Woof\$C\$A"
 
         val mangledName = Mangler.mangle(arrayType)
 
@@ -77,7 +77,7 @@ class ManglerTest {
     fun `mangle method returns correct mangled name for StructType`() {
         val elementType = StructType(SymbolName("fox.Ahhh", "Ahhh"), listOf(BuiltinType.INT))
         val arrayType = elementType.asArray(2)
-        val expectedMangledName = "AASfox_Ahhh\$S\$A"
+        val expectedMangledName = "A\$A\$S\$fox_Ahhh\$S\$A"
 
         val mangledName = Mangler.mangle(arrayType)
 
@@ -91,7 +91,7 @@ class ManglerTest {
             BuiltinType.LONG,
             BuiltinType.INT.asArray(1)
         )
-        val expectedMangledName = "deAd\$A" // "d" + "e" + "Ad$A"
+        val expectedMangledName = "deA\$d\$A" // "d" + "e" + "Ad$A"
         
         val mangledName = Mangler.mangle(types)
         

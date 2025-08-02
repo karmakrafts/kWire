@@ -66,7 +66,7 @@ data class ConeType( // @formatter:off
     override val mangledName: String by lazy {
         if(typeArguments.isEmpty()) return@lazy genericType.mangledName
         val arguments = typeArguments.joinToString("") { it.mangledName }
-        "${genericType.mangledName}T$arguments\$T"
+        "${genericType.mangledName}T\$$arguments\$T"
     }
 
     /**

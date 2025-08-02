@@ -80,7 +80,7 @@ open class StructType internal constructor( // @formatter:off
     override val mangledName: String by lazy {
         val pkg = symbolName.packageSegments().joinToString(PACKAGE_DELIMITER)
         val name = symbolName.shortName
-        "S$pkg$PACKAGE_DELIMITER$name\$S"
+        "S\$$pkg$PACKAGE_DELIMITER$name\$S"
     }
 
     /**

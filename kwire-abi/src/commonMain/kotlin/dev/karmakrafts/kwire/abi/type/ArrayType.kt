@@ -72,7 +72,7 @@ data class ArrayType( // @formatter:off
      * and appending '$A' repeated [dimensions] times.
      */
     override val mangledName: String by lazy {
-        "${"A".repeat(dimensions)}${elementType.mangledName}\$A"
+        "${"A\$".repeat(dimensions)}${elementType.mangledName}\$A"
     }
 
     /**

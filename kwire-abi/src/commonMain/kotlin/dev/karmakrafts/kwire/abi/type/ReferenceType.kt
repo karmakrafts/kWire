@@ -81,7 +81,7 @@ data class ReferenceType(
     override val mangledName: String by lazy {
         val pkg = symbolName.packageSegments().joinToString(PACKAGE_DELIMITER)
         val name = symbolName.shortName
-        "C$pkg$PACKAGE_DELIMITER$name\$C"
+        "C\$$pkg$PACKAGE_DELIMITER$name\$C"
     }
 
     /**
