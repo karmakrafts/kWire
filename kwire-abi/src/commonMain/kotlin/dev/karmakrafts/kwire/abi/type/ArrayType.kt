@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.ArrayType.Companion.KIND
 import kotlinx.io.Buffer
 
@@ -32,8 +34,26 @@ import kotlinx.io.Buffer
 data class ArrayType( // @formatter:off
     val elementType: Type,
     val dimensions: Int
-) : Type { // @formatter:on
+) : Type, SymbolNameProvider { // @formatter:on
     companion object {
+        val arrayName: SymbolName = SymbolName("kotlin.Array", "Array")
+        val byteArrayName: SymbolName = SymbolName("kotlin.ByteArray", "ByteArray")
+        val shortArrayName: SymbolName = SymbolName("kotlin.ShortArray", "ShortArray")
+        val intArrayName: SymbolName = SymbolName("kotlin.IntArray", "IntArray")
+        val longArrayName: SymbolName = SymbolName("kotlin.LongArray", "LongArray")
+        val nIntArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.NIntArray", "NIntArray")
+        val uByteArrayName: SymbolName = SymbolName("kotlin.UByteArray", "UByteArray")
+        val uShortArrayName: SymbolName = SymbolName("kotlin.UShortArray", "UShortArray")
+        val uIntArrayName: SymbolName = SymbolName("kotlin.UIntArray", "UIntArray")
+        val uLongArrayName: SymbolName = SymbolName("kotlin.ULongArray", "ULongArray")
+        val nUIntArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.NUIntArray", "NUIntArray")
+        val floatArrayName: SymbolName = SymbolName("kotlin.FloatArray", "FloatArray")
+        val doubleArrayName: SymbolName = SymbolName("kotlin.DoubleArray", "DoubleArray")
+        val nFloatArrayName: SymbolName = SymbolName("dev.karmakratfs.kwire.ctype.NFloatArray", "NFloatArray")
+        val charArrayName: SymbolName = SymbolName("kotlin.CharArray", "CharArray")
+        val booleanArrayName: SymbolName = SymbolName("kotlin.BooleanArray", "BooleanArray")
+        val ptrArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.PtrArray", "PtrArray")
+
         /**
          * The kind byte that identifies an ArrayType during serialization/deserialization.
          */
@@ -52,6 +72,28 @@ data class ArrayType( // @formatter:off
             return ArrayType(
                 elementType = Type.deserialize(buffer), dimensions = buffer.readInt()
             )
+        }
+    }
+
+    override val symbolName: SymbolName by lazy {
+        when (elementType) {
+            BuiltinType.BYTE -> byteArrayName
+            BuiltinType.SHORT -> shortArrayName
+            BuiltinType.INT -> intArrayName
+            BuiltinType.LONG -> longArrayName
+            BuiltinType.NINT -> nIntArrayName
+            BuiltinType.UBYTE -> uByteArrayName
+            BuiltinType.USHORT -> uShortArrayName
+            BuiltinType.UINT -> uIntArrayName
+            BuiltinType.ULONG -> uLongArrayName
+            BuiltinType.NUINT -> nUIntArrayName
+            BuiltinType.FLOAT -> floatArrayName
+            BuiltinType.DOUBLE -> doubleArrayName
+            BuiltinType.NFLOAT -> nFloatArrayName
+            BuiltinType.PTR -> ptrArrayName
+            BuiltinType.CHAR -> charArrayName
+            BuiltinType.BOOL -> booleanArrayName
+            else -> arrayName
         }
     }
 

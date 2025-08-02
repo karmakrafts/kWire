@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.memory.scope
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.getABIType

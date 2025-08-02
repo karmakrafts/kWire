@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.serialization.deflate
 import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
 
 /**
@@ -27,7 +28,7 @@ import kotlinx.io.Buffer
  * This interface defines the common properties and methods that all types must implement,
  * including serialization and deserialization capabilities.
  */
-sealed interface Type {
+sealed interface Type : SymbolNameProvider {
     companion object {
         /**
          * Deserializes a [Type] from the given [buffer].

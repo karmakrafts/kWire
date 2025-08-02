@@ -28,6 +28,7 @@ import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
 import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
 import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
+import dev.karmakrafts.kwire.abi.type.NullableType as ABINullableType
 import dev.karmakrafts.kwire.abi.type.Type as ABIType
 
 internal sealed interface MemoryLayout {
@@ -54,13 +55,16 @@ internal sealed interface MemoryLayout {
 internal fun ABIType.getMemoryLayout(): MemoryLayout? {
     if (isPtr()) return BuiltinMemoryLayout.PTR // No matter the variance, pointer layout is always the same
     return when (this) {
+        is ABINullableType -> actualType.getMemoryLayout() // Nullability is irrelevant for memory layout
         is ABIBuiltinType -> getBuiltinMemoryLayout()
         is ABIReferenceType -> ReferenceMemoryLayout(this)
         is ABIStructType -> StructMemoryLayout(this)
         // TODO: Right now we translate arrays into flat structs, because its easy and i'm lazy
-        is ABIArrayType -> StructMemoryLayout(ABIStructType(symbolName, ArrayList<ABIType>(dimensions).apply {
-            fill(elementType)
-        }))
+        is ABIArrayType -> {
+            StructMemoryLayout(ABIStructType(symbolName, ArrayList<ABIType>(dimensions).apply {
+                fill(elementType)
+            }))
+        }
 
         is ABIConeType -> null
     }

@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
 
 /**
@@ -33,7 +35,7 @@ import kotlinx.io.Buffer
 data class ConeType( // @formatter:off
     val genericType: Type,
     val typeArguments: List<TypeArgument>
-) : Type by genericType { // @formatter:on
+) : Type by genericType, SymbolNameProvider { // @formatter:on
     companion object {
         /**
          * The kind byte that identifies a ConeType during serialization/deserialization.
@@ -55,6 +57,9 @@ data class ConeType( // @formatter:off
                 typeArguments = (0..<buffer.readInt()).map { TypeArgument.deserialize(buffer) })
         }
     }
+
+
+    override val symbolName: SymbolName get() = genericType.symbolName
 
     /**
      * The mangled name of this cone type, used for ABI compatibility.

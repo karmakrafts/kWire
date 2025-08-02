@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.withArguments
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
