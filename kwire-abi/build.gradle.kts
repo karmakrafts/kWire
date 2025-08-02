@@ -16,8 +16,9 @@
 
 import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
 import dev.karmakrafts.conventions.setProjectInfo
-import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import java.time.ZonedDateTime
+import org.gradle.jvm.tasks.Jar as JvmJar
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -131,13 +132,12 @@ tasks {
         }
         packageName = "${project.group}.abi.demangler"
         arguments = listOf("-visitor")
-        outputDirectory =
-            layout.buildDirectory.dir("generatedAntlr/${packageName!!.replace('.', '/')}").get().asFile
+        outputDirectory = layout.buildDirectory.dir("generatedAntlr/${packageName!!.replace('.', '/')}").get().asFile
     }
-    withType<AbstractKotlinCompile<*>> {
+    withType<KotlinCompilationTask<*>> {
         dependsOn(generateKotlinGrammarSource)
     }
-    withType<Jar> {
+    withType<JvmJar> {
         dependsOn(generateKotlinGrammarSource)
     }
     System.getProperty("publishDocs.root")?.let { docsDir ->
