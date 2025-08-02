@@ -16,6 +16,58 @@
 
 package dev.karmakrafts.kwire.abi
 
-class ManglerTest {
+import dev.karmakrafts.kwire.abi.mangler.Mangler
+import dev.karmakrafts.kwire.abi.type.BuiltinType
+import dev.karmakrafts.kwire.abi.type.Type
+import dev.karmakrafts.kwire.abi.type.asArray
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
+class ManglerTest {
+    @Test
+    fun `mangle method returns correct mangled name for all BuiltinTypes`() {
+        // Test all possible BuiltinType values
+        for (builtinType in BuiltinType.entries) {
+            val expectedMangledName = builtinType.mangledName
+            
+            val mangledName = Mangler.mangle(builtinType)
+            
+            assertEquals(expectedMangledName, mangledName, "Failed for BuiltinType.${builtinType.name}")
+        }
+    }
+    
+    @Test
+    fun `mangle method returns correct mangled name for ArrayType`() {
+        val elementType = BuiltinType.INT
+        val arrayType = elementType.asArray(2)
+        val expectedMangledName = "AAd\$A" // "A" repeated 2 times + "d" + "$A"
+        
+        val mangledName = Mangler.mangle(arrayType)
+        
+        assertEquals(expectedMangledName, mangledName)
+    }
+    
+    @Test
+    fun `mangle method returns correct mangled name for list of types`() {
+        val types = listOf<Type>(
+            BuiltinType.INT,
+            BuiltinType.LONG,
+            BuiltinType.INT.asArray(1)
+        )
+        val expectedMangledName = "deAd\$A" // "d" + "e" + "Ad$A"
+        
+        val mangledName = Mangler.mangle(types)
+        
+        assertEquals(expectedMangledName, mangledName)
+    }
+    
+    @Test
+    fun `mangle method returns empty string for empty list`() {
+        val types = emptyList<Type>()
+        val expectedMangledName = ""
+        
+        val mangledName = Mangler.mangle(types)
+        
+        assertEquals(expectedMangledName, mangledName)
+    }
 }

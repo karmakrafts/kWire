@@ -23,6 +23,7 @@ import dev.karmakrafts.kwire.abi.type.ReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType
 import dev.karmakrafts.kwire.abi.type.Type
 import dev.karmakrafts.kwire.abi.type.TypeArgument
+import dev.karmakrafts.kwire.abi.type.asArray
 import dev.karmakrafts.kwire.abi.type.withArguments
 import org.antlr.v4.kotlinruntime.BufferedTokenStream
 import org.antlr.v4.kotlinruntime.CharStreams
@@ -75,8 +76,8 @@ private class TypeConversionVisitor(
     }
 
     override fun visitArrayType(ctx: DemanglerParser.ArrayTypeContext): List<Type> {
-        val elementType = visitType(ctx.type()).first()
-        return listOf(ArrayType(elementType, 1))
+        val dimensions = ctx.ARRAY_BEGIN().text.length // Number of A's in the begin-marker
+        return listOf(visitType(ctx.type()).first().asArray(dimensions))
     }
 
     private fun convertTypeList(ctx: DemanglerParser.TypeListContext): List<TypeArgument> {

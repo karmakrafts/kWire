@@ -20,5 +20,5 @@ import dev.karmakrafts.kwire.abi.type.Type
 
 object Mangler {
     fun mangle(type: Type): String = type.mangledName
-    fun mangle(types: List<Type>): String = types.joinToString { mangle(it) }
+    fun mangle(types: List<Type>): String = types.joinToString("") { mangle(it) }
 }
