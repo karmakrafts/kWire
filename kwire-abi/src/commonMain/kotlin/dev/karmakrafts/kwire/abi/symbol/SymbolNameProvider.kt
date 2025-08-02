@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi.symbol
 
-import org.jetbrains.kotlin.name.Name
-
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
+interface SymbolNameProvider {
+    /**
+     * The name of the symbol associated with this type.
+     */
+    val symbolName: SymbolName
 }
-
-internal fun Name.getABIFriendlyName(): String =
-    getCleanSpecialName().replace('.', '_').replace('-', '_').replace('/', '_')

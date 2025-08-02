@@ -1,4 +1,5 @@
 [versions]
+
 java = "21"
 
 androidGradle = "8.10.0" # https://developer.android.com/reference/tools/gradle-api
@@ -20,11 +21,13 @@ kotlinPoet = "2.2.0" # https://github.com/square/kotlinpoet/releases
 lwjgl = "3.3.6" # https://github.com/LWJGL/lwjgl3/releases
 panamaPort = "v0.0.8-preview" # https://github.com/vova7878/PanamaPort/releases
 oshi = "6.8.2" # https://github.com/oshi/oshi/releases
+antlrKotlin = "1.0.3" # https://search.maven.org/artifact/com.strumenta/antlr-kotlin-runtime
 
 libffi = "3.5.1-1" # https://git.karmakrafts.dev/kk/prebuilts/libffi/-/packages
 kwirePlatform = "1.5.0" # https://git.karmakrafts.dev/kk/prebuilts/kwire-platform/-/packages
 
 [libraries]
+
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -41,8 +44,10 @@ lwjgl = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
 lwjgl-llvm = { module = "org.lwjgl:lwjgl-llvm", version.ref = "lwjgl" }
 panamaPort = { module = "com.github.vova7878.PanamaPort:AndroidPanama", version.ref = "panamaPort" }
 oshi-core = { module = "com.github.oshi:oshi-core", version.ref = "oshi" }
+antlrKotlin-runtime = { module = "com.strumenta:antlr-kotlin-runtime", version.ref = "antlrKotlin" }
 
 [plugins]
+
 android-library = { id = "com.android.library", version.ref = "androidGradle" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -51,3 +56,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradleNexus = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "gradleNexus" }
 karmaConventions = { id = "dev.karmakrafts.conventions.karma-conventions", version.ref = "karmaConventions" }
+antlrKotlin = { id = "com.strumenta.antlr-kotlin", version.ref = "antlrKotlin" }

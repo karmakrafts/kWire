@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package dev.karmakrafts.kwire.compiler.util
+package dev.karmakrafts.kwire.abi.mangler
 
-import org.jetbrains.kotlin.name.Name
+import dev.karmakrafts.kwire.abi.type.Type
 
-internal fun Name.getCleanSpecialName(): String {
-    val rawValue = asString()
-    if (isSpecial) {
-        return rawValue.substring(1, rawValue.length - 1).replace('.', '_')
-    }
-    return rawValue
+object Mangler {
+    fun mangle(type: Type): String = type.mangledName
+    fun mangle(types: List<Type>): String = types.joinToString { mangle(it) }
 }
-
-internal fun Name.getABIFriendlyName(): String =
-    getCleanSpecialName().replace('.', '_').replace('-', '_').replace('/', '_')

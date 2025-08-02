@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
+import com.strumenta.antlrkotlin.gradle.AntlrKotlinTask
 import dev.karmakrafts.conventions.setProjectInfo
+import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import java.time.ZonedDateTime
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.antlrKotlin)
     signing
     `maven-publish`
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     withSourcesJar(true)
     mingwX64()
     linuxX64()
@@ -56,9 +62,11 @@ kotlin {
             }
         }
         val commonMain by getting {
+            kotlin.srcDir(layout.buildDirectory.dir("generatedAntlr"))
             dependencies {
                 implementation(libs.stately.common)
                 implementation(libs.stately.concurrent.collections)
+                implementation(libs.antlrKotlin.runtime)
                 api(libs.kotlinx.io.core)
             }
         }
@@ -115,6 +123,23 @@ val dokkaJar by tasks.registering(Jar::class) {
 }
 
 tasks {
+    val generateKotlinGrammarSource by register<AntlrKotlinTask>("generateKotlinGrammarSource") {
+        group = "antlr"
+        dependsOn("cleanGenerateKotlinGrammarSource")
+        source = fileTree(layout.projectDirectory.dir("src/main/antlr")) {
+            include("*.g4")
+        }
+        packageName = "${project.group}.abi.demangler"
+        arguments = listOf("-visitor")
+        outputDirectory =
+            layout.buildDirectory.dir("generatedAntlr/${packageName!!.replace('.', '/')}").get().asFile
+    }
+    withType<AbstractKotlinCompile<*>> {
+        dependsOn(generateKotlinGrammarSource)
+    }
+    withType<Jar> {
+        dependsOn(generateKotlinGrammarSource)
+    }
     System.getProperty("publishDocs.root")?.let { docsDir ->
         register("publishDocs", Copy::class) {
             dependsOn(dokkaJar)

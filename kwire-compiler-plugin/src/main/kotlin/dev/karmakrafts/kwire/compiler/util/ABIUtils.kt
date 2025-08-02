@@ -41,11 +41,11 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import dev.karmakrafts.kwire.abi.symbol.SymbolName as ABISymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
+import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
 import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
 import dev.karmakrafts.kwire.abi.type.Type as ABIType
 import dev.karmakrafts.kwire.abi.type.TypeArgument as ABITypeArgument
-import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
 
 internal object ABINames {
     val moduleDataNameName: Name = Name.identifier("name")
@@ -99,7 +99,7 @@ internal fun ABIType.getIrType(context: KWirePluginContext): IrType? {
 }
 
 internal fun ABISymbolName.toClassId(): ClassId {
-    return if(packageName.isEmpty()) ClassId.topLevel(FqName.topLevel(Name.identifier(shortName)))
+    return if (packageName.isEmpty()) ClassId.topLevel(FqName.topLevel(Name.identifier(shortName)))
     else ClassId(FqName(packageName), FqName(shortName), false)
 }
 

@@ -106,9 +106,7 @@ internal inline fun FirSession.buildSimpleProperty( // @formatter:off
 }.symbol
 
 internal inline fun FirSession.buildSimpleObject(
-    id: ClassId,
-    symbol: FirRegularClassSymbol = FirRegularClassSymbol(id),
-    init: FirRegularClassBuilder.() -> Unit = {}
+    id: ClassId, symbol: FirRegularClassSymbol = FirRegularClassSymbol(id), init: FirRegularClassBuilder.() -> Unit = {}
 ): FirClassSymbol<*> = buildRegularClass {
     name = id.shortClassName
     classKind = ClassKind.OBJECT

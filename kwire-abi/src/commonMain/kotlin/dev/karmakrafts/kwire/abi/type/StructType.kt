@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.PACKAGE_DELIMITER
 import kotlinx.io.Buffer
 
@@ -30,10 +31,10 @@ import kotlinx.io.Buffer
  * @property symbolName The name of the symbol associated with this structure type
  * @property fields The list of field types in this structure
  */
-data class StructType( // @formatter:off
+open class StructType( // @formatter:off
     override val symbolName: SymbolName,
-    val fields: List<Type>
-) : Type { // @formatter:on
+    open val fields: List<Type>
+) : Type, SymbolNameProvider { // @formatter:on
     companion object {
         /**
          * The kind byte that identifies a StructType during serialization/deserialization.
@@ -122,4 +123,17 @@ data class StructType( // @formatter:off
             field.serialize(buffer)
         }
     }
+
+    override fun hashCode(): Int {
+        var hash = symbolName.hashCode()
+        hash = 31 * fields.hashCode() + hash
+        return hash
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if(other !is StructType) false
+        else symbolName == other.symbolName && fields == other.fields
+    }
+
+    override fun toString(): String = "StructType[$symbolName/$fields]"
 }

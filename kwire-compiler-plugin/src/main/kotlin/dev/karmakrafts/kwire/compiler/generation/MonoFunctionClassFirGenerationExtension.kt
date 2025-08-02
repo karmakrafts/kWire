@@ -18,7 +18,6 @@ package dev.karmakrafts.kwire.compiler.generation
 
 import dev.karmakrafts.kwire.compiler.util.buildSimpleObject
 import dev.karmakrafts.kwire.compiler.util.getABIFriendlyName
-import dev.karmakrafts.kwire.compiler.util.getCleanSpecialName
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.fir.FirSession

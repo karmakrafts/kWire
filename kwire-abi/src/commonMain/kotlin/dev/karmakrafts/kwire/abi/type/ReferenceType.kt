@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
 
 /**
@@ -31,7 +32,7 @@ import kotlinx.io.Buffer
  */
 data class ReferenceType(
     override val symbolName: SymbolName
-) : Type {
+) : Type, SymbolNameProvider {
     companion object {
         /**
          * The kind byte that identifies a ReferenceType during serialization/deserialization.

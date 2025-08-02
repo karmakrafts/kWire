@@ -16,7 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.type.ArrayType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -26,12 +26,10 @@ import kotlinx.io.Buffer
  * The size of the array is calculated as the element type's size multiplied by the number of dimensions.
  * The alignment of the array is the same as the element type's alignment.
  *
- * @property symbolName The name of the symbol associated with this array type
  * @property elementType The type of elements in the array
  * @property dimensions The number of dimensions in the array
  */
 data class ArrayType( // @formatter:off
-    override val symbolName: SymbolName,
     val elementType: Type,
     val dimensions: Int
 ) : Type { // @formatter:on
@@ -52,9 +50,7 @@ data class ArrayType( // @formatter:off
             val kind = buffer.readByte()
             check(kind == KIND) { "Expected array type kind ($KIND) while deserializing but got $kind" }
             return ArrayType(
-                symbolName = SymbolName.deserialize(buffer),
-                elementType = Type.deserialize(buffer),
-                dimensions = buffer.readInt()
+                elementType = Type.deserialize(buffer), dimensions = buffer.readInt()
             )
         }
     }
@@ -63,7 +59,7 @@ data class ArrayType( // @formatter:off
      * The size of this array type in bytes, calculated as the element type's size multiplied by the number of dimensions.
      */
     override val size: Int by lazy { elementType.size * dimensions }
-    
+
     /**
      * The alignment requirement of this array type in bytes, which is the same as the element type's alignment.
      */
@@ -71,7 +67,7 @@ data class ArrayType( // @formatter:off
 
     /**
      * The mangled name of this array type, used for ABI compatibility.
-     * 
+     *
      * The mangled name is constructed by prepending 'A' repeated [dimensions] times to the element type's mangled name,
      * and appending '$A' repeated [dimensions] times.
      */
@@ -92,7 +88,6 @@ data class ArrayType( // @formatter:off
      */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(KIND)
-        symbolName.serialize(buffer)
         elementType.serialize(buffer)
         buffer.writeInt(dimensions)
     }
@@ -104,4 +99,4 @@ data class ArrayType( // @formatter:off
  * @param dimensions The number of dimensions for the array
  * @return A new [ArrayType] with this type as the element type and the specified number of dimensions
  */
-fun Type.asArray(dimensions: Int): ArrayType = ArrayType(symbolName, this, dimensions)
+fun Type.asArray(dimensions: Int): ArrayType = ArrayType(this, dimensions)

@@ -70,11 +70,6 @@ sealed interface Type {
     }
 
     /**
-     * The name of the symbol associated with this type.
-     */
-    val symbolName: SymbolName
-
-    /**
      * The mangled name of this type, used for ABI compatibility.
      */
     val mangledName: String

@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
 
 /**
@@ -43,7 +44,7 @@ enum class BuiltinType(
     override val mangledName: String,
     override val size: Int,
     override val alignment: Int
-) : Type {
+) : Type, SymbolNameProvider {
     // @formatter:off
     VOID    (true,  "Unit",    "a", 0),
 
