@@ -98,8 +98,7 @@ object Demangler {
         val lexer = DemanglerLexer(charStream)
         val tokenStream = BufferedTokenStream(lexer)
         val parser = DemanglerParser(tokenStream)
-        val visitor = TypeConversionVisitor(structResolver)
-        return parser.signature().accept(visitor)
+        return parser.signature().accept(TypeConversionVisitor(structResolver))
     }
 
     fun demangleFirst(value: String, structResolver: StructResolver): Type = demangle(value, structResolver).first()

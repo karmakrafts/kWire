@@ -59,8 +59,8 @@ data class SymbolName( // @formatter:off
         // TODO: document this
         fun demangle(value: String): SymbolName {
             // Compute package segments
-            val lastPackageSeparator = value.indexOf(MANGLED_SEPARATOR)
-            val packageChunk = value.substring(0, lastPackageSeparator - 1)
+            val lastPackageSeparator = value.lastIndexOf(MANGLED_SEPARATOR)
+            val packageChunk = value.substring(0, lastPackageSeparator)
             val packageSegments = packageChunk.split(MANGLED_SEPARATOR)
             // Compute short name of symbol
             val shortName = value.substring(lastPackageSeparator + 1)
@@ -75,7 +75,7 @@ data class SymbolName( // @formatter:off
      * This is derived by removing the short name from the full name.
      */
     val packageName: String
-        get() = fullName.replace(shortName, "")
+        get() = fullName.replace("$SEPARATOR$shortName", "")
 
     /**
      * Splits the fully qualified name into segments using the separator.
@@ -99,7 +99,9 @@ data class SymbolName( // @formatter:off
     fun nameSegments(): List<String> = shortName.split(SEPARATOR)
 
     // TODO: document this
-    fun mangle(): String = "${packageSegments().joinToString(MANGLED_SEPARATOR)}$MANGLED_SEPARATOR$shortName"
+    fun mangle(): String {
+        return "${packageSegments().joinToString(MANGLED_SEPARATOR)}$MANGLED_SEPARATOR$shortName"
+    }
 
     /**
      * Serializes this SymbolName to the given buffer.

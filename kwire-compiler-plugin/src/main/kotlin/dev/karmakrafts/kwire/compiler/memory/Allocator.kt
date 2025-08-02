@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.compiler.memory
 
+import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.call
@@ -54,8 +55,9 @@ internal interface Allocator {
         type: IrType, dispatchReceiver: IrExpression = get()
     ): IrCall {
         val abiType = type.getABIType(context)
+        val symbolName = (abiType as? SymbolNameProvider)?.symbolName
         val layout =
-            abiType?.getMemoryLayout() ?: error("Could not compute memory layout for ABI type ${abiType?.symbolName}")
+            abiType?.getMemoryLayout() ?: error("Could not compute memory layout for ABI type ${symbolName ?: abiType}")
         return allocate( // @formatter:off
             size = context.toNUInt(layout.emitSize(context)),
             alignment = context.toNUInt(layout.emitAlignment(context)),
