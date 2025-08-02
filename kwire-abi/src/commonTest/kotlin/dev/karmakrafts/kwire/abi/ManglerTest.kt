@@ -17,9 +17,13 @@
 package dev.karmakrafts.kwire.abi
 
 import dev.karmakrafts.kwire.abi.mangler.Mangler
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType
+import dev.karmakrafts.kwire.abi.type.ReferenceType
+import dev.karmakrafts.kwire.abi.type.StructType
 import dev.karmakrafts.kwire.abi.type.Type
 import dev.karmakrafts.kwire.abi.type.asArray
+import dev.karmakrafts.kwire.abi.type.asNullable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -40,10 +44,43 @@ class ManglerTest {
     fun `mangle method returns correct mangled name for ArrayType`() {
         val elementType = BuiltinType.INT
         val arrayType = elementType.asArray(2)
-        val expectedMangledName = "AAd\$A" // "A" repeated 2 times + "d" + "$A"
+        val expectedMangledName = "AAd\$A"
         
         val mangledName = Mangler.mangle(arrayType)
         
+        assertEquals(expectedMangledName, mangledName)
+    }
+
+    @Test
+    fun `mangle method returns correct mangled name for NullableType`() {
+        val elementType = BuiltinType.INT
+        val arrayType = elementType.asArray(2).asNullable()
+        val expectedMangledName = "AAd\$AN"
+
+        val mangledName = Mangler.mangle(arrayType)
+
+        assertEquals(expectedMangledName, mangledName)
+    }
+
+    @Test
+    fun `mangle method returns correct mangled name for ReferenceType`() {
+        val elementType = ReferenceType(SymbolName("dog.Woof", "Woof"))
+        val arrayType = elementType.asArray(2)
+        val expectedMangledName = "AACdog_Woof\$C\$A"
+
+        val mangledName = Mangler.mangle(arrayType)
+
+        assertEquals(expectedMangledName, mangledName)
+    }
+
+    @Test
+    fun `mangle method returns correct mangled name for StructType`() {
+        val elementType = StructType(SymbolName("fox.Ahhh", "Ahhh"), listOf(BuiltinType.INT))
+        val arrayType = elementType.asArray(2)
+        val expectedMangledName = "AASfox_Ahhh\$S\$A"
+
+        val mangledName = Mangler.mangle(arrayType)
+
         assertEquals(expectedMangledName, mangledName)
     }
     

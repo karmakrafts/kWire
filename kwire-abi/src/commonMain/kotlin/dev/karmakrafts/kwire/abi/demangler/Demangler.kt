@@ -17,13 +17,13 @@
 package dev.karmakrafts.kwire.abi.demangler
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
-import dev.karmakrafts.kwire.abi.type.ArrayType
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType
 import dev.karmakrafts.kwire.abi.type.Type
 import dev.karmakrafts.kwire.abi.type.TypeArgument
 import dev.karmakrafts.kwire.abi.type.asArray
+import dev.karmakrafts.kwire.abi.type.asNullable
 import dev.karmakrafts.kwire.abi.type.withArguments
 import org.antlr.v4.kotlinruntime.BufferedTokenStream
 import org.antlr.v4.kotlinruntime.CharStreams
@@ -39,10 +39,19 @@ private class LazyStructType(
 private class TypeConversionVisitor(
     private val structResolver: StructResolver
 ) : DemanglerParserBaseVisitor<List<Type>>() {
+    private var isNullable: Boolean = false
+
     override fun defaultResult(): List<Type> = emptyList()
 
     override fun visitSignature(ctx: DemanglerParser.SignatureContext): List<Type> {
         return ctx.type().flatMap(::visitType)
+    }
+
+    override fun visitType(ctx: DemanglerParser.TypeContext): List<Type> {
+        isNullable = ctx.NULLABLE_SUFFIX() != null
+        val types = super.visitType(ctx)
+        isNullable = false
+        return types
     }
 
     override fun visitBuiltin(ctx: DemanglerParser.BuiltinContext): List<Type> {
@@ -51,18 +60,18 @@ private class TypeConversionVisitor(
         }
         val typeListNode = ctx.typeList()
         if (typeListNode != null) {
-            return listOf(baseType.withArguments(convertTypeList(typeListNode)))
+            return listOf(adjustNullability(baseType.withArguments(convertTypeList(typeListNode))))
         }
-        return listOf(baseType)
+        return listOf(adjustNullability(baseType))
     }
 
     override fun visitClassType(ctx: DemanglerParser.ClassTypeContext): List<Type> {
         val baseType = ReferenceType(SymbolName.demangle(ctx.CLASS_NAME().text))
         val typeListNode = ctx.typeList()
         if (typeListNode != null) {
-            return listOf(baseType.withArguments(convertTypeList(typeListNode)))
+            return listOf(adjustNullability(baseType.withArguments(convertTypeList(typeListNode))))
         }
-        return listOf(baseType)
+        return listOf(adjustNullability(baseType))
     }
 
     override fun visitStructType(ctx: DemanglerParser.StructTypeContext): List<Type> {
@@ -70,14 +79,19 @@ private class TypeConversionVisitor(
         val baseType = LazyStructType(symbolName, structResolver)
         val typeListNode = ctx.typeList()
         if (typeListNode != null) {
-            return listOf(baseType.withArguments(convertTypeList(typeListNode)))
+            return listOf(adjustNullability(baseType.withArguments(convertTypeList(typeListNode))))
         }
-        return listOf(baseType)
+        return listOf(adjustNullability(baseType))
     }
 
     override fun visitArrayType(ctx: DemanglerParser.ArrayTypeContext): List<Type> {
         val dimensions = ctx.ARRAY_BEGIN().text.length // Number of A's in the begin-marker
-        return listOf(visitType(ctx.type()).first().asArray(dimensions))
+        return listOf(adjustNullability(visitType(ctx.type()).first().asArray(dimensions)))
+    }
+
+    private fun adjustNullability(type: Type): Type {
+        return if (isNullable) type.asNullable()
+        else type
     }
 
     private fun convertTypeList(ctx: DemanglerParser.TypeListContext): List<TypeArgument> {

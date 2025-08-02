@@ -31,7 +31,7 @@ import kotlinx.io.Buffer
  * @property symbolName The name of the symbol associated with this structure type
  * @property fields The list of field types in this structure
  */
-open class StructType( // @formatter:off
+open class StructType internal constructor( // @formatter:off
     override val symbolName: SymbolName,
     open val fields: List<Type>
 ) : Type, SymbolNameProvider { // @formatter:on

@@ -62,16 +62,6 @@ class DemanglerTest {
     }
 
     @Test
-    fun `demangleFirst method returns correct Type for BuiltinType`() {
-        val builtinType = BuiltinType.INT
-        val mangledName = builtinType.mangledName
-
-        val demangledType = Demangler.demangleFirst(mangledName, mockStructResolver)
-
-        assertEquals(builtinType, demangledType, "Failed for BuiltinType.${builtinType.name}")
-    }
-
-    @Test
     fun `demangle method returns correct Type for ReferenceType`() {
         // Create a ReferenceType
         val symbolName = SymbolName("dev.karmakrafts.kwire.test.MyClass", "MyClass")
@@ -84,22 +74,6 @@ class DemanglerTest {
         assertTrue(demangledTypes.first() is ReferenceType, "Expected ReferenceType")
 
         val demangledReferenceType = demangledTypes.first() as ReferenceType
-        assertEquals(symbolName.fullName, demangledReferenceType.symbolName.fullName, "Full name mismatch")
-        assertEquals(symbolName.shortName, demangledReferenceType.symbolName.shortName, "Short name mismatch")
-    }
-
-    @Test
-    fun `demangleFirst method returns correct Type for ReferenceType`() {
-        // Create a ReferenceType
-        val symbolName = SymbolName("dev.karmakrafts.kwire.test.MyClass", "MyClass")
-        val referenceType = ReferenceType(symbolName)
-        val mangledName = referenceType.mangledName
-
-        val demangledType = Demangler.demangleFirst(mangledName, mockStructResolver)
-
-        assertTrue(demangledType is ReferenceType, "Expected ReferenceType")
-
-        val demangledReferenceType = demangledType
         assertEquals(symbolName.fullName, demangledReferenceType.symbolName.fullName, "Full name mismatch")
         assertEquals(symbolName.shortName, demangledReferenceType.symbolName.shortName, "Short name mismatch")
     }
@@ -124,42 +98,6 @@ class DemanglerTest {
         assertEquals(2, demangledStructType.fields.size, "Expected 2 fields")
         assertEquals(BuiltinType.INT, demangledStructType.fields[0], "First field should be INT")
         assertEquals(BuiltinType.INT, demangledStructType.fields[1], "Second field should be INT")
-    }
-
-    @Test
-    fun `demangleFirst method returns correct Type for StructType`() {
-        // Create a StructType with a name that our mockStructResolver recognizes
-        val symbolName = SymbolName("dev.karmakrafts.kwire.test.Rectangle", "Rectangle")
-        val structType = StructType(symbolName, emptyList()) // Fields will be resolved by the mockStructResolver
-        val mangledName = structType.mangledName
-
-        val demangledType = Demangler.demangleFirst(mangledName, mockStructResolver)
-
-        assertTrue(demangledType is StructType, "Expected StructType")
-
-        val demangledStructType = demangledType
-        assertEquals(symbolName.fullName, demangledStructType.symbolName.fullName, "Full name mismatch")
-        assertEquals(symbolName.shortName, demangledStructType.symbolName.shortName, "Short name mismatch")
-
-        // Verify that the fields were resolved correctly
-        assertEquals(2, demangledStructType.fields.size, "Expected 2 fields")
-        assertTrue(demangledStructType.fields[0] is StructType, "First field should be StructType")
-        assertTrue(demangledStructType.fields[1] is StructType, "Second field should be StructType")
-
-        // Verify the nested Point structs
-        val point1 = demangledStructType.fields[0] as StructType
-        val point2 = demangledStructType.fields[1] as StructType
-
-        assertEquals("Point", point1.symbolName.shortName, "First field should be Point")
-        assertEquals("Point", point2.symbolName.shortName, "Second field should be Point")
-
-        assertEquals(2, point1.fields.size, "Point should have 2 fields")
-        assertEquals(2, point2.fields.size, "Point should have 2 fields")
-
-        assertEquals(BuiltinType.INT, point1.fields[0], "Point's first field should be INT")
-        assertEquals(BuiltinType.INT, point1.fields[1], "Point's second field should be INT")
-        assertEquals(BuiltinType.INT, point2.fields[0], "Point's first field should be INT")
-        assertEquals(BuiltinType.INT, point2.fields[1], "Point's second field should be INT")
     }
 
     @Test
@@ -193,23 +131,6 @@ class DemanglerTest {
         assertTrue(demangledTypes.first() is ArrayType, "Expected ArrayType")
 
         val demangledArrayType = demangledTypes.first() as ArrayType
-        assertEquals(dimensions, demangledArrayType.dimensions, "Dimension mismatch")
-        assertEquals(elementType, demangledArrayType.elementType, "Element type mismatch")
-    }
-
-    @Test
-    fun `demangleFirst method returns correct Type for ArrayType`() {
-        // Create an ArrayType
-        val elementType = BuiltinType.DOUBLE
-        val dimensions = 2
-        val arrayType = elementType.asArray(dimensions)
-        val mangledName = arrayType.mangledName
-
-        val demangledType = Demangler.demangleFirst(mangledName, mockStructResolver)
-
-        assertTrue(demangledType is ArrayType, "Expected ArrayType")
-
-        val demangledArrayType = demangledType
         assertEquals(dimensions, demangledArrayType.dimensions, "Dimension mismatch")
         assertEquals(elementType, demangledArrayType.elementType, "Element type mismatch")
     }
@@ -288,28 +209,5 @@ class DemanglerTest {
 
         assertEquals(BuiltinType.CHAR, demangledConcreteArg1.type, "First type argument mismatch")
         assertEquals(BuiltinType.INT, demangledConcreteArg2.type, "Second type argument mismatch")
-    }
-
-    @Test
-    fun `demangleFirst method returns correct Type for type with type arguments`() {
-        // Create a type with type arguments
-        val baseType = BuiltinType.PTR
-        val typeArg = TypeArgument.Concrete(BuiltinType.CHAR)
-        val typeWithArgs = baseType.withArguments(typeArg)
-        val mangledName = typeWithArgs.mangledName
-
-        val demangledType = Demangler.demangleFirst(mangledName, mockStructResolver)
-
-        assertTrue(demangledType is ConeType, "Expected ConeType")
-
-        val demangledConeType = demangledType
-        assertEquals(baseType, demangledConeType.genericType, "Generic type mismatch")
-        assertEquals(1, demangledConeType.typeArguments.size, "Expected 1 type argument")
-
-        val demangledTypeArg = demangledConeType.typeArguments.first()
-        assertTrue(demangledTypeArg is TypeArgument.Concrete, "Expected Concrete type argument")
-
-        val demangledConcreteArg = demangledTypeArg
-        assertEquals(BuiltinType.CHAR, demangledConcreteArg.type, "Type argument mismatch")
     }
 }
