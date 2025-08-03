@@ -109,7 +109,7 @@ class ManglerTest {
     @Test
     fun `mangleFunction returns correct mangled name with default parameters`() {
         val functionName = SymbolName("example.Test.test", "Test.test")
-        val expectedMangledName = "example_Test.test_a____"
+        val expectedMangledName = "example_Test.test\$\$a\$\$\$\$\$\$\$\$"
 
         val mangledName = Mangler.mangleFunction(functionName)
 
@@ -121,7 +121,7 @@ class ManglerTest {
         val functionName = SymbolName("example.Test.test", "Test.test")
         val returnType = BuiltinType.INT
         val parameterTypes = listOf<Type>(BuiltinType.CHAR, BuiltinType.BOOL)
-        val expectedMangledName = "example_Test.test_dpo____"
+        val expectedMangledName = "example_Test.test\$\$dpo\$\$\$\$\$\$\$\$"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName, returnType = returnType, parameterTypes = parameterTypes
@@ -134,7 +134,7 @@ class ManglerTest {
     fun `mangleFunction returns correct mangled name with dispatch receiver`() {
         val functionName = SymbolName("example.Test.test", "Test.test")
         val dispatchReceiverType = ReferenceType(SymbolName("example.Receiver", "Receiver"))
-        val expectedMangledName = "example_Test.test_a_C\$example_Receiver\$C___"
+        val expectedMangledName = "example_Test.test\$\$a\$\$C\$example_Receiver\$C\$\$\$\$\$\$"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName, dispatchReceiverType = dispatchReceiverType
@@ -147,7 +147,7 @@ class ManglerTest {
     fun `mangleFunction returns correct mangled name with extension receiver`() {
         val functionName = SymbolName("example.Test.test", "Test.test")
         val extensionReceiverType = ReferenceType(SymbolName("example.Extension", "Extension"))
-        val expectedMangledName = "example_Test.test_a__C\$example_Extension\$C__"
+        val expectedMangledName = "example_Test.test\$\$a\$\$\$\$C\$example_Extension\$C\$\$\$\$"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName, extensionReceiverType = extensionReceiverType
@@ -163,7 +163,7 @@ class ManglerTest {
             ReferenceType(SymbolName("example.Context1", "Context1")),
             ReferenceType(SymbolName("example.Context2", "Context2"))
         )
-        val expectedMangledName = "example_Test.test_a___C\$example_Context1\$CC\$example_Context2\$C_"
+        val expectedMangledName = "example_Test.test\$\$a\$\$\$\$\$\$C\$example_Context1\$CC\$example_Context2\$C\$\$"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName, contextReceiverTypes = contextReceiverTypes
@@ -178,7 +178,7 @@ class ManglerTest {
         val typeArguments = listOf<Type>(
             BuiltinType.INT, BuiltinType.CHAR
         )
-        val expectedMangledName = "example_Test.test_a____dp"
+        val expectedMangledName = "example_Test.test\$\$a\$\$\$\$\$\$\$\$dp"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName, typeArguments = typeArguments
@@ -198,7 +198,7 @@ class ManglerTest {
         val typeArguments = listOf<Type>(BuiltinType.FLOAT)
 
         val expectedMangledName =
-            "example_Test.test_odp_C\$example_Dispatch\$C_C\$example_Extension\$C_C\$example_Context\$C_l"
+            "example_Test.test\$\$odp\$\$C\$example_Dispatch\$C\$\$C\$example_Extension\$C\$\$C\$example_Context\$C\$\$l"
 
         val mangledName = Mangler.mangleFunction(
             functionName = functionName,

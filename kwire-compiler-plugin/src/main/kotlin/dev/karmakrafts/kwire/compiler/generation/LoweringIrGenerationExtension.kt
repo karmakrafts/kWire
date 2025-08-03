@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWireModuleData
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.KWireSymbols
 import dev.karmakrafts.kwire.compiler.checker.ConstTypeChecker
+import dev.karmakrafts.kwire.compiler.checker.FunctionNameChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCFnChecker
 import dev.karmakrafts.kwire.compiler.checker.PtrCVoidChecker
 import dev.karmakrafts.kwire.compiler.checker.StructChecker
@@ -58,6 +59,7 @@ internal class LoweringIrGenerationExtension : IrGenerationExtension {
             file.accept(PtrCVoidChecker(kwireContext), null)
             file.accept(PtrCFnChecker(kwireContext), null)
             file.accept(ValueTypeChecker(kwireContext), null)
+            file.accept(FunctionNameChecker(kwireContext), null)
             checkerFailed = checkerFailed or kwireContext.checkerFailed
         }
         if (checkerFailed) return

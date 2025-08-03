@@ -40,5 +40,5 @@ object ABIConstants {
      */
     const val CTYPE_PACKAGE: String = "$KWIRE_PACKAGE.ctype"
 
-    const val MANGLING_DELIMITER: String = "_"
+    const val MANGLING_DELIMITER: String = "$$"
 }

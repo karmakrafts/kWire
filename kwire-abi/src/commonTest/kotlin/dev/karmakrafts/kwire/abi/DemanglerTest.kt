@@ -17,25 +17,26 @@
 package dev.karmakrafts.kwire.abi
 
 import dev.karmakrafts.kwire.abi.demangler.Demangler
+import dev.karmakrafts.kwire.abi.demangler.StructResolver
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.ArrayType
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.ConeType
+import dev.karmakrafts.kwire.abi.type.NullableType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType
-import dev.karmakrafts.kwire.abi.type.NullableType
-import dev.karmakrafts.kwire.abi.type.Type
 import dev.karmakrafts.kwire.abi.type.TypeArgument
 import dev.karmakrafts.kwire.abi.type.asArray
 import dev.karmakrafts.kwire.abi.type.asNullable
 import dev.karmakrafts.kwire.abi.type.withArguments
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class DemanglerTest {
     // Mock StructResolver for testing
-    private val mockStructResolver: (SymbolName) -> List<Type> = { symbolName ->
+    private val mockStructResolver: StructResolver = { symbolName ->
         when (symbolName.shortName) {
             "Point" -> listOf(BuiltinType.INT, BuiltinType.INT)
             "Rectangle" -> listOf(
@@ -229,5 +230,244 @@ class DemanglerTest {
 
         assertEquals(BuiltinType.CHAR, demangledConcreteArg1.type, "First type argument mismatch")
         assertEquals(BuiltinType.INT, demangledConcreteArg2.type, "Second type argument mismatch")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with default parameters`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val mangledName = "example_Test.test\$\$a\$\$\$\$\$\$\$\$"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(BuiltinType.VOID, demangledFunction.returnType, "Return type should be VOID")
+        assertTrue(demangledFunction.parameterTypes.isEmpty(), "Parameter types should be empty")
+        assertEquals(null, demangledFunction.dispatchReceiverType, "Dispatch receiver should be null")
+        assertEquals(null, demangledFunction.extensionReceiverType, "Extension receiver should be null")
+        assertTrue(demangledFunction.contextReceiverTypes.isEmpty(), "Context receivers should be empty")
+        assertTrue(demangledFunction.typeArguments.isEmpty(), "Type arguments should be empty")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with return type and parameter types`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val returnType = BuiltinType.INT
+        val parameterTypes = listOf(BuiltinType.CHAR, BuiltinType.BOOL)
+        val mangledName = "example_Test.test\$\$dpo\$\$\$\$\$\$\$\$"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(returnType, demangledFunction.returnType, "Return type mismatch")
+        assertEquals(parameterTypes.size, demangledFunction.parameterTypes.size, "Parameter types size mismatch")
+        assertEquals(parameterTypes[0], demangledFunction.parameterTypes[0], "First parameter type mismatch")
+        assertEquals(parameterTypes[1], demangledFunction.parameterTypes[1], "Second parameter type mismatch")
+        assertEquals(null, demangledFunction.dispatchReceiverType, "Dispatch receiver should be null")
+        assertEquals(null, demangledFunction.extensionReceiverType, "Extension receiver should be null")
+        assertTrue(demangledFunction.contextReceiverTypes.isEmpty(), "Context receivers should be empty")
+        assertTrue(demangledFunction.typeArguments.isEmpty(), "Type arguments should be empty")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with dispatch receiver`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val dispatchReceiverType = ReferenceType(SymbolName("example.Receiver", "Receiver"))
+        val mangledName = "example_Test.test\$\$a\$\$C\$example_Receiver\$C\$\$\$\$\$\$"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(BuiltinType.VOID, demangledFunction.returnType, "Return type should be VOID")
+        assertTrue(demangledFunction.parameterTypes.isEmpty(), "Parameter types should be empty")
+        assertNotNull(demangledFunction.dispatchReceiverType, "Dispatch receiver should not be null")
+        assertTrue(demangledFunction.dispatchReceiverType is ReferenceType, "Dispatch receiver should be ReferenceType")
+
+        val demangledDispatchReceiver = demangledFunction.dispatchReceiverType
+        assertEquals(
+            dispatchReceiverType.symbolName.fullName,
+            demangledDispatchReceiver.symbolName.fullName,
+            "Dispatch receiver name mismatch"
+        )
+        assertEquals(
+            dispatchReceiverType.symbolName.shortName,
+            demangledDispatchReceiver.symbolName.shortName,
+            "Dispatch receiver short name mismatch"
+        )
+
+        assertEquals(null, demangledFunction.extensionReceiverType, "Extension receiver should be null")
+        assertTrue(demangledFunction.contextReceiverTypes.isEmpty(), "Context receivers should be empty")
+        assertTrue(demangledFunction.typeArguments.isEmpty(), "Type arguments should be empty")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with extension receiver`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val extensionReceiverType = ReferenceType(SymbolName("example.Extension", "Extension"))
+        val mangledName = "example_Test.test\$\$a\$\$\$\$C\$example_Extension\$C\$\$\$\$"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(BuiltinType.VOID, demangledFunction.returnType, "Return type should be VOID")
+        assertTrue(demangledFunction.parameterTypes.isEmpty(), "Parameter types should be empty")
+        assertEquals(null, demangledFunction.dispatchReceiverType, "Dispatch receiver should be null")
+
+        assertNotNull(demangledFunction.extensionReceiverType, "Extension receiver should not be null")
+        assertTrue(
+            demangledFunction.extensionReceiverType is ReferenceType,
+            "Extension receiver should be ReferenceType"
+        )
+
+        val demangledExtensionReceiver = demangledFunction.extensionReceiverType
+        assertEquals(
+            extensionReceiverType.symbolName.fullName,
+            demangledExtensionReceiver.symbolName.fullName,
+            "Extension receiver name mismatch"
+        )
+        assertEquals(
+            extensionReceiverType.symbolName.shortName,
+            demangledExtensionReceiver.symbolName.shortName,
+            "Extension receiver short name mismatch"
+        )
+
+        assertTrue(demangledFunction.contextReceiverTypes.isEmpty(), "Context receivers should be empty")
+        assertTrue(demangledFunction.typeArguments.isEmpty(), "Type arguments should be empty")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with context receivers`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val contextReceiverTypes = listOf(
+            ReferenceType(SymbolName("example.Context1", "Context1")),
+            ReferenceType(SymbolName("example.Context2", "Context2"))
+        )
+        val mangledName = "example_Test.test\$\$a\$\$\$\$\$\$C\$example_Context1\$CC\$example_Context2\$C\$\$"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(BuiltinType.VOID, demangledFunction.returnType, "Return type should be VOID")
+        assertTrue(demangledFunction.parameterTypes.isEmpty(), "Parameter types should be empty")
+        assertEquals(null, demangledFunction.dispatchReceiverType, "Dispatch receiver should be null")
+        assertEquals(null, demangledFunction.extensionReceiverType, "Extension receiver should be null")
+
+        assertEquals(
+            contextReceiverTypes.size,
+            demangledFunction.contextReceiverTypes.size,
+            "Context receivers size mismatch"
+        )
+
+        for (i in contextReceiverTypes.indices) {
+            assertTrue(
+                demangledFunction.contextReceiverTypes[i] is ReferenceType,
+                "Context receiver should be ReferenceType"
+            )
+            val expectedReceiver = contextReceiverTypes[i]
+            val actualReceiver = demangledFunction.contextReceiverTypes[i] as ReferenceType
+
+            assertEquals(
+                expectedReceiver.symbolName.fullName,
+                actualReceiver.symbolName.fullName,
+                "Context receiver ${i + 1} name mismatch"
+            )
+            assertEquals(
+                expectedReceiver.symbolName.shortName,
+                actualReceiver.symbolName.shortName,
+                "Context receiver ${i + 1} short name mismatch"
+            )
+        }
+
+        assertTrue(demangledFunction.typeArguments.isEmpty(), "Type arguments should be empty")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with type arguments`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val typeArguments = listOf(BuiltinType.INT, BuiltinType.CHAR)
+        val mangledName = "example_Test.test\$\$a\$\$\$\$\$\$\$\$dp"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+        assertEquals(BuiltinType.VOID, demangledFunction.returnType, "Return type should be VOID")
+        assertTrue(demangledFunction.parameterTypes.isEmpty(), "Parameter types should be empty")
+        assertEquals(null, demangledFunction.dispatchReceiverType, "Dispatch receiver should be null")
+        assertEquals(null, demangledFunction.extensionReceiverType, "Extension receiver should be null")
+        assertTrue(demangledFunction.contextReceiverTypes.isEmpty(), "Context receivers should be empty")
+
+        assertEquals(typeArguments.size, demangledFunction.typeArguments.size, "Type arguments size mismatch")
+        assertEquals(typeArguments[0], demangledFunction.typeArguments[0], "First type argument mismatch")
+        assertEquals(typeArguments[1], demangledFunction.typeArguments[1], "Second type argument mismatch")
+    }
+
+    @Test
+    fun `demangleFunction returns correct DemangledFunction with all parameters`() {
+        val functionName = SymbolName("example.Test.test", "Test.test")
+        val returnType = BuiltinType.BOOL
+        val parameterTypes = listOf(BuiltinType.INT, BuiltinType.CHAR)
+        val dispatchReceiverType = ReferenceType(SymbolName("example.Dispatch", "Dispatch"))
+        val extensionReceiverType = ReferenceType(SymbolName("example.Extension", "Extension"))
+        val contextReceiverTypes = listOf(ReferenceType(SymbolName("example.Context", "Context")))
+        val typeArguments = listOf(BuiltinType.FLOAT)
+
+        val mangledName =
+            "example_Test.test\$\$odp\$\$C\$example_Dispatch\$C\$\$C\$example_Extension\$C\$\$C\$example_Context\$C\$\$l"
+
+        val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
+
+        assertEquals(functionName.fullName, demangledFunction.functionName.fullName, "Function name mismatch")
+        assertEquals(functionName.shortName, demangledFunction.functionName.shortName, "Function short name mismatch")
+
+        assertEquals(returnType, demangledFunction.returnType, "Return type mismatch")
+
+        assertEquals(parameterTypes.size, demangledFunction.parameterTypes.size, "Parameter types size mismatch")
+        assertEquals(parameterTypes[0], demangledFunction.parameterTypes[0], "First parameter type mismatch")
+        assertEquals(parameterTypes[1], demangledFunction.parameterTypes[1], "Second parameter type mismatch")
+
+        assertNotNull(demangledFunction.dispatchReceiverType, "Dispatch receiver should not be null")
+        assertTrue(demangledFunction.dispatchReceiverType is ReferenceType, "Dispatch receiver should be ReferenceType")
+        val demangledDispatchReceiver = demangledFunction.dispatchReceiverType
+        assertEquals(
+            dispatchReceiverType.symbolName.fullName,
+            demangledDispatchReceiver.symbolName.fullName,
+            "Dispatch receiver name mismatch"
+        )
+
+        assertNotNull(demangledFunction.extensionReceiverType, "Extension receiver should not be null")
+        assertTrue(
+            demangledFunction.extensionReceiverType is ReferenceType,
+            "Extension receiver should be ReferenceType"
+        )
+        val demangledExtensionReceiver = demangledFunction.extensionReceiverType
+        assertEquals(
+            extensionReceiverType.symbolName.fullName,
+            demangledExtensionReceiver.symbolName.fullName,
+            "Extension receiver name mismatch"
+        )
+
+        assertEquals(
+            contextReceiverTypes.size,
+            demangledFunction.contextReceiverTypes.size,
+            "Context receivers size mismatch"
+        )
+        assertTrue(
+            demangledFunction.contextReceiverTypes[0] is ReferenceType,
+            "Context receiver should be ReferenceType"
+        )
+        val demangledContextReceiver = demangledFunction.contextReceiverTypes[0] as ReferenceType
+        assertEquals(
+            contextReceiverTypes[0].symbolName.fullName,
+            demangledContextReceiver.symbolName.fullName,
+            "Context receiver name mismatch"
+        )
+
+        assertEquals(typeArguments.size, demangledFunction.typeArguments.size, "Type arguments size mismatch")
+        assertEquals(typeArguments[0], demangledFunction.typeArguments[0], "Type argument mismatch")
     }
 }

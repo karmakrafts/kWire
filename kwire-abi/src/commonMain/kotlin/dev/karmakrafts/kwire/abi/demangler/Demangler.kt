@@ -134,7 +134,7 @@ object Demangler {
     fun demangleFunction(value: String, structResolver: StructResolver): DemangledFunction {
         // Function signatures are mangled in the following way:
         //
-        //      name_RP*_(D_|_)(E_|_)(C+_|_)T*
+        //      name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
         //
         // Where R and P are return type and parameter types,
         // D, E and C are dispatch-, extension- and context-receivers respectfully,
@@ -143,15 +143,16 @@ object Demangler {
         // The implementation below just reduces the input string by jumping from _ to _.
 
         var currentValue = value
-        var lastChompIndex = 0
 
         // Eat up characters until the next delimiter is reached and return the chomped chunk (i made you read that)
         fun chomp(): String {
             val chompIndex = currentValue.indexOf(ABIConstants.MANGLING_DELIMITER)
-            if (chompIndex == -1) return ""
-            val result = currentValue.substring(lastChompIndex, chompIndex)
-            lastChompIndex = chompIndex
-            currentValue = currentValue.substring(chompIndex)
+            if (chompIndex == -1) {
+                if(currentValue.isEmpty()) return ""
+                return currentValue
+            }
+            val result = currentValue.substring(0, chompIndex)
+            currentValue = currentValue.substring(chompIndex + ABIConstants.MANGLING_DELIMITER.length)
             return result
         }
 

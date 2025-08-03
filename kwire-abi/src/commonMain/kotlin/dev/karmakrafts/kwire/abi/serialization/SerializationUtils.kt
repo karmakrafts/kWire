@@ -17,13 +17,24 @@
 package dev.karmakrafts.kwire.abi.serialization
 
 import kotlinx.io.Buffer
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
+@OptIn(ExperimentalContracts::class)
 inline fun <T> Buffer.writeOptional(value: T?, writer: (T, Buffer) -> Unit) {
+    contract {
+        callsInPlace(writer, InvocationKind.AT_MOST_ONCE)
+    }
     writeByte(if (value != null) 1 else 0)
     value?.let { writer(it, this) }
 }
 
+@OptIn(ExperimentalContracts::class)
 inline fun <T> Buffer.readOptional(reader: (Buffer) -> T): T? {
+    contract {
+        callsInPlace(reader, InvocationKind.AT_MOST_ONCE)
+    }
     return if (readByte() == 0.toByte()) null
     else reader(this)
 }

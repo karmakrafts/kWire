@@ -37,7 +37,7 @@ object Mangler {
     ): String {
         // Function signatures are mangled in the following way:
         //
-        //      name_RP*_(D_|_)(E_|_)(C+_|_)T*
+        //      name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
         //
         // Where R and P are return type and parameter types,
         // D, E and C are dispatch-, extension- and context-receivers respectfully,
@@ -47,7 +47,7 @@ object Mangler {
         // Add return type and parameter types (base signature)
         result += ABIConstants.MANGLING_DELIMITER
         result += mangle(returnType)
-        result += parameterTypes.joinToString("") { mangle(it) }
+        result += mangle(parameterTypes)
         // Add dispatch receiver, extension- and context-receivers (receiver signature)
         result += ABIConstants.MANGLING_DELIMITER
         dispatchReceiverType?.let { result += mangle(it) }
