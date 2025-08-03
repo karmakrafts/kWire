@@ -27,13 +27,13 @@ object ABIConstants {
      * Used for referencing Kotlin standard library types.
      */
     const val KOTLIN_PACKAGE: String = "kotlin"
-    
+
     /**
      * The base package name for the kwire project.
      * All kwire-related packages are prefixed with this value.
      */
     const val KWIRE_PACKAGE: String = "dev.karmakrafts.kwire"
-    
+
     /**
      * The package name for C-type related classes in kwire.
      * Contains C-compatible type definitions and utilities.

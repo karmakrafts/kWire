@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
+import dev.karmakrafts.kwire.abi.type.BuiltinType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**

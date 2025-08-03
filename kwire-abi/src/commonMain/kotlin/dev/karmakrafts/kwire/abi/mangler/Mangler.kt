@@ -17,7 +17,6 @@
 package dev.karmakrafts.kwire.abi.mangler
 
 import dev.karmakrafts.kwire.abi.ABIConstants
-import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.Type
 
@@ -27,7 +26,7 @@ object Mangler {
     fun mangle(types: List<Type>): String = types.joinToString("") { mangle(it) }
 
     fun mangleFunction(
-        functionName: SymbolName,
+        functionName: String,
         returnType: Type = BuiltinType.VOID,
         parameterTypes: List<Type> = emptyList(),
         dispatchReceiverType: Type? = null,
@@ -43,7 +42,7 @@ object Mangler {
         // D, E and C are dispatch-, extension- and context-receivers respectfully,
         // T are type arguments.
 
-        var result = functionName.mangle()
+        var result = functionName
         // Add return type and parameter types (base signature)
         result += ABIConstants.MANGLING_DELIMITER
         result += mangle(returnType)

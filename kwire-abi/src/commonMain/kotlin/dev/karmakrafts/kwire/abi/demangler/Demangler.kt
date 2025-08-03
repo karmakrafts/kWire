@@ -111,7 +111,7 @@ private class TypeConversionVisitor(
 }
 
 data class DemangledFunction(
-    val functionName: SymbolName,
+    val functionName: String,
     val returnType: Type = BuiltinType.VOID,
     val parameterTypes: List<Type> = emptyList(),
     val dispatchReceiverType: Type? = null,
@@ -148,7 +148,7 @@ object Demangler {
         fun chomp(): String {
             val chompIndex = currentValue.indexOf(ABIConstants.MANGLING_DELIMITER)
             if (chompIndex == -1) {
-                if(currentValue.isEmpty()) return ""
+                if (currentValue.isEmpty()) return ""
                 return currentValue
             }
             val result = currentValue.substring(0, chompIndex)
@@ -156,7 +156,7 @@ object Demangler {
             return result
         }
 
-        val functionName = SymbolName.demangle(chomp())
+        val functionName = chomp()
         val baseSignature = demangle(chomp(), structResolver)
 
         val dispatchReceiver = chomp()

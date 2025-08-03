@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire.compiler.memory
 
-import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.memory.layout.getMemoryLayout
 import dev.karmakrafts.kwire.compiler.util.call

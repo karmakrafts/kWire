@@ -19,6 +19,7 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.PACKAGE_DELIMITER
+import dev.karmakrafts.kwire.abi.type.StructType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -61,7 +62,7 @@ open class StructType( // @formatter:off
      * The size of this structure type in bytes, calculated as the sum of the sizes of its fields.
      */
     override val size: Int by lazy { fields.sumOf { it.size } }
-    
+
     /**
      * The alignment requirement of this structure type in bytes, calculated as the maximum alignment of its fields.
      */
@@ -69,7 +70,7 @@ open class StructType( // @formatter:off
 
     /**
      * The mangled name of this structure type, used for ABI compatibility.
-     * 
+     *
      * The mangled name is constructed by combining:
      * 1. The letter 'S'
      * 2. The package segments joined with [PACKAGE_DELIMITER]
@@ -131,7 +132,7 @@ open class StructType( // @formatter:off
     }
 
     override fun equals(other: Any?): Boolean {
-        return if(other !is StructType) false
+        return if (other !is StructType) false
         else symbolName == other.symbolName && fields == other.fields
     }
 

@@ -19,6 +19,8 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
+import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.KIND
+import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.PACKAGE_DELIMITER
 import kotlinx.io.Buffer
 
 /**
@@ -38,7 +40,7 @@ data class ReferenceType(
          * The kind byte that identifies a ReferenceType during serialization/deserialization.
          */
         const val KIND: Byte = 3
-        
+
         /**
          * The delimiter used to separate package segments in the mangled name.
          */
@@ -70,7 +72,7 @@ data class ReferenceType(
 
     /**
      * The mangled name of this reference type, used for ABI compatibility.
-     * 
+     *
      * The mangled name is constructed by combining:
      * 1. The letter 'C'
      * 2. The package segments joined with [PACKAGE_DELIMITER]

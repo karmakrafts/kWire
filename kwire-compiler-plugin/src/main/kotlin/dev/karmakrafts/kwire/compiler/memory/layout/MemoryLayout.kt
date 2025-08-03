@@ -26,9 +26,9 @@ import org.jetbrains.kotlin.ir.types.IrType
 import dev.karmakrafts.kwire.abi.type.ArrayType as ABIArrayType
 import dev.karmakrafts.kwire.abi.type.BuiltinType as ABIBuiltinType
 import dev.karmakrafts.kwire.abi.type.ConeType as ABIConeType
+import dev.karmakrafts.kwire.abi.type.NullableType as ABINullableType
 import dev.karmakrafts.kwire.abi.type.ReferenceType as ABIReferenceType
 import dev.karmakrafts.kwire.abi.type.StructType as ABIStructType
-import dev.karmakrafts.kwire.abi.type.NullableType as ABINullableType
 import dev.karmakrafts.kwire.abi.type.Type as ABIType
 
 internal sealed interface MemoryLayout {

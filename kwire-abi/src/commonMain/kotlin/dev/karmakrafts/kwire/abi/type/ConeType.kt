@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
+import dev.karmakrafts.kwire.abi.type.ConeType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -63,13 +64,13 @@ data class ConeType( // @formatter:off
 
     /**
      * The mangled name of this cone type, used for ABI compatibility.
-     * 
+     *
      * If there are no type arguments, returns the generic type's mangled name.
      * Otherwise, constructs a mangled name by combining the generic type's mangled name
      * with the mangled names of all type arguments, enclosed in "T" and "$T" markers.
      */
     override val mangledName: String by lazy {
-        if(typeArguments.isEmpty()) return@lazy genericType.mangledName
+        if (typeArguments.isEmpty()) return@lazy genericType.mangledName
         val arguments = typeArguments.joinToString("") { it.mangledName }
         "${genericType.mangledName}T\$$arguments\$T"
     }

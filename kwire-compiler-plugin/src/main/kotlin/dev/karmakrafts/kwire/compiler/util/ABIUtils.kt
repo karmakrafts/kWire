@@ -16,11 +16,13 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
-import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
+import dev.karmakrafts.kwire.abi.mangler.Mangler
 import dev.karmakrafts.kwire.abi.type.withArguments
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.UnsignedType
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrStarProjection
@@ -35,6 +37,7 @@ import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.typeWithArguments
 import org.jetbrains.kotlin.ir.util.classIdOrFail
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -109,6 +112,12 @@ internal fun ABISymbolName.toCallableId(): CallableId {
     val className = FqName("$packageName.${nameSegments.dropLast(1).joinToString(".")}")
     val name = Name.identifier(nameSegments.last())
     return CallableId(FqName(packageName), className, name)
+}
+
+internal fun FqName.toABISymbolName(): ABISymbolName {
+    val shortName = shortName().asString()
+    val packageName = pathSegments().joinToString(".") { it.asString() }
+    return ABISymbolName("$packageName.$shortName", shortName)
 }
 
 internal fun ClassId.toABISymbolName(): ABISymbolName {
@@ -198,4 +207,27 @@ internal fun IrTypeArgument.getABITypeArgument(context: KWirePluginContext): ABI
             type.getABIType(context) ?: error("Could not resolve IrTypeProjection to ABITypeArgument")
         )
     }
+}
+
+internal fun IrFunction.mangleNameInPlace( // @formatter:off
+    context: KWirePluginContext,
+    substitutions: List<IrType>,
+    originalName: FqName = kotlinFqName
+) { // @formatter:on
+    val parameterTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type.getABIType(context)!! }
+    val dispatchReceiverType =
+        parameters.firstOrNull { it.kind == IrParameterKind.DispatchReceiver }?.type?.getABIType(context)
+    val extensionReceiverType =
+        parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }?.type?.getABIType(context)
+    val contextReceiverTypes =
+        parameters.filter { it.kind == IrParameterKind.Context }.map { it.type.getABIType(context)!! }
+    val mangledName = Mangler.mangleFunction(
+        functionName = originalName.shortName().asString(),
+        returnType = returnType.getABIType(context)!!,
+        parameterTypes = parameterTypes,
+        dispatchReceiverType = dispatchReceiverType,
+        extensionReceiverType = extensionReceiverType,
+        contextReceiverTypes = contextReceiverTypes,
+        typeArguments = substitutions.map { it.getABIType(context)!! })
+    name = Name.identifier(mangledName)
 }

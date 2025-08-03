@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.type.TypeArgument.Concrete.Companion.KIND
+import dev.karmakrafts.kwire.abi.type.TypeArgument.Star.KIND
 import kotlinx.io.Buffer
 
 /**

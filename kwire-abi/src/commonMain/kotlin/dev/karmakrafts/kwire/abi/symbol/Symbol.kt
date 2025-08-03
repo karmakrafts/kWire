@@ -21,7 +21,7 @@ import kotlinx.io.Buffer
 
 /**
  * Base interface for all symbols in the ABI.
- * 
+ *
  * Symbols represent named entities in the code such as functions and classes.
  * Each symbol has a unique identifier, information about its location in the source code,
  * and may have type arguments associated with it.
@@ -52,18 +52,18 @@ sealed interface Symbol {
      * Unique identifier for this symbol.
      */
     val id: Int
-    
+
     /**
      * Information about this symbol, including its name and location in the source code.
      */
     val info: SymbolInfo
-    
+
     /**
      * Original information about this symbol, if it was derived from another symbol.
      * This is null for symbols that are not derived.
      */
     val originalInfo: SymbolInfo?
-    
+
     /**
      * List of type arguments associated with this symbol.
      */

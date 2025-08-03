@@ -60,7 +60,8 @@ data class ClassSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
                 originalInfo = buffer.readOptional(SymbolInfo::deserialize),
-                typeArguments = buffer.readList(Type::deserialize))
+                typeArguments = buffer.readList(Type::deserialize)
+            )
         }
     }
 

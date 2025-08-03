@@ -27,13 +27,13 @@ expect object ABI {
      * This represents how many bytes are used to store a pointer in memory.
      */
     val pointerStorageSize: Int
-    
+
     /**
      * The size of a pointer in bytes.
      * This represents the actual size of a pointer when used in operations.
      */
     val pointerSize: Int
-    
+
     /**
      * The size of a boolean value in bytes.
      * This represents how many bytes are used to store a boolean value in memory.

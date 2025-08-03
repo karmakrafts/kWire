@@ -20,6 +20,7 @@ import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.transformer.TemplateTransformer
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
+import dev.karmakrafts.kwire.compiler.util.mangleNameInPlace
 import dev.karmakrafts.kwire.compiler.util.parameterAccessor
 import dev.karmakrafts.kwire.compiler.util.remapSyntheticSourceRanges
 import org.jetbrains.kotlin.GeneratedDeclarationKey
@@ -151,11 +152,7 @@ internal class FunctionMonomorphizer(
                 remapValueAccesses(originalFunction) // Remap all local references accordingly
                 remapReceiverParameters(monoFunctionClass)
                 // Mangle function in-place after it is constructed
-                with(context.mangler) {
-                    mangleNameInPlace(
-                        substitutions.values.toList(), originalFunction.kotlinFqName
-                    )
-                }
+                mangleNameInPlace(context, substitutions.values.toList(), originalFunction.kotlinFqName)
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
             }
