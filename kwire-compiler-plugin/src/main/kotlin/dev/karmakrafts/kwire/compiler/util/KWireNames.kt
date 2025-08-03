@@ -164,6 +164,12 @@ internal object KWireNames {
         val fqName: FqName = id.asSingleFqName()
     }
 
+    object AbstractModuleData {
+        val name: Name = Name.identifier("AbstractModuleData")
+        val id: ClassId = ClassId(packageName, name)
+        val fqName: FqName = id.asSingleFqName()
+    }
+
     // ------------------------------ dev.karmakrafts.kwire.ctype
 
     object CTypePkg {

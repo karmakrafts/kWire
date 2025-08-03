@@ -87,7 +87,7 @@ internal class ModuleDataFirGenerationExtension(
         val stringListType =
             listSymbol.constructType(arrayOf(session.builtinTypes.stringType.coneType)).toFirResolvedTypeRef()
 
-        val moduleDataSymbol = session.getRegularClassSymbolByClassId(KWireNames.ModuleData.id)!!
+        val moduleDataSymbol = session.getRegularClassSymbolByClassId(KWireNames.AbstractModuleData.id)!!
         val moduleDataType = moduleDataSymbol.defaultType()
         val moduleDataListType = listSymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()
         val moduleDataArrayType = arraySymbol.constructType(arrayOf(moduleDataType)).toFirResolvedTypeRef()

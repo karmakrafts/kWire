@@ -83,6 +83,11 @@ data class SymbolTable internal constructor(
         buffer.writeList(entries, Symbol::serialize)
     }
 
+    // TODO: document this
+    inline fun <reified S : Symbol> findSymbol(predicate: (S) -> Boolean = { true }): S? {
+        return entries.filterIsInstance<S>().find(predicate)
+    }
+
     /**
      * Serializes and compresses this SymbolTable.
      *

@@ -32,12 +32,6 @@ interface ModuleData {
          */
         @KWireIntrinsic(KWireIntrinsic.Type.ABI_GET_MODULE_DATA)
         fun get(): ModuleData = throw KWirePluginNotAppliedException()
-
-        /**
-         * The symbol table of the current module, initialized lazily
-         * on first property access.
-         */
-        val symbolTable: SymbolTable by lazy { get().loadAllSymbolTables() }
     }
 
     @KWireCompilerApi
