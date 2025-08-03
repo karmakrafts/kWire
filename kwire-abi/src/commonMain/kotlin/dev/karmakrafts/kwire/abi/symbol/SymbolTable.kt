@@ -18,6 +18,8 @@ package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.serialization.deflate
 import dev.karmakrafts.kwire.abi.serialization.inflate
+import dev.karmakrafts.kwire.abi.serialization.readList
+import dev.karmakrafts.kwire.abi.serialization.writeList
 import kotlinx.io.Buffer
 
 /**
@@ -40,7 +42,7 @@ data class SymbolTable internal constructor(
          * @return The deserialized SymbolTable
          */
         fun deserialize(buffer: Buffer): SymbolTable {
-            return SymbolTable((0..<buffer.readInt()).map { Symbol.deserialize(buffer) })
+            return SymbolTable(buffer.readList(Symbol::deserialize))
         }
 
         /**
@@ -78,10 +80,7 @@ data class SymbolTable internal constructor(
      * @param buffer The buffer to write to
      */
     fun serialize(buffer: Buffer) {
-        buffer.writeInt(entries.size)
-        for (entry in entries) {
-            entry.serialize(buffer)
-        }
+        buffer.writeList(entries, Symbol::serialize)
     }
 
     /**

@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.ArrayType.Companion.KIND
@@ -36,23 +37,23 @@ data class ArrayType( // @formatter:off
     val dimensions: Int
 ) : Type, SymbolNameProvider { // @formatter:on
     companion object {
-        val arrayName: SymbolName = SymbolName("kotlin.Array", "Array")
-        val byteArrayName: SymbolName = SymbolName("kotlin.ByteArray", "ByteArray")
-        val shortArrayName: SymbolName = SymbolName("kotlin.ShortArray", "ShortArray")
-        val intArrayName: SymbolName = SymbolName("kotlin.IntArray", "IntArray")
-        val longArrayName: SymbolName = SymbolName("kotlin.LongArray", "LongArray")
-        val nIntArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.NIntArray", "NIntArray")
-        val uByteArrayName: SymbolName = SymbolName("kotlin.UByteArray", "UByteArray")
-        val uShortArrayName: SymbolName = SymbolName("kotlin.UShortArray", "UShortArray")
-        val uIntArrayName: SymbolName = SymbolName("kotlin.UIntArray", "UIntArray")
-        val uLongArrayName: SymbolName = SymbolName("kotlin.ULongArray", "ULongArray")
-        val nUIntArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.NUIntArray", "NUIntArray")
-        val floatArrayName: SymbolName = SymbolName("kotlin.FloatArray", "FloatArray")
-        val doubleArrayName: SymbolName = SymbolName("kotlin.DoubleArray", "DoubleArray")
-        val nFloatArrayName: SymbolName = SymbolName("dev.karmakratfs.kwire.ctype.NFloatArray", "NFloatArray")
-        val charArrayName: SymbolName = SymbolName("kotlin.CharArray", "CharArray")
-        val booleanArrayName: SymbolName = SymbolName("kotlin.BooleanArray", "BooleanArray")
-        val ptrArrayName: SymbolName = SymbolName("dev.karmakrafts.kwire.ctype.PtrArray", "PtrArray")
+        val arrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.Array", "Array")
+        val byteArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.ByteArray", "ByteArray")
+        val shortArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.ShortArray", "ShortArray")
+        val intArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.IntArray", "IntArray")
+        val longArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.LongArray", "LongArray")
+        val nIntArrayName: SymbolName = SymbolName("${ABIConstants.CTYPE_PACKAGE}.NIntArray", "NIntArray")
+        val uByteArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.UByteArray", "UByteArray")
+        val uShortArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.UShortArray", "UShortArray")
+        val uIntArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.UIntArray", "UIntArray")
+        val uLongArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.ULongArray", "ULongArray")
+        val nUIntArrayName: SymbolName = SymbolName("${ABIConstants.CTYPE_PACKAGE}.NUIntArray", "NUIntArray")
+        val floatArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.FloatArray", "FloatArray")
+        val doubleArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.DoubleArray", "DoubleArray")
+        val nFloatArrayName: SymbolName = SymbolName("${ABIConstants.CTYPE_PACKAGE}.NFloatArray", "NFloatArray")
+        val charArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.CharArray", "CharArray")
+        val booleanArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.BooleanArray", "BooleanArray")
+        val ptrArrayName: SymbolName = SymbolName("${ABIConstants.CTYPE_PACKAGE}.PtrArray", "PtrArray")
 
         /**
          * The kind byte that identifies an ArrayType during serialization/deserialization.

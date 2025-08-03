@@ -39,4 +39,6 @@ object ABIConstants {
      * Contains C-compatible type definitions and utilities.
      */
     const val CTYPE_PACKAGE: String = "$KWIRE_PACKAGE.ctype"
+
+    const val MANGLING_DELIMITER: String = "_"
 }

@@ -52,7 +52,9 @@ internal class Mangler(
     private val context: KWirePluginContext
 ) {
     private fun IrFunction.computeMangledSignature(): String {
-        val parameterTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type }
+        val parameterTypes = parameters.filter {
+            it.kind == IrParameterKind.DispatchReceiver || it.kind == IrParameterKind.Regular
+        }.map { it.type }
         val types = listOf(returnType) + parameterTypes
         return types.joinToString("") { it.getABIType(context)!!.mangledName }
     }
@@ -62,7 +64,7 @@ internal class Mangler(
     ): Name {
         // Gather receiver parameters
         val extensionReceiverParameter = parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
-        val hasReceiver = extensionReceiverParameter != null
+        val hasExtensionReceiver = extensionReceiverParameter != null
 
         // Construct receiver signature
         val receiverSignature = extensionReceiverParameter?.type?.let {
@@ -70,7 +72,7 @@ internal class Mangler(
         }
 
         var newName = originalName.asString().replace('.', '_')
-        newName += if (hasReceiver) "__${receiverSignature}_"
+        newName += if (hasExtensionReceiver) "__${receiverSignature}_"
         else "_"
         newName += computeMangledSignature()
 

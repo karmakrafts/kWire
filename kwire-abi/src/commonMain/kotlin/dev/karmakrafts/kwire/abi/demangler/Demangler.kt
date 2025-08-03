@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.demangler
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.ReferenceType
@@ -109,6 +110,16 @@ private class TypeConversionVisitor(
     }
 }
 
+data class DemangledFunction(
+    val functionName: SymbolName,
+    val returnType: Type = BuiltinType.VOID,
+    val parameterTypes: List<Type> = emptyList(),
+    val dispatchReceiverType: Type? = null,
+    val extensionReceiverType: Type? = null,
+    val contextReceiverTypes: List<Type> = emptyList(),
+    val typeArguments: List<Type> = emptyList()
+)
+
 object Demangler {
     fun demangle(value: String, structResolver: StructResolver): List<Type> {
         val charStream = CharStreams.fromString(value)
@@ -119,4 +130,59 @@ object Demangler {
     }
 
     fun demangleFirst(value: String, structResolver: StructResolver): Type = demangle(value, structResolver).first()
+
+    fun demangleFunction(value: String, structResolver: StructResolver): DemangledFunction {
+        // Function signatures are mangled in the following way:
+        //
+        //      name_RP*_(D_|_)(E_|_)(C+_|_)T*
+        //
+        // Where R and P are return type and parameter types,
+        // D, E and C are dispatch-, extension- and context-receivers respectfully,
+        // T are type arguments.
+        //
+        // The implementation below just reduces the input string by jumping from _ to _.
+
+        var currentValue = value
+        var lastChompIndex = 0
+
+        // Eat up characters until the next delimiter is reached and return the chomped chunk (i made you read that)
+        fun chomp(): String {
+            val chompIndex = currentValue.indexOf(ABIConstants.MANGLING_DELIMITER)
+            if (chompIndex == -1) return ""
+            val result = currentValue.substring(lastChompIndex, chompIndex)
+            lastChompIndex = chompIndex
+            currentValue = currentValue.substring(chompIndex)
+            return result
+        }
+
+        val functionName = SymbolName.demangle(chomp())
+        val baseSignature = demangle(chomp(), structResolver)
+
+        val dispatchReceiver = chomp()
+        val dispatchReceiverType = if (dispatchReceiver.isNotEmpty()) demangleFirst(dispatchReceiver, structResolver)
+        else null
+
+        val extensionReceiver = chomp()
+        val extensionReceiverType = if (extensionReceiver.isNotEmpty()) demangleFirst(extensionReceiver, structResolver)
+        else null
+
+        val contextReceiverSignature = chomp()
+        val contextReceiverTypes =
+            if (contextReceiverSignature.isNotEmpty()) demangle(contextReceiverSignature, structResolver)
+            else emptyList()
+
+        val typeArgumentSignature = chomp()
+        val typeArguments = if (typeArgumentSignature.isNotEmpty()) demangle(typeArgumentSignature, structResolver)
+        else emptyList()
+
+        return DemangledFunction(
+            functionName = functionName,
+            returnType = baseSignature.first(),
+            parameterTypes = baseSignature.drop(1),
+            dispatchReceiverType = dispatchReceiverType,
+            extensionReceiverType = extensionReceiverType,
+            contextReceiverTypes = contextReceiverTypes,
+            typeArguments = typeArguments
+        )
+    }
 }

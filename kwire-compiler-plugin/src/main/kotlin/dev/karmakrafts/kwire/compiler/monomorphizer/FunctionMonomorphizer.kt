@@ -160,7 +160,6 @@ internal class FunctionMonomorphizer(
                 transform(TemplateTransformer(context), context)
             }
             // Register the function as visible and inject it
-            context.metadataDeclarationRegistrar.registerFunctionAsMetadataVisible(function)
             monoFunctionClass.declarations += function
             function
         }

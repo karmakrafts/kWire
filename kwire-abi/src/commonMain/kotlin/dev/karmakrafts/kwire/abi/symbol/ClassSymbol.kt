@@ -16,6 +16,10 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.serialization.readList
+import dev.karmakrafts.kwire.abi.serialization.readOptional
+import dev.karmakrafts.kwire.abi.serialization.writeList
+import dev.karmakrafts.kwire.abi.serialization.writeOptional
 import dev.karmakrafts.kwire.abi.type.Type
 import kotlinx.io.Buffer
 
@@ -55,8 +59,8 @@ data class ClassSymbol(
             return ClassSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
-                originalInfo = if (buffer.readByte() == 1.toByte()) SymbolInfo.deserialize(buffer) else null,
-                typeArguments = (0..<buffer.readInt()).map { Type.deserialize(buffer) })
+                originalInfo = buffer.readOptional(SymbolInfo::deserialize),
+                typeArguments = buffer.readList(Type::deserialize))
         }
     }
 
@@ -69,11 +73,7 @@ data class ClassSymbol(
         buffer.writeByte(KIND)
         buffer.writeInt(id)
         info.serialize(buffer)
-        buffer.writeByte(if (originalInfo != null) 1 else 0)
-        originalInfo?.serialize(buffer)
-        buffer.writeInt(typeArguments.size)
-        for (type in typeArguments) {
-            type.serialize(buffer)
-        }
+        buffer.writeOptional(originalInfo, SymbolInfo::serialize)
+        buffer.writeList(typeArguments, Type::serialize)
     }
 }
