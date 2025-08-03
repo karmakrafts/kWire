@@ -34,12 +34,14 @@ import kotlin.jvm.JvmInline
  * @param T The type that this pointer points to, which must be either a builtin type,
  *  a structural type or another pointer.
  */
+@Suppress("WRONG_MODIFIER_TARGET")
 @KWireCompilerApi
 @OptIn(ExperimentalStdlibApi::class)
 @JvmInline
 value class Ptr<@ValueType T>
-@KWireCompilerApi @PublishedApi internal constructor(
-    @param:KWireCompilerApi @property:KWireCompilerApi val rawAddress: NUInt
+@KWireCompilerApi @PublishedApi internal inline constructor(
+    @param:KWireCompilerApi
+    @property:KWireCompilerApi val rawAddress: NUInt
 ) {
     companion object {
         /**

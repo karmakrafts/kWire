@@ -27,8 +27,9 @@ import kotlin.jvm.JvmInline
  * This class provides a cross-platform way to work with arrays of unsigned integer numbers.
  * It wraps an [NIntArray] and interprets the values as unsigned integers.
  */
+@Suppress("WRONG_MODIFIER_TARGET")
 @JvmInline
-value class NUIntArray @PublishedApi internal constructor(
+value class NUIntArray @PublishedApi internal inline constructor(
     @PublishedApi internal val value: NIntArray
 ) {
     /**

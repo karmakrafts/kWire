@@ -23,9 +23,10 @@ package dev.karmakrafts.kwire.ctype
 
 import dev.karmakrafts.kwire.KWireCompilerApi
 
+@Suppress("WRONG_MODIFIER_TARGET")
 @KWireCompilerApi
 @JvmInline
-actual value class NUInt @PublishedApi internal constructor(
+actual value class NUInt @PublishedApi internal inline constructor(
     @PublishedApi internal val value: NInt
 ) : Comparable<NUInt> {
     actual override fun toString(): String = value.toString()

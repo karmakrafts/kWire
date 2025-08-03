@@ -33,9 +33,10 @@ import kotlin.jvm.JvmInline
  *
  * @property value The underlying [NInt] value
  */
+@Suppress("WRONG_MODIFIER_TARGET")
 @KWireCompilerApi
 @JvmInline
-expect value class NUInt @PublishedApi internal constructor(
+expect value class NUInt @PublishedApi internal inline constructor(
     @PublishedApi internal val value: NInt
 ) : Comparable<NUInt> {
     /**
