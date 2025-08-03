@@ -20,7 +20,6 @@ import dev.karmakrafts.kwire.compiler.ffi.FFI
 import dev.karmakrafts.kwire.compiler.memory.Memory
 import dev.karmakrafts.kwire.compiler.memory.MemoryStack
 import dev.karmakrafts.kwire.compiler.memory.layout.MemoryLayout
-import dev.karmakrafts.kwire.compiler.monomorphizer.ClassMonomorphizer
 import dev.karmakrafts.kwire.compiler.monomorphizer.FunctionMonomorphizer
 import dev.karmakrafts.kwire.compiler.util.KWireNames
 import dev.karmakrafts.kwire.compiler.util.MessageCollectorExtensions
@@ -56,13 +55,12 @@ internal class KWirePluginContext( // @formatter:off
     val kwireModuleData: KWireModuleData
 ) : IrPluginContext by pluginContext, MessageCollectorExtensions { // @formatter:on
     var checkerFailed: Boolean = false
+
     val typeSystemContext: IrTypeSystemContext = IrTypeSystemContextImpl(irBuiltIns)
     val ffi: FFI = FFI(this)
     val memory: Memory = Memory(this)
     val memoryStack: MemoryStack = MemoryStack(this)
-
     val functionMonomorphizer: FunctionMonomorphizer = FunctionMonomorphizer(this)
-    val classMonomorphizer: ClassMonomorphizer = ClassMonomorphizer(this)
 
     val voidPtr: IrType = kwireSymbols.ptrType.typeWith(irBuiltIns.unitType)
     val constVoidPtr: IrType = voidPtr.markedConst(this)

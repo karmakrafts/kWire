@@ -43,6 +43,7 @@ sealed interface Symbol {
             return when (kind) {
                 FunctionSymbol.KIND -> FunctionSymbol.deserialize(buffer)
                 ClassSymbol.KIND -> ClassSymbol.deserialize(buffer)
+                StructSymbol.KIND -> StructSymbol.deserialize(buffer)
                 else -> error("Unknown ABI symbol kind")
             }
         }

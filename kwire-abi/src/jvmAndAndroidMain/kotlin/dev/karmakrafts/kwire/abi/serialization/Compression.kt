@@ -19,13 +19,35 @@
 package dev.karmakrafts.kwire.abi.serialization
 
 import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
+import java.util.zip.Deflater
+import java.util.zip.Inflater
 
 @PublishedApi
 internal actual fun deflate(buffer: Buffer): Buffer {
-    return buffer
+    val deflater = Deflater()
+    deflater.setInput(buffer.readByteArray())
+    deflater.finish()
+    val compressed = Buffer()
+    val chunkBuffer = ByteArray(1024)
+    while (!deflater.finished()) {
+        val bytesCompressed = deflater.deflate(chunkBuffer)
+        compressed.write(chunkBuffer, 0, bytesCompressed)
+    }
+    deflater.end()
+    return compressed
 }
 
 @PublishedApi
 internal actual fun inflate(buffer: Buffer): Buffer {
-    return buffer
+    val inflater = Inflater()
+    inflater.setInput(buffer.readByteArray())
+    val decompressed = Buffer()
+    val chunkBuffer = ByteArray(1024)
+    while (!inflater.finished()) {
+        val bytesDecompressed = inflater.inflate(chunkBuffer)
+        decompressed.write(chunkBuffer, 0, bytesDecompressed)
+    }
+    inflater.end()
+    return decompressed
 }
