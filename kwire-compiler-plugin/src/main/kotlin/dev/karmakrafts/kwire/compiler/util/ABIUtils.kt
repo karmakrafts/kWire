@@ -212,7 +212,8 @@ internal fun IrTypeArgument.getABITypeArgument(context: KWirePluginContext): ABI
 internal fun IrFunction.mangleNameInPlace( // @formatter:off
     context: KWirePluginContext,
     substitutions: List<IrType>,
-    originalName: FqName = kotlinFqName
+    originalName: FqName = kotlinFqName,
+    mangleFullName: Boolean = false
 ) { // @formatter:on
     val parameterTypes = parameters.filter { it.kind == IrParameterKind.Regular }.map { it.type.getABIType(context)!! }
     val dispatchReceiverType =
@@ -221,7 +222,15 @@ internal fun IrFunction.mangleNameInPlace( // @formatter:off
         parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }?.type?.getABIType(context)
     val contextReceiverTypes =
         parameters.filter { it.kind == IrParameterKind.Context }.map { it.type.getABIType(context)!! }
-    val mangledName = Mangler.mangleFunction(
+    val mangledName = if (mangleFullName) Mangler.mangleFunction(
+        functionName = originalName.toABISymbolName(),
+        returnType = returnType.getABIType(context)!!,
+        parameterTypes = parameterTypes,
+        dispatchReceiverType = dispatchReceiverType,
+        extensionReceiverType = extensionReceiverType,
+        contextReceiverTypes = contextReceiverTypes,
+        typeArguments = substitutions.map { it.getABIType(context)!! })
+    else Mangler.mangleFunction(
         functionName = originalName.shortName().asString(),
         returnType = returnType.getABIType(context)!!,
         parameterTypes = parameterTypes,

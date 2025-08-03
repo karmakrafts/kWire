@@ -79,7 +79,7 @@ class TemplateTransformerTest {
         // @formatter:on
         compiler shouldNotReport { error() }
         result irMatches {
-            val function = getChild<IrFunction> { it.name.asString().contains("_foo_") }
+            val function = getChild<IrFunction> { it.name.asString().contains("_foo$$") }
             function matches {
                 println(element.dump())
             }

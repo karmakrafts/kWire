@@ -152,7 +152,12 @@ internal class FunctionMonomorphizer(
                 remapValueAccesses(originalFunction) // Remap all local references accordingly
                 remapReceiverParameters(monoFunctionClass)
                 // Mangle function in-place after it is constructed
-                mangleNameInPlace(context, substitutions.values.toList(), originalFunction.kotlinFqName)
+                mangleNameInPlace(
+                    context = context,
+                    substitutions = substitutions.values.toList(),
+                    originalName = originalFunction.kotlinFqName,
+                    mangleFullName = true
+                )
                 // Recursively transform all templates for this newly monomorphized function
                 transform(TemplateTransformer(context), context)
             }

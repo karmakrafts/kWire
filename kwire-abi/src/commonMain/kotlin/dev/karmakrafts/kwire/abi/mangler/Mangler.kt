@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.mangler
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.Type
 
@@ -24,6 +25,14 @@ object Mangler {
     fun mangle(type: Type): String = type.mangledName
 
     fun mangle(types: List<Type>): String = types.joinToString("") { mangle(it) }
+
+    fun mangle(name: SymbolName): String {
+        val packageName = name.packageName
+            .replace("_", ABIConstants.ESC_PACKAGE_MANGLING_DELIMITER)
+            .replace(".", ABIConstants.PACKAGE_MANGLING_DELIMITER)
+        val shortName = name.shortName
+        return "${packageName}_$shortName"
+    }
 
     fun mangleFunction(
         functionName: String,
@@ -44,20 +53,41 @@ object Mangler {
 
         var result = functionName
         // Add return type and parameter types (base signature)
-        result += ABIConstants.MANGLING_DELIMITER
+        result += ABIConstants.TYPE_MANGLING_DELIMITER
         result += mangle(returnType)
         result += mangle(parameterTypes)
         // Add dispatch receiver, extension- and context-receivers (receiver signature)
-        result += ABIConstants.MANGLING_DELIMITER
+        result += ABIConstants.TYPE_MANGLING_DELIMITER
         dispatchReceiverType?.let { result += mangle(it) }
-        result += ABIConstants.MANGLING_DELIMITER
+        result += ABIConstants.TYPE_MANGLING_DELIMITER
         extensionReceiverType?.let { result += mangle(it) }
-        result += ABIConstants.MANGLING_DELIMITER
+        result += ABIConstants.TYPE_MANGLING_DELIMITER
         result += mangle(contextReceiverTypes)
         // Add type arguments
-        result += ABIConstants.MANGLING_DELIMITER
+        result += ABIConstants.TYPE_MANGLING_DELIMITER
         result += mangle(typeArguments)
 
         return result
+    }
+
+    fun mangleFunction(
+        functionName: SymbolName,
+        returnType: Type = BuiltinType.VOID,
+        parameterTypes: List<Type> = emptyList(),
+        dispatchReceiverType: Type? = null,
+        extensionReceiverType: Type? = null,
+        contextReceiverTypes: List<Type> = emptyList(),
+        typeArguments: List<Type> = emptyList()
+    ): String {
+        // package_name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
+        return mangleFunction(
+            mangle(functionName),
+            returnType,
+            parameterTypes,
+            dispatchReceiverType,
+            extensionReceiverType,
+            contextReceiverTypes,
+            typeArguments
+        )
     }
 }

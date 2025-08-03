@@ -69,7 +69,7 @@ private class TypeConversionVisitor(
     }
 
     override fun visitClassType(ctx: DemanglerParser.ClassTypeContext): List<Type> {
-        val baseType = ReferenceType(SymbolName.demangle(ctx.CLASS_NAME().text))
+        val baseType = ReferenceType(Demangler.demangleName(ctx.CLASS_NAME().text))
         val typeListNode = ctx.typeList()
         if (typeListNode != null) {
             return listOf(adjustNullability(baseType.withArguments(convertTypeList(typeListNode))))
@@ -78,7 +78,7 @@ private class TypeConversionVisitor(
     }
 
     override fun visitStructType(ctx: DemanglerParser.StructTypeContext): List<Type> {
-        val symbolName = SymbolName.demangle(ctx.STRUCT_NAME().text)
+        val symbolName = Demangler.demangleName(ctx.STRUCT_NAME().text)
         val baseType = LazyStructType(symbolName, structResolver)
         val typeListNode = ctx.typeList()
         if (typeListNode != null) {
@@ -111,7 +111,7 @@ private class TypeConversionVisitor(
 }
 
 data class DemangledFunction(
-    val functionName: String,
+    val functionName: SymbolName,
     val returnType: Type = BuiltinType.VOID,
     val parameterTypes: List<Type> = emptyList(),
     val dispatchReceiverType: Type? = null,
@@ -121,6 +121,36 @@ data class DemangledFunction(
 )
 
 object Demangler {
+    fun demangleName(value: String): SymbolName {
+        val charStream = CharStreams.fromString(value)
+        val lexer = SymbolNameLexer(charStream)
+        val tokenStream = BufferedTokenStream(lexer)
+        tokenStream.fill()
+        val tokens = tokenStream.tokens
+        val lastPackageDelimiter = tokens.lastOrNull { it.type == SymbolNameLexer.Tokens.PACKAGE_DELIMITER }
+        val lpdIndex = tokens.indexOf(lastPackageDelimiter)
+        var packageName = ""
+        var shortName = ""
+        for (i in tokens.indices) {
+            val token = tokens[i]
+            when (val tokenType = token.type) {
+                SymbolNameLexer.Tokens.PACKAGE_DELIMITER -> packageName += '.'
+                SymbolNameLexer.Tokens.ESC_PACKAGE_DELIMITER -> packageName += '_'
+                SymbolNameLexer.Tokens.NESTING_DELIMITER -> shortName += '.'
+                SymbolNameLexer.Tokens.SEGMENT -> {
+                    if (lpdIndex != -1 && i < lpdIndex) packageName += token.text!!
+                    else shortName += token.text!!
+                }
+
+                -1 -> continue // Ignore EOF
+                else -> error("Unknown token type in symbol name (${tokenType})")
+            }
+        }
+        val fullName = if (packageName.isNotEmpty()) "$packageName$shortName"
+        else shortName
+        return SymbolName(fullName, shortName)
+    }
+
     fun demangle(value: String, structResolver: StructResolver): List<Type> {
         val charStream = CharStreams.fromString(value)
         val lexer = DemanglerLexer(charStream)
@@ -134,25 +164,25 @@ object Demangler {
     fun demangleFunction(value: String, structResolver: StructResolver): DemangledFunction {
         // Function signatures are mangled in the following way:
         //
-        //      name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
+        //      (package_)?name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
         //
         // Where R and P are return type and parameter types,
         // D, E and C are dispatch-, extension- and context-receivers respectfully,
         // T are type arguments.
         //
-        // The implementation below just reduces the input string by jumping from _ to _.
+        // The implementation below just reduces the input string by jumping from $$ to $$.
 
         var currentValue = value
 
         // Eat up characters until the next delimiter is reached and return the chomped chunk (i made you read that)
         fun chomp(): String {
-            val chompIndex = currentValue.indexOf(ABIConstants.MANGLING_DELIMITER)
+            val chompIndex = currentValue.indexOf(ABIConstants.TYPE_MANGLING_DELIMITER)
             if (chompIndex == -1) {
                 if (currentValue.isEmpty()) return ""
                 return currentValue
             }
             val result = currentValue.substring(0, chompIndex)
-            currentValue = currentValue.substring(chompIndex + ABIConstants.MANGLING_DELIMITER.length)
+            currentValue = currentValue.substring(chompIndex + ABIConstants.TYPE_MANGLING_DELIMITER.length)
             return result
         }
 
@@ -177,7 +207,7 @@ object Demangler {
         else emptyList()
 
         return DemangledFunction(
-            functionName = functionName,
+            functionName = demangleName(functionName),
             returnType = baseSignature.first(),
             parameterTypes = baseSignature.drop(1),
             dispatchReceiverType = dispatchReceiverType,

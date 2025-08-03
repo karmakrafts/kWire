@@ -234,8 +234,8 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with default parameters`() {
-        val functionName = "test"
-        val mangledName = "test\$\$a\$\$\$\$\$\$\$\$"
+        val functionName = SymbolName("com.example.Foo.test", "test")
+        val mangledName = "com_example_Foo_test\$\$a\$\$\$\$\$\$\$\$"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -250,10 +250,10 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with return type and parameter types`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val returnType = BuiltinType.INT
         val parameterTypes = listOf(BuiltinType.CHAR, BuiltinType.BOOL)
-        val mangledName = "test\$\$dpo\$\$\$\$\$\$\$\$"
+        val mangledName = "com_example_Foo_test\$\$dpo\$\$\$\$\$\$\$\$"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -270,9 +270,9 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with dispatch receiver`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val dispatchReceiverType = ReferenceType(SymbolName("example.Receiver", "Receiver"))
-        val mangledName = "test\$\$a\$\$C\$example_Receiver\$C\$\$\$\$\$\$"
+        val mangledName = "com_example_Foo_test\$\$a\$\$C\$example_Receiver\$C\$\$\$\$\$\$"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -301,9 +301,9 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with extension receiver`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val extensionReceiverType = ReferenceType(SymbolName("example.Extension", "Extension"))
-        val mangledName = "test\$\$a\$\$\$\$C\$example_Extension\$C\$\$\$\$"
+        val mangledName = "com_example_Foo_test\$\$a\$\$\$\$C\$example_Extension\$C\$\$\$\$"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -335,12 +335,12 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with context receivers`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val contextReceiverTypes = listOf(
             ReferenceType(SymbolName("example.Context1", "Context1")),
             ReferenceType(SymbolName("example.Context2", "Context2"))
         )
-        val mangledName = "test\$\$a\$\$\$\$\$\$C\$example_Context1\$CC\$example_Context2\$C\$\$"
+        val mangledName = "com_example_Foo_test\$\$a\$\$\$\$\$\$C\$example_Context1\$CC\$example_Context2\$C\$\$"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -378,9 +378,9 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with type arguments`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val typeArguments = listOf(BuiltinType.INT, BuiltinType.CHAR)
-        val mangledName = "test\$\$a\$\$\$\$\$\$\$\$dp"
+        val mangledName = "com_example_Foo_test\$\$a\$\$\$\$\$\$\$\$dp"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 
@@ -398,7 +398,7 @@ class DemanglerTest {
 
     @Test
     fun `demangleFunction returns correct DemangledFunction with all parameters`() {
-        val functionName = "test"
+        val functionName = SymbolName("com.example.Foo.test", "test")
         val returnType = BuiltinType.BOOL
         val parameterTypes = listOf(BuiltinType.INT, BuiltinType.CHAR)
         val dispatchReceiverType = ReferenceType(SymbolName("example.Dispatch", "Dispatch"))
@@ -407,7 +407,7 @@ class DemanglerTest {
         val typeArguments = listOf(BuiltinType.FLOAT)
 
         val mangledName =
-            "test\$\$odp\$\$C\$example_Dispatch\$C\$\$C\$example_Extension\$C\$\$C\$example_Context\$C\$\$l"
+            "com_example_Foo_test\$\$odp\$\$C\$example_Dispatch\$C\$\$C\$example_Extension\$C\$\$C\$example_Context\$C\$\$l"
 
         val demangledFunction = Demangler.demangleFunction(mangledName, mockStructResolver)
 

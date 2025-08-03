@@ -64,25 +64,6 @@ class SymbolNameTest {
     }
 
     @Test
-    fun `mangle method returns correct mangled name`() {
-        val fullName = "dev.karmakrafts.kwire.abi.symbol.SymbolName"
-        val shortName = "SymbolName"
-        val symbolName = SymbolName(fullName, shortName)
-
-        val expectedMangledName = "dev_karmakrafts_kwire_abi_symbol_SymbolName"
-        assertEquals(expectedMangledName, symbolName.mangle())
-    }
-
-    @Test
-    fun `demangle method returns correct SymbolName`() {
-        val mangledName = "dev_karmakrafts_kwire_abi_symbol_SymbolName"
-        val symbolName = SymbolName.demangle(mangledName)
-
-        assertEquals("dev.karmakrafts.kwire.abi.symbol.SymbolName", symbolName.fullName)
-        assertEquals("SymbolName", symbolName.shortName)
-    }
-
-    @Test
     fun `serialize and deserialize methods work correctly`() {
         val fullName = "dev.karmakrafts.kwire.abi.symbol.SymbolName"
         val shortName = "SymbolName"
