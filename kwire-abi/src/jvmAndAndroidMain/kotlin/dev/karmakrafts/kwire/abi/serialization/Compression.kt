@@ -29,7 +29,7 @@ internal actual fun deflate(buffer: Buffer): Buffer {
     deflater.setInput(buffer.readByteArray())
     deflater.finish()
     val compressed = Buffer()
-    val chunkBuffer = ByteArray(1024)
+    val chunkBuffer = ByteArray(4096)
     while (!deflater.finished()) {
         val bytesCompressed = deflater.deflate(chunkBuffer)
         compressed.write(chunkBuffer, 0, bytesCompressed)
@@ -43,7 +43,7 @@ internal actual fun inflate(buffer: Buffer): Buffer {
     val inflater = Inflater()
     inflater.setInput(buffer.readByteArray())
     val decompressed = Buffer()
-    val chunkBuffer = ByteArray(1024)
+    val chunkBuffer = ByteArray(4096)
     while (!inflater.finished()) {
         val bytesDecompressed = inflater.inflate(chunkBuffer)
         decompressed.write(chunkBuffer, 0, bytesDecompressed)
