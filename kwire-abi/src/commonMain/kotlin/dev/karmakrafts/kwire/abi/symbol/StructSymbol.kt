@@ -23,6 +23,18 @@ import dev.karmakrafts.kwire.abi.serialization.writeOptional
 import dev.karmakrafts.kwire.abi.type.Type
 import kotlinx.io.Buffer
 
+/**
+ * Represents a struct symbol in the ABI.
+ *
+ * A struct symbol contains information about a struct definition, including its
+ * name, location in the source code, type arguments, and field types.
+ *
+ * @property id Unique identifier for this symbol
+ * @property info Information about this symbol, including its name and location
+ * @property originalInfo Original information about this symbol, if it was derived from another symbol
+ * @property typeArguments List of type arguments associated with this struct
+ * @property fields List of types representing the fields of this struct
+ */
 class StructSymbol(
     override val id: Int,
     override val info: SymbolInfo,
@@ -32,7 +44,7 @@ class StructSymbol(
 ) : Symbol {
     companion object {
         /**
-         * The kind identifier for function symbols.
+         * The kind identifier for struct symbols.
          */
         const val KIND: Byte = 2
 
@@ -40,12 +52,12 @@ class StructSymbol(
          * Deserializes a StructSymbol from the given buffer.
          *
          * @param buffer The buffer to read from
-         * @return The deserialized ClassSymbol
-         * @throws IllegalStateException if the symbol kind is not a class symbol
+         * @return The deserialized StructSymbol
+         * @throws IllegalStateException if the symbol kind is not a struct symbol
          */
         fun deserialize(buffer: Buffer): StructSymbol {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected class symbol kind ($KIND) while deserializing but got $kind" }
+            check(kind == KIND) { "Expected struct symbol kind ($KIND) while deserializing but got $kind" }
             return StructSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
@@ -56,6 +68,11 @@ class StructSymbol(
         }
     }
 
+    /**
+     * Serializes this StructSymbol to the given buffer.
+     *
+     * @param buffer The buffer to write to
+     */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(KIND)
         buffer.writeInt(id)

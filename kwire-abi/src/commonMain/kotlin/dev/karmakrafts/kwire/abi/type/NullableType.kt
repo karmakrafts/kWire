@@ -16,10 +16,31 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+/**
+ * Represents a nullable version of a [Type].
+ * 
+ * This class wraps another type and delegates all [Type] interface methods to it,
+ * except for [mangledName] which appends 'N' to the wrapped type's mangled name
+ * to indicate nullability in the ABI.
+ *
+ * @property actualType The underlying non-nullable type
+ */
 data class NullableType(val actualType: Type) : Type by actualType {
+    /**
+     * The mangled name for this nullable type.
+     * 
+     * The mangled name is created by appending 'N' to the end of the wrapped type's
+     * mangled name, indicating that this is a nullable version of that type.
+     */
     override val mangledName: String by lazy {
         "${actualType.mangledName}N"
     }
 }
 
+/**
+ * Extension function to create a nullable version of any [Type].
+ *
+ * @receiver The type to make nullable
+ * @return A [NullableType] wrapping the receiver type
+ */
 fun Type.asNullable(): NullableType = NullableType(this)

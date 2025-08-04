@@ -21,11 +21,37 @@ import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.type.BuiltinType
 import dev.karmakrafts.kwire.abi.type.Type
 
+/**
+ * Utility object for name mangling operations.
+ *
+ * Name mangling is used to encode additional information into identifiers,
+ * which is necessary for supporting features like function overloading
+ * and type information encoding.
+ */
 object Mangler {
+    /**
+     * Mangles a single type into its string representation.
+     *
+     * @param type The type to mangle
+     * @return The mangled string representation of the type
+     */
     fun mangle(type: Type): String = type.mangledName
 
+    /**
+     * Mangles a list of types into a single string representation.
+     *
+     * @param types The list of types to mangle
+     * @return The concatenated mangled string representation of all types
+     */
     fun mangle(types: List<Type>): String = types.joinToString("") { mangle(it) }
 
+    /**
+     * Mangles a symbol name by converting its package name and short name
+     * into a mangled representation.
+     *
+     * @param name The symbol name to mangle
+     * @return The mangled string representation of the symbol name
+     */
     fun mangle(name: SymbolName): String {
         val packageName = name.packageName
             .replace("_", ABIConstants.ESC_PACKAGE_MANGLING_DELIMITER)
@@ -34,6 +60,29 @@ object Mangler {
         return "${packageName}_$shortName"
     }
 
+    /**
+     * Mangles a function signature into a string representation.
+     *
+     * Function signatures are mangled in the following format:
+     * `name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*`
+     *
+     * Where:
+     * - R is the return type
+     * - P* are parameter types
+     * - D is the dispatch receiver type (if present)
+     * - E is the extension receiver type (if present)
+     * - C+ are context receiver types (if present)
+     * - T* are type arguments (if present)
+     *
+     * @param functionName The name of the function to mangle
+     * @param returnType The return type of the function
+     * @param parameterTypes The list of parameter types
+     * @param dispatchReceiverType The dispatch receiver type (for member functions)
+     * @param extensionReceiverType The extension receiver type (for extension functions)
+     * @param contextReceiverTypes The list of context receiver types
+     * @param typeArguments The list of type arguments for generic functions
+     * @return The mangled string representation of the function signature
+     */
     fun mangleFunction(
         functionName: String,
         returnType: Type = BuiltinType.VOID,
@@ -43,14 +92,6 @@ object Mangler {
         contextReceiverTypes: List<Type> = emptyList(),
         typeArguments: List<Type> = emptyList()
     ): String {
-        // Function signatures are mangled in the following way:
-        //
-        //      name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
-        //
-        // Where R and P are return type and parameter types,
-        // D, E and C are dispatch-, extension- and context-receivers respectfully,
-        // T are type arguments.
-
         var result = functionName
         // Add return type and parameter types (base signature)
         result += ABIConstants.TYPE_MANGLING_DELIMITER
@@ -70,6 +111,22 @@ object Mangler {
         return result
     }
 
+    /**
+     * Mangles a function signature with a SymbolName into a string representation.
+     *
+     * This overload first mangles the SymbolName into a string and then uses that
+     * as the function name for the standard function mangling process.
+     *
+     * @param functionName The SymbolName of the function to mangle
+     * @param returnType The return type of the function
+     * @param parameterTypes The list of parameter types
+     * @param dispatchReceiverType The dispatch receiver type (for member functions)
+     * @param extensionReceiverType The extension receiver type (for extension functions)
+     * @param contextReceiverTypes The list of context receiver types
+     * @param typeArguments The list of type arguments for generic functions
+     * @return The mangled string representation of the function signature
+     * @see mangleFunction
+     */
     fun mangleFunction(
         functionName: SymbolName,
         returnType: Type = BuiltinType.VOID,
@@ -78,16 +135,13 @@ object Mangler {
         extensionReceiverType: Type? = null,
         contextReceiverTypes: List<Type> = emptyList(),
         typeArguments: List<Type> = emptyList()
-    ): String {
-        // package_name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
-        return mangleFunction(
-            mangle(functionName),
-            returnType,
-            parameterTypes,
-            dispatchReceiverType,
-            extensionReceiverType,
-            contextReceiverTypes,
-            typeArguments
-        )
-    }
+    ): String = mangleFunction(
+        mangle(functionName),
+        returnType,
+        parameterTypes,
+        dispatchReceiverType,
+        extensionReceiverType,
+        contextReceiverTypes,
+        typeArguments
+    )
 }

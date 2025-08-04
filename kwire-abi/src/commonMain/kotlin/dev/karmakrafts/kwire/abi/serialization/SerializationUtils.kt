@@ -22,7 +22,7 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> Buffer.writeOptional(value: T?, writer: (T, Buffer) -> Unit) {
+internal inline fun <T> Buffer.writeOptional(value: T?, writer: (T, Buffer) -> Unit) {
     contract {
         callsInPlace(writer, InvocationKind.AT_MOST_ONCE)
     }
@@ -31,7 +31,7 @@ inline fun <T> Buffer.writeOptional(value: T?, writer: (T, Buffer) -> Unit) {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> Buffer.readOptional(reader: (Buffer) -> T): T? {
+internal inline fun <T> Buffer.readOptional(reader: (Buffer) -> T): T? {
     contract {
         callsInPlace(reader, InvocationKind.AT_MOST_ONCE)
     }
@@ -39,11 +39,11 @@ inline fun <T> Buffer.readOptional(reader: (Buffer) -> T): T? {
     else reader(this)
 }
 
-inline fun <T> Buffer.writeList(values: List<T>, writer: (T, Buffer) -> Unit) {
+internal inline fun <T> Buffer.writeList(values: List<T>, writer: (T, Buffer) -> Unit) {
     writeInt(values.size)
     values.forEach { writer(it, this) }
 }
 
-inline fun <T> Buffer.readList(reader: (Buffer) -> T): List<T> {
+internal inline fun <T> Buffer.readList(reader: (Buffer) -> T): List<T> {
     return (0..<readInt()).map { reader(this) }
 }

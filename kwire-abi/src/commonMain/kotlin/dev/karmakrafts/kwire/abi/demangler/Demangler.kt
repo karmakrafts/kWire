@@ -29,6 +29,12 @@ import dev.karmakrafts.kwire.abi.type.withArguments
 import org.antlr.v4.kotlinruntime.BufferedTokenStream
 import org.antlr.v4.kotlinruntime.CharStreams
 
+/**
+ * Function type for resolving a structs field types by its symbol name.
+ * 
+ * @param name The symbol name of the struct to resolve
+ * @return A list of field types contained in the struct
+ */
 typealias StructResolver = (name: SymbolName) -> List<Type>
 
 private class LazyStructType(
@@ -106,6 +112,20 @@ private class TypeConversionVisitor(
     }
 }
 
+/**
+ * Represents a demangled function with all its type information.
+ *
+ * This data class contains all the information extracted from a mangled function signature,
+ * including the function name, return type, parameter types, receiver types, and type arguments.
+ *
+ * @property functionName The symbol name of the function
+ * @property returnType The return type of the function, defaults to VOID
+ * @property parameterTypes The list of parameter types, empty by default
+ * @property dispatchReceiverType The dispatch receiver type (this parameter), null if not present
+ * @property extensionReceiverType The extension receiver type, null if not present
+ * @property contextReceiverTypes The list of context receiver types, empty by default
+ * @property typeArguments The list of type arguments for generic functions, empty by default
+ */
 data class DemangledFunction(
     val functionName: SymbolName,
     val returnType: Type = BuiltinType.VOID,
@@ -116,7 +136,22 @@ data class DemangledFunction(
     val typeArguments: List<Type> = emptyList()
 )
 
+/**
+ * Utility object for demangling mangled symbol names and type signatures.
+ * 
+ * The Demangler provides functionality to convert mangled names and signatures back into their
+ * original form, extracting type information and structure in the process.
+ */
 object Demangler {
+    /**
+     * Demangles a mangled symbol name into a SymbolName object.
+     *
+     * This method parses a mangled symbol name and extracts the package name and short name
+     * components, handling special delimiters and escape sequences in the process.
+     *
+     * @param value The mangled symbol name to demangle
+     * @return A SymbolName object containing the full name and short name
+     */
     fun demangleName(value: String): SymbolName {
         val charStream = CharStreams.fromString(value)
         val lexer = SymbolNameLexer(charStream)
@@ -147,6 +182,16 @@ object Demangler {
         return SymbolName(fullName, shortName)
     }
 
+    /**
+     * Demangles a mangled type signature into a list of types.
+     *
+     * This method parses a mangled type signature and converts it into a list of Type objects,
+     * using the provided struct resolver to resolve any struct types encountered during demangling.
+     *
+     * @param value The mangled type signature to demangle
+     * @param structResolver A function that resolves struct types by their symbol name
+     * @return A list of Type objects representing the demangled types
+     */
     fun demangle(value: String, structResolver: StructResolver): List<Type> {
         val charStream = CharStreams.fromString(value)
         val lexer = DemanglerLexer(charStream)
@@ -155,17 +200,39 @@ object Demangler {
         return parser.signature().accept(TypeConversionVisitor(structResolver))
     }
 
+    /**
+     * Demangles a mangled type signature and returns the first type.
+     *
+     * This is a convenience method that calls [demangle] and returns the first type from the result.
+     * It's useful when demangling a signature that is known to contain only a single type.
+     *
+     * @param value The mangled type signature to demangle
+     * @param structResolver A function that resolves struct types by their symbol name
+     * @return The first Type object from the demangled types
+     * @throws NoSuchElementException if the demangled list is empty
+     */
     fun demangleFirst(value: String, structResolver: StructResolver): Type = demangle(value, structResolver).first()
 
+    /**
+     * Demangles a mangled function signature into a DemangledFunction object.
+     *
+     * This method parses a mangled function signature and extracts all the components,
+     * including the function name, return type, parameter types, receiver types, and type arguments.
+     * 
+     * Function signatures are mangled in the following way:
+     * ```
+     *      (package_)?name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
+     * ```
+     * Where:
+     * - R and P are return type and parameter types
+     * - D, E and C are dispatch-, extension- and context-receivers respectively
+     * - T are type arguments
+     *
+     * @param value The mangled function signature to demangle
+     * @param structResolver A function that resolves struct types by their symbol name
+     * @return A DemangledFunction object containing all the extracted information
+     */
     fun demangleFunction(value: String, structResolver: StructResolver): DemangledFunction {
-        // Function signatures are mangled in the following way:
-        //
-        //      (package_)?name$$RP*$$(D$$|$$)(E$$|$$)(C+$$|$$)T*
-        //
-        // Where R and P are return type and parameter types,
-        // D, E and C are dispatch-, extension- and context-receivers respectfully,
-        // T are type arguments.
-        //
         // The implementation below just reduces the input string by jumping from $$ to $$.
 
         var currentValue = value
