@@ -46,10 +46,6 @@ private class TypeConversionVisitor(
 
     override fun aggregateResult(aggregate: List<Type>, nextResult: List<Type>): List<Type> = aggregate + nextResult
 
-    override fun visitSignature(ctx: DemanglerParser.SignatureContext): List<Type> {
-        return ctx.type().flatMap(::visitType)
-    }
-
     override fun visitType(ctx: DemanglerParser.TypeContext): List<Type> {
         isNullable = ctx.NULLABLE_SUFFIX() != null
         val types = super.visitType(ctx)

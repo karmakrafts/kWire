@@ -23,13 +23,15 @@ import kotlinx.io.readByteArray
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
+private const val CHUNK_SIZE: Int = 4096
+
 @PublishedApi
 internal actual fun deflate(buffer: Buffer): Buffer {
     val deflater = Deflater()
     deflater.setInput(buffer.readByteArray())
     deflater.finish()
     val compressed = Buffer()
-    val chunkBuffer = ByteArray(4096)
+    val chunkBuffer = ByteArray(CHUNK_SIZE)
     while (!deflater.finished()) {
         val bytesCompressed = deflater.deflate(chunkBuffer)
         compressed.write(chunkBuffer, 0, bytesCompressed)
@@ -43,7 +45,7 @@ internal actual fun inflate(buffer: Buffer): Buffer {
     val inflater = Inflater()
     inflater.setInput(buffer.readByteArray())
     val decompressed = Buffer()
-    val chunkBuffer = ByteArray(4096)
+    val chunkBuffer = ByteArray(CHUNK_SIZE)
     while (!inflater.finished()) {
         val bytesDecompressed = inflater.inflate(chunkBuffer)
         decompressed.write(chunkBuffer, 0, bytesDecompressed)
