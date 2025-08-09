@@ -27,7 +27,7 @@ import dev.karmakrafts.kwire.compiler.util.call
 import dev.karmakrafts.kwire.compiler.util.getObjectInstance
 import dev.karmakrafts.kwire.compiler.util.markedConst
 import dev.karmakrafts.kwire.compiler.util.new
-import dev.karmakrafts.kwire.compiler.util.toVararg
+import dev.karmakrafts.kwire.compiler.util.createVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -131,6 +131,6 @@ internal class KWirePluginContext( // @formatter:off
         values: List<IrExpression>
     ): IrCall = kwireSymbols.listOf.call(
         typeArguments = mapOf("T" to type),
-        valueArguments = mapOf("elements" to values.toVararg(this, type))
+        valueArguments = mapOf("elements" to values.createVararg(this, type))
     ) // @formatter:on
 }

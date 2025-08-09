@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.compiler.util
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
 import dev.karmakrafts.kwire.compiler.transformer.ptrIntrinsicOrigin
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
@@ -29,6 +30,7 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -43,6 +45,7 @@ import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
@@ -56,6 +59,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
@@ -428,7 +432,7 @@ internal inline fun <T> T.getEnumValue(
     symbol = type.getEnumConstant(this.mapper())
 )
 
-internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompositeImpl( // @formatter:off
+internal fun List<IrStatement>.createComposite(type: IrType): IrComposite = IrCompositeImpl( // @formatter:off
     startOffset = SYNTHETIC_OFFSET,
     endOffset = SYNTHETIC_OFFSET,
     type = type,
@@ -436,7 +440,7 @@ internal fun List<IrStatement>.toComposite(type: IrType): IrComposite = IrCompos
     statements = this
 ) // @formatter:on
 
-internal fun List<IrStatement>.toBlock(type: IrType, origin: IrStatementOrigin? = null): IrBlock = IrBlockImpl( // @formatter:off
+internal fun List<IrStatement>.createBlock(type: IrType, origin: IrStatementOrigin? = null): IrBlock = IrBlockImpl( // @formatter:off
     startOffset = SYNTHETIC_OFFSET,
     endOffset = SYNTHETIC_OFFSET,
     type = type,
@@ -444,7 +448,7 @@ internal fun List<IrStatement>.toBlock(type: IrType, origin: IrStatementOrigin? 
     statements = this
 ) // @formatter:on
 
-internal fun List<IrVarargElement>.toVararg(context: KWirePluginContext, type: IrType): IrVararg = IrVarargImpl(
+internal fun List<IrVarargElement>.createVararg(context: KWirePluginContext, type: IrType): IrVararg = IrVarargImpl(
     startOffset = SYNTHETIC_OFFSET,
     endOffset = SYNTHETIC_OFFSET,
     type = context.irBuiltIns.arrayClass.typeWith(type),
@@ -559,3 +563,19 @@ internal inline fun <reified E : IrElement> IrElement.findChild(crossinline pred
     })
     return result
 }
+
+internal fun IrSimpleFunction.createExpression(
+    context: KWirePluginContext, startOffset: Int = SYNTHETIC_OFFSET, endOffset: Int = SYNTHETIC_OFFSET
+): IrFunctionExpression = IrFunctionExpressionImpl(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = getFunctionType(context),
+    function = this,
+    origin = IrStatementOrigin.LAMBDA
+)
+
+internal fun IrSymbolOwner.declarationBuilder(
+    context: KWirePluginContext, startOffset: Int = SYNTHETIC_OFFSET, endOffset: Int = SYNTHETIC_OFFSET
+): DeclarationIrBuilder = DeclarationIrBuilder(
+    generatorContext = context, symbol = symbol, startOffset = startOffset, endOffset = endOffset
+)

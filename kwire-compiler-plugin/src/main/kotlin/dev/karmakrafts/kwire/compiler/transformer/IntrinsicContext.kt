@@ -53,14 +53,6 @@ internal class IntrinsicContext(  // @formatter:off
         return null
     }
 
-    fun findLocalReference(address: IrValueDeclaration): IrValueDeclaration? {
-        for (scope in allocationScopeStack.reversed()) {
-            val ref = scope.getLocalReference(address) ?: continue
-            return ref
-        }
-        return null
-    }
-
     fun pushScript(script: IrScript) {
         parentStack.push(script)
     }

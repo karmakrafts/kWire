@@ -16,7 +16,6 @@
 
 package dev.karmakrafts.kwire.compiler.util
 
-import org.jetbrains.kotlin.backend.common.getCompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrElement
@@ -29,18 +28,24 @@ interface MessageCollectorExtensions {
     fun reportInfo(message: String, location: CompilerMessageLocation? = null) =
         messageCollector.info(message, location)
 
-    fun reportInfo(message: String, element: IrElement) =
-        reportInfo(message, element.getCompilerMessageLocation(irFile))
-
     fun reportWarn(message: String, location: CompilerMessageLocation? = null) =
         messageCollector.warn(message, location)
-
-    fun reportWarn(message: String, element: IrElement) =
-        reportWarn(message, element.getCompilerMessageLocation(irFile))
 
     fun reportError(message: String, location: CompilerMessageLocation? = null) =
         messageCollector.error(message, location)
 
-    fun reportError(message: String, element: IrElement) =
-        reportError(message, element.getCompilerMessageLocation(irFile))
+    fun <E : IrElement> reportInfo(message: String, element: E): E {
+        reportInfo(message, element)
+        return element
+    }
+
+    fun <E : IrElement> reportWarn(message: String, element: E): E {
+        reportWarn(message, element)
+        return element
+    }
+
+    fun <E : IrElement> reportError(message: String, element: E): E {
+        reportError(message, element)
+        return element
+    }
 }

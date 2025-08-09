@@ -17,7 +17,7 @@
 package dev.karmakrafts.kwire.compiler.memory.scope
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.toBlock
+import dev.karmakrafts.kwire.compiler.util.createBlock
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -38,7 +38,7 @@ internal class BlockAllocationScope(
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
             type = type,
-            tryResult = (localRef2Address.values + oldStatements).toBlock(type, statementOrigin),
+            tryResult = (localRef2Address.values + oldStatements).createBlock(type, statementOrigin),
             catches = emptyList(),
             finallyExpression = context.memoryStack.pop(loadStack())
         )

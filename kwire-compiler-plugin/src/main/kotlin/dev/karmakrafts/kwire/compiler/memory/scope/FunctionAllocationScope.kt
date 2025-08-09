@@ -17,7 +17,7 @@
 package dev.karmakrafts.kwire.compiler.memory.scope
 
 import dev.karmakrafts.kwire.compiler.KWirePluginContext
-import dev.karmakrafts.kwire.compiler.util.toBlock
+import dev.karmakrafts.kwire.compiler.util.createBlock
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
@@ -46,7 +46,7 @@ internal class FunctionAllocationScope( // @formatter:off
             startOffset = SYNTHETIC_OFFSET,
             endOffset = SYNTHETIC_OFFSET,
             type = returnType,
-            tryResult = (localRef2Address.values + body.statements).toBlock(returnType, statementOrigin),
+            tryResult = (localRef2Address.values + body.statements).createBlock(returnType, statementOrigin),
             catches = emptyList(),
             finallyExpression = context.memoryStack.pop(loadStack())
         )
@@ -54,7 +54,7 @@ internal class FunctionAllocationScope( // @formatter:off
             is IrFunction -> element.body = context.irFactory.createExpressionBody( // @formatter:off
                 startOffset = SYNTHETIC_OFFSET,
                 endOffset = SYNTHETIC_OFFSET,
-                expression = listOf(stackVariable, tryExpression).toBlock(returnType, statementOrigin)
+                expression = listOf(stackVariable, tryExpression).createBlock(returnType, statementOrigin)
             )
             is IrAnonymousInitializer -> {
                 val statements = element.body.statements

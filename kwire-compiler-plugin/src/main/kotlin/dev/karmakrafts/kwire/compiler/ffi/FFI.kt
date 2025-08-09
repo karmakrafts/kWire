@@ -25,7 +25,7 @@ import dev.karmakrafts.kwire.compiler.util.isAssignableFrom
 import dev.karmakrafts.kwire.compiler.util.isPtr
 import dev.karmakrafts.kwire.compiler.util.load
 import dev.karmakrafts.kwire.compiler.util.reinterpret
-import dev.karmakrafts.kwire.compiler.util.toVararg
+import dev.karmakrafts.kwire.compiler.util.createVararg
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -102,7 +102,7 @@ internal class FFI(
             dispatchReceiver = ffiDescriptorCompanionType.getObjectInstance(),
             valueArguments = mapOf(
                 "returnType" to returnType,
-                "parameterTypes" to parameterTypes.toVararg(context, ffiTypeType.defaultType)
+                "parameterTypes" to parameterTypes.createVararg(context, ffiTypeType.defaultType)
             )
         ) // @formatter:on
     }
