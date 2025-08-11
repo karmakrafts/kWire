@@ -18,6 +18,8 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
+import dev.karmakrafts.kwire.abi.serialization.readList
+import dev.karmakrafts.kwire.abi.serialization.writeList
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -54,8 +56,8 @@ data class ConeType( // @formatter:off
             val version = buffer.readByte()
             check(version <= VERSION) { "Expected version $VERSION builtin type but got version $version" }
             return ConeType(
-                genericType = Type.deserialize(buffer),
-                typeArguments = (0..<buffer.readInt()).map { TypeArgument.deserialize(buffer) })
+                genericType = Type.deserialize(buffer), typeArguments = buffer.readList(TypeArgument)
+            )
         }
     }
 
@@ -84,10 +86,7 @@ data class ConeType( // @formatter:off
         buffer.writeByte(ABIConstants.TYPE_KIND_CONE)
         buffer.writeByte(VERSION)
         genericType.serialize(buffer)
-        buffer.writeInt(typeArguments.size)
-        for (type in typeArguments) {
-            type.serialize(buffer)
-        }
+        buffer.writeList(typeArguments)
     }
 }
 

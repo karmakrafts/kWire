@@ -18,6 +18,8 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
+import dev.karmakrafts.kwire.abi.serialization.readList
+import dev.karmakrafts.kwire.abi.serialization.writeList
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -52,8 +54,8 @@ open class StructType( // @formatter:off
             val version = buffer.readByte()
             check(version <= VERSION) { "Expected version $VERSION struct type but got version $version" }
             return StructType(
-                symbolName = SymbolName.deserialize(buffer),
-                fields = (0..<buffer.readInt()).map { Type.deserialize(buffer) })
+                symbolName = SymbolName.deserialize(buffer), fields = buffer.readList(Type)
+            )
         }
     }
 
@@ -113,10 +115,7 @@ open class StructType( // @formatter:off
         buffer.writeByte(ABIConstants.TYPE_KIND_STRUCT)
         buffer.writeByte(VERSION)
         symbolName.serialize(buffer)
-        buffer.writeInt(fields.size)
-        for (field in fields) {
-            field.serialize(buffer)
-        }
+        buffer.writeList(fields)
     }
 
     override fun hashCode(): Int {

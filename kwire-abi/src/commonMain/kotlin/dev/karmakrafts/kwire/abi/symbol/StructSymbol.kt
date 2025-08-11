@@ -62,9 +62,9 @@ class StructSymbol(
             return StructSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
-                originalInfo = buffer.readOptional(SymbolInfo::deserialize),
-                typeArguments = buffer.readList(Type::deserialize),
-                fields = buffer.readList(Type::deserialize)
+                originalInfo = buffer.readOptional(SymbolInfo),
+                typeArguments = buffer.readList(Type),
+                fields = buffer.readList(Type)
             )
         }
     }
@@ -79,8 +79,8 @@ class StructSymbol(
         buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
-        buffer.writeOptional(originalInfo, SymbolInfo::serialize)
-        buffer.writeList(typeArguments, Type::serialize)
-        buffer.writeList(fields, Type::serialize)
+        buffer.writeOptional(originalInfo)
+        buffer.writeList(typeArguments)
+        buffer.writeList(fields)
     }
 }

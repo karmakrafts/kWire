@@ -67,13 +67,13 @@ data class FunctionSymbol(
             return FunctionSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
-                originalInfo = buffer.readOptional(SymbolInfo::deserialize),
-                typeArguments = buffer.readList(Type::deserialize),
+                originalInfo = buffer.readOptional(SymbolInfo),
+                typeArguments = buffer.readList(Type),
                 returnType = Type.deserialize(buffer),
-                parameterTypes = buffer.readList(Type::deserialize),
-                dispatchReceiverType = buffer.readOptional(Type::deserialize),
-                extensionReceiverType = buffer.readOptional(Type::deserialize),
-                contextReceiverTypes = buffer.readList(Type::deserialize)
+                parameterTypes = buffer.readList(Type),
+                dispatchReceiverType = buffer.readOptional(Type),
+                extensionReceiverType = buffer.readOptional(Type),
+                contextReceiverTypes = buffer.readList(Type)
             )
         }
     }
@@ -88,12 +88,12 @@ data class FunctionSymbol(
         buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
-        buffer.writeOptional(originalInfo, SymbolInfo::serialize)
-        buffer.writeList(typeArguments, Type::serialize)
+        buffer.writeOptional(originalInfo)
+        buffer.writeList(typeArguments)
         returnType.serialize(buffer)
-        buffer.writeList(parameterTypes, Type::serialize)
-        buffer.writeOptional(dispatchReceiverType, Type::serialize)
-        buffer.writeOptional(extensionReceiverType, Type::serialize)
-        buffer.writeList(contextReceiverTypes, Type::serialize)
+        buffer.writeList(parameterTypes)
+        buffer.writeOptional(dispatchReceiverType)
+        buffer.writeOptional(extensionReceiverType)
+        buffer.writeList(contextReceiverTypes)
     }
 }

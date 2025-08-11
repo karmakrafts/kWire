@@ -60,8 +60,8 @@ data class ClassSymbol(
             return ClassSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
-                originalInfo = buffer.readOptional(SymbolInfo::deserialize),
-                typeArguments = buffer.readList(Type::deserialize)
+                originalInfo = buffer.readOptional(SymbolInfo),
+                typeArguments = buffer.readList(Type)
             )
         }
     }
@@ -76,7 +76,7 @@ data class ClassSymbol(
         buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
-        buffer.writeOptional(originalInfo, SymbolInfo::serialize)
-        buffer.writeList(typeArguments, Type::serialize)
+        buffer.writeOptional(originalInfo)
+        buffer.writeList(typeArguments)
     }
 }

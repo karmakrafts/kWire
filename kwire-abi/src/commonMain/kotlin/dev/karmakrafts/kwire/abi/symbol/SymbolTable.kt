@@ -48,7 +48,7 @@ data class SymbolTable internal constructor(
         override fun deserialize(buffer: Buffer): SymbolTable {
             val version = buffer.readByte()
             check(version <= VERSION) { "Expected version $VERSION symbol table but got version $version" }
-            return SymbolTable(buffer.readList(Symbol::deserialize))
+            return SymbolTable(buffer.readList(Symbol))
         }
 
         /**
@@ -87,7 +87,7 @@ data class SymbolTable internal constructor(
      */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(VERSION)
-        buffer.writeList(entries, Symbol::serialize)
+        buffer.writeList(entries)
     }
 
     // TODO: document this
