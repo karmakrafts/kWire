@@ -35,7 +35,7 @@ sealed interface Type : SymbolNameProvider, BinarySerializable {
     companion object : PolymorphicBinaryDeserializer<Type, Byte>( // @formatter:off
         Source::readByte,
         mapOf(
-            ABIConstants.TYPE_KIND_BUILTIN to BuiltinType,
+            ABIConstants.TYPE_KIND_BUILTIN to BuiltinType.Serde,
             ABIConstants.TYPE_KIND_ARRAY to ArrayType,
             ABIConstants.TYPE_KIND_STRUCT to StructType,
             ABIConstants.TYPE_KIND_REFERENCE to ReferenceType,

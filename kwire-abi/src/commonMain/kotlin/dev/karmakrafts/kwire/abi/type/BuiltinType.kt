@@ -71,7 +71,8 @@ enum class BuiltinType(
     // @formatter:on
     ;
 
-    companion object : BinaryDeserializer<BuiltinType> {
+    // Cannot use companion object here because of enum initialization semantics
+    object Serde : BinaryDeserializer<BuiltinType> {
         const val VERSION: Byte = 1
 
         /**
@@ -117,7 +118,7 @@ enum class BuiltinType(
      */
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(ABIConstants.TYPE_KIND_BUILTIN)
-        buffer.writeByte(VERSION)
+        buffer.writeByte(Serde.VERSION)
         buffer.writeByte(ordinal.toByte())
     }
 }

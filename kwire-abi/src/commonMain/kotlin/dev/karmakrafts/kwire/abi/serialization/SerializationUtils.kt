@@ -45,5 +45,7 @@ internal inline fun <T> Buffer.writeList(values: List<T>, writer: (T, Buffer) ->
 }
 
 internal inline fun <T> Buffer.readList(reader: (Buffer) -> T): List<T> {
-    return (0..<readInt()).map { reader(this) }
+    val listSize = readInt()
+    if(listSize == 0) return emptyList()
+    return (0..<listSize).map { reader(this) }
 }

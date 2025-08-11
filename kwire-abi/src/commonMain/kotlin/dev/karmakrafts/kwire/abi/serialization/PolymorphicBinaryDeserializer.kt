@@ -25,6 +25,7 @@ open class PolymorphicBinaryDeserializer<T, K>( // @formatter:off
 ) : BinaryDeserializer<T> { // @formatter:on
     override fun deserialize(buffer: Buffer): T {
         val kind = kindSelector(buffer.peek())
-        return delegates[kind]?.deserialize(buffer) ?: error("No deserializer for ABI element kind $kind")
+        val deserializer = delegates[kind] ?: error("No deserializer for ABI element kind $kind")
+        return deserializer.deserialize(buffer)
     }
 }
