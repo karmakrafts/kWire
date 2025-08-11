@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -43,10 +44,7 @@ class StructSymbol(
     val fields: List<Type>
 ) : Symbol {
     companion object {
-        /**
-         * The kind identifier for struct symbols.
-         */
-        const val KIND: Byte = 2
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes a StructSymbol from the given buffer.
@@ -57,7 +55,9 @@ class StructSymbol(
          */
         fun deserialize(buffer: Buffer): StructSymbol {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected struct symbol kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.SYMBOL_KIND_STRUCT) { "Expected struct symbol kind (${ABIConstants.SYMBOL_KIND_STRUCT}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION struct symbol but got version $version" }
             return StructSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
@@ -74,7 +74,8 @@ class StructSymbol(
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.SYMBOL_KIND_STRUCT)
+        buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
         buffer.writeOptional(originalInfo, SymbolInfo::serialize)

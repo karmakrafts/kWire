@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -41,10 +42,7 @@ data class ClassSymbol(
     override val typeArguments: List<Type>
 ) : Symbol {
     companion object {
-        /**
-         * The kind identifier for class symbols.
-         */
-        const val KIND: Byte = 1
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes a ClassSymbol from the given buffer.
@@ -55,7 +53,9 @@ data class ClassSymbol(
          */
         fun deserialize(buffer: Buffer): ClassSymbol {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected class symbol kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.SYMBOL_KIND_CLASS) { "Expected class symbol kind (${ABIConstants.SYMBOL_KIND_CLASS}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION class symbol but got version $version" }
             return ClassSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
@@ -71,7 +71,8 @@ data class ClassSymbol(
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.SYMBOL_KIND_CLASS)
+        buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
         buffer.writeOptional(originalInfo, SymbolInfo::serialize)

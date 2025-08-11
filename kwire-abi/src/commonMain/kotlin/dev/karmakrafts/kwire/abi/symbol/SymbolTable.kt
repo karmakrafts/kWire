@@ -35,6 +35,8 @@ data class SymbolTable internal constructor(
     val entries: List<Symbol>
 ) {
     companion object {
+        const val VERSION: Byte = 1
+
         /**
          * Deserializes a SymbolTable from the given buffer.
          *
@@ -42,6 +44,8 @@ data class SymbolTable internal constructor(
          * @return The deserialized SymbolTable
          */
         fun deserialize(buffer: Buffer): SymbolTable {
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION symbol table but got version $version" }
             return SymbolTable(buffer.readList(Symbol::deserialize))
         }
 
@@ -80,6 +84,7 @@ data class SymbolTable internal constructor(
      * @param buffer The buffer to write to
      */
     fun serialize(buffer: Buffer) {
+        buffer.writeByte(VERSION)
         buffer.writeList(entries, Symbol::serialize)
     }
 

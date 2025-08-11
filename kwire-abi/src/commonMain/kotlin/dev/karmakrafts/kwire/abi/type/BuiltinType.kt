@@ -20,7 +20,6 @@ import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
-import dev.karmakrafts.kwire.abi.type.BuiltinType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -72,21 +71,20 @@ enum class BuiltinType(
     ;
 
     companion object {
-        /**
-         * The kind byte that identifies a BuiltinType during serialization/deserialization.
-         */
-        const val KIND: Byte = 0
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes a [BuiltinType] from the given [buffer].
          *
          * @param buffer The buffer to read from
          * @return The deserialized [BuiltinType]
-         * @throws IllegalStateException if the type kind is not [KIND]
+         * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_BUILTIN]
          */
         fun deserialize(buffer: Buffer): BuiltinType {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected builtin type kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.TYPE_KIND_BUILTIN) { "Expected builtin type kind (${ABIConstants.TYPE_KIND_BUILTIN}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION builtin type but got version $version" }
             return BuiltinType.entries[buffer.readByte().toInt()]
         }
     }
@@ -114,14 +112,11 @@ enum class BuiltinType(
     /**
      * Serializes this built-in type to the given [buffer].
      *
-     * The serialization format is:
-     * 1. The kind byte ([KIND])
-     * 2. The ordinal of this enum constant as a byte
-     *
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.TYPE_KIND_BUILTIN)
+        buffer.writeByte(VERSION)
         buffer.writeByte(ordinal.toByte())
     }
 }

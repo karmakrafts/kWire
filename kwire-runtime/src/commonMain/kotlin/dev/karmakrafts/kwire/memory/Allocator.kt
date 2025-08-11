@@ -165,7 +165,7 @@ inline fun Allocator.nFloat(value: NFloat): Ptr<NFloat> {
     return address.reinterpret()
 }
 
-inline fun <A : Ptr<*>> Allocator.pointer(value: A): Ptr<A> {
+inline fun <P : Ptr<*>> Allocator.pointer(value: P): Ptr<P> {
     val address = allocate(Ptr.SIZE_BYTES.toNUInt(), Ptr.SIZE_BYTES.toNUInt())
     Memory.writePointer(address, value)
     return address.reinterpret()
@@ -256,13 +256,13 @@ inline fun Allocator.nFloats(vararg values: NFloat): Ptr<NFloat> {
     return address.reinterpret()
 }
 
-inline fun <A : Ptr<*>> Allocator.pointers(vararg values: A): Ptr<A> {
+inline fun <P : Ptr<*>> Allocator.pointers(vararg values: P): Ptr<P> {
     val address = allocate(Ptr.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Ptr.SIZE_BYTES.toNUInt())
     Memory.writePointers(address, ptrArrayOf(*values))
     return address.reinterpret()
 }
 
-inline fun <A : Ptr<*>> Allocator.pointers(values: PtrArray<A>): Ptr<A> {
+inline fun <P : Ptr<*>> Allocator.pointers(values: PtrArray<P>): Ptr<P> {
     val address = allocate(Ptr.SIZE_BYTES.toNUInt() * values.size.toNUInt(), Ptr.SIZE_BYTES.toNUInt())
     Memory.writePointers(address, values)
     return address.reinterpret()

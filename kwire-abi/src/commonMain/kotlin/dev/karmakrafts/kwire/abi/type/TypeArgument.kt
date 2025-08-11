@@ -16,8 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.type
 
-import dev.karmakrafts.kwire.abi.type.TypeArgument.Concrete.Companion.KIND
-import dev.karmakrafts.kwire.abi.type.TypeArgument.Star.KIND
+import dev.karmakrafts.kwire.abi.ABIConstants
 import kotlinx.io.Buffer
 
 /**
@@ -38,8 +37,8 @@ sealed interface TypeArgument {
         fun deserialize(buffer: Buffer): TypeArgument {
             val kind = buffer.peek().readByte()
             return when (kind) {
-                Star.KIND -> Star.deserialize(buffer)
-                Concrete.KIND -> Concrete.deserialize(buffer)
+                ABIConstants.TYPE_ARG_KIND_STAR -> Star.deserialize(buffer)
+                ABIConstants.TYPE_ARG_KIND_CONCRETE -> Concrete.deserialize(buffer)
                 else -> error("Unknown ABI type argument kind")
             }
         }
@@ -61,10 +60,7 @@ sealed interface TypeArgument {
      * Represents a wildcard type argument (*) in the ABI system.
      */
     data object Star : TypeArgument {
-        /**
-         * The kind byte that identifies a Star type argument during serialization/deserialization.
-         */
-        const val KIND: Byte = 0
+        const val VERSION: Byte = 1
 
         /**
          * The mangled name of this wildcard type argument, which is always "_".
@@ -74,12 +70,13 @@ sealed interface TypeArgument {
         /**
          * Serializes this wildcard type argument to the given [buffer].
          *
-         * The serialization format is simply the kind byte ([KIND]).
+         * The serialization format is simply the kind byte ([ABIConstants.TYPE_ARG_KIND_STAR]).
          *
          * @param buffer The buffer to write to
          */
         override fun serialize(buffer: Buffer) {
-            buffer.writeByte(KIND)
+            buffer.writeByte(ABIConstants.TYPE_ARG_KIND_STAR)
+            buffer.writeByte(VERSION)
         }
 
         /**
@@ -87,11 +84,13 @@ sealed interface TypeArgument {
          *
          * @param buffer The buffer to read from
          * @return The [Star] singleton
-         * @throws IllegalStateException if the type argument kind is not [KIND]
+         * @throws IllegalStateException if the type argument kind is not [ABIConstants.TYPE_ARG_KIND_STAR]
          */
         fun deserialize(buffer: Buffer): Star {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected star type argument kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.TYPE_ARG_KIND_STAR) { "Expected star type argument kind (${ABIConstants.TYPE_ARG_KIND_STAR}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION star type argument but got version $version" }
             return Star
         }
     }
@@ -103,21 +102,20 @@ sealed interface TypeArgument {
      */
     data class Concrete(val type: Type) : TypeArgument {
         companion object {
-            /**
-             * The kind byte that identifies a Concrete type argument during serialization/deserialization.
-             */
-            const val KIND: Byte = 1
+            const val VERSION: Byte = 1
 
             /**
              * Deserializes a [Concrete] from the given [buffer].
              *
              * @param buffer The buffer to read from
              * @return The deserialized [Concrete]
-             * @throws IllegalStateException if the type argument kind is not [KIND]
+             * @throws IllegalStateException if the type argument kind is not [ABIConstants.TYPE_ARG_KIND_CONCRETE]
              */
             fun deserialize(buffer: Buffer): Concrete {
                 val kind = buffer.readByte()
-                check(kind == Star.KIND) { "Expected concrete type argument kind (${KIND}) while deserializing but got $kind" }
+                check(kind == ABIConstants.TYPE_ARG_KIND_CONCRETE) { "Expected concrete type argument kind (${ABIConstants.TYPE_ARG_KIND_CONCRETE}) while deserializing but got $kind" }
+                val version = buffer.readByte()
+                check(version <= VERSION) { "Expected version $VERSION concrete type argument but got version $version" }
                 return Concrete(Type.deserialize(buffer))
             }
         }
@@ -130,14 +128,11 @@ sealed interface TypeArgument {
         /**
          * Serializes this concrete type argument to the given [buffer].
          *
-         * The serialization format is:
-         * 1. The kind byte ([KIND])
-         * 2. The concrete type
-         *
          * @param buffer The buffer to write to
          */
         override fun serialize(buffer: Buffer) {
-            buffer.writeByte(KIND)
+            buffer.writeByte(ABIConstants.TYPE_ARG_KIND_CONCRETE)
+            buffer.writeByte(VERSION)
             type.serialize(buffer)
         }
     }

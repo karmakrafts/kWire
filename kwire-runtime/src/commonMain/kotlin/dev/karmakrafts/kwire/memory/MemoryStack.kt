@@ -68,6 +68,9 @@ class MemoryStack private constructor() : Allocator {
 
     override fun allocate(size: NUInt, alignment: NUInt): Ptr<CVoid> {
         val alignedSize = Memory.align(size, alignment)
+        val currentStackSize = frameAddress.rawAddress - address.rawAddress
+        val newStackSize = currentStackSize + alignedSize
+        check(newStackSize <= stackSize) { "Out of stack space, consider allocating bigger amounts of data on the heap" }
         val address = frameAddress
         frameAddress = (frameAddress.asNUInt() + alignedSize).asPtr()
         return address.align(alignment)

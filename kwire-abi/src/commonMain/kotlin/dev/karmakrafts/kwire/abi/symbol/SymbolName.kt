@@ -34,6 +34,8 @@ data class SymbolName( // @formatter:off
     val shortName: String
 ) { // @formatter:on
     companion object {
+        const val VERSION: Byte = 1
+
         /**
          * The separator used in symbol names to separate segments.
          */
@@ -46,6 +48,8 @@ data class SymbolName( // @formatter:off
          * @return The deserialized SymbolName
          */
         fun deserialize(buffer: Buffer): SymbolName {
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION symbol info but got version $version" }
             val fullNameLength = buffer.readInt()
             val fullName = buffer.readString(fullNameLength.toLong())
             val shortNameLength = buffer.readInt()
@@ -89,6 +93,7 @@ data class SymbolName( // @formatter:off
      * @param buffer The buffer to write to
      */
     fun serialize(buffer: Buffer) {
+        buffer.writeByte(VERSION)
         buffer.writeInt(fullName.length)
         buffer.writeString(fullName)
         buffer.writeInt(shortName.length)

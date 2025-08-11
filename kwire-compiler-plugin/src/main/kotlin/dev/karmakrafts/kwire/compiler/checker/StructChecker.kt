@@ -44,9 +44,10 @@ internal class StructChecker(
         context.checkerFailed = true
     }
 
-    override fun reportError(message: String, element: IrElement) {
+    override fun <E : IrElement> reportError(message: String, element: E): E {
         super.reportError(message, element)
         context.checkerFailed = true
+        return element
     }
 
     override fun visitElement(element: IrElement) {

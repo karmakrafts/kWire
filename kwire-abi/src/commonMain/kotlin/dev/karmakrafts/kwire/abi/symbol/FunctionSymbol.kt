@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -48,10 +49,7 @@ data class FunctionSymbol(
     val contextReceiverTypes: List<Type>
 ) : Symbol {
     companion object {
-        /**
-         * The kind identifier for function symbols.
-         */
-        const val KIND: Byte = 0
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes a FunctionSymbol from the given buffer.
@@ -62,7 +60,9 @@ data class FunctionSymbol(
          */
         fun deserialize(buffer: Buffer): FunctionSymbol {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected function symbol kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.SYMBOL_KIND_FUNCTION) { "Expected function symbol kind (${ABIConstants.SYMBOL_KIND_FUNCTION}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION function symbol but got version $version" }
             return FunctionSymbol(
                 id = buffer.readInt(),
                 info = SymbolInfo.deserialize(buffer),
@@ -83,7 +83,8 @@ data class FunctionSymbol(
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.SYMBOL_KIND_FUNCTION)
+        buffer.writeByte(VERSION)
         buffer.writeInt(id)
         info.serialize(buffer)
         buffer.writeOptional(originalInfo, SymbolInfo::serialize)

@@ -43,5 +43,18 @@ object ABIConstants {
     const val TYPE_MANGLING_DELIMITER: String = "$$"
     const val PACKAGE_MANGLING_DELIMITER: String = "_"
     const val ESC_PACKAGE_MANGLING_DELIMITER: String = "\$_"
-    const val NESTED_MANGLING_DELIMITER: String = "."
+
+    const val TYPE_KIND_BUILTIN: Byte = 0
+    const val TYPE_KIND_ARRAY: Byte = 1
+    const val TYPE_KIND_STRUCT: Byte = 2
+    const val TYPE_KIND_REFERENCE: Byte = 3
+    const val TYPE_KIND_CONE: Byte = 4
+    const val TYPE_KIND_NULLABLE: Byte = 5
+
+    const val TYPE_ARG_KIND_STAR: Byte = 0
+    const val TYPE_ARG_KIND_CONCRETE: Byte = 1
+
+    const val SYMBOL_KIND_CLASS: Byte = 0
+    const val SYMBOL_KIND_STRUCT: Byte = 1
+    const val SYMBOL_KIND_FUNCTION: Byte = 2
 }

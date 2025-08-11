@@ -38,6 +38,8 @@ data class SymbolInfo( // @formatter:off
     val file: String
 ) { // @formatter:on
     companion object {
+        const val VERSION: Byte = 1
+
         /**
          * Deserializes a SymbolInfo from the given buffer.
          *
@@ -45,6 +47,8 @@ data class SymbolInfo( // @formatter:off
          * @return The deserialized SymbolInfo
          */
         fun deserialize(buffer: Buffer): SymbolInfo {
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION symbol info but got version $version" }
             val name = SymbolName.deserialize(buffer)
             val line = buffer.readInt()
             val column = buffer.readInt()
@@ -67,6 +71,7 @@ data class SymbolInfo( // @formatter:off
      * @param buffer The buffer to write to
      */
     fun serialize(buffer: Buffer) {
+        buffer.writeByte(VERSION)
         name.serialize(buffer)
         buffer.writeInt(line)
         buffer.writeInt(column)

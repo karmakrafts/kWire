@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.serialization.deflate
 import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
@@ -39,11 +40,12 @@ sealed interface Type : SymbolNameProvider {
         fun deserialize(buffer: Buffer): Type {
             val kind = buffer.peek().readByte()
             return when (kind) {
-                BuiltinType.KIND -> BuiltinType.deserialize(buffer)
-                ArrayType.KIND -> ArrayType.deserialize(buffer)
-                StructType.KIND -> StructType.deserialize(buffer)
-                ReferenceType.KIND -> ReferenceType.deserialize(buffer)
-                ConeType.KIND -> ConeType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_BUILTIN -> BuiltinType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_ARRAY -> ArrayType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_STRUCT -> StructType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_REFERENCE -> ReferenceType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_CONE -> ConeType.deserialize(buffer)
+                ABIConstants.TYPE_KIND_NULLABLE -> NullableType.deserialize(buffer)
                 else -> error("Unknown ABI type kind")
             }
         }

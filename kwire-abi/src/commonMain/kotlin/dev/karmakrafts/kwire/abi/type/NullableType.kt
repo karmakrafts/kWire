@@ -16,9 +16,12 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.ABIConstants
+import kotlinx.io.Buffer
+
 /**
  * Represents a nullable version of a [Type].
- * 
+ *
  * This class wraps another type and delegates all [Type] interface methods to it,
  * except for [mangledName] which appends 'N' to the wrapped type's mangled name
  * to indicate nullability in the ABI.
@@ -26,14 +29,32 @@ package dev.karmakrafts.kwire.abi.type
  * @property actualType The underlying non-nullable type
  */
 data class NullableType(val actualType: Type) : Type by actualType {
+    companion object {
+        const val VERSION: Byte = 1
+
+        fun deserialize(buffer: Buffer): NullableType {
+            val kind = buffer.readByte()
+            check(kind == ABIConstants.TYPE_KIND_NULLABLE) { "Expected nullable type kind (${ABIConstants.TYPE_KIND_NULLABLE}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= ConeType.Companion.VERSION) { "Expected version $VERSION builtin type but got version $version" }
+            return NullableType(Type.deserialize(buffer))
+        }
+    }
+
     /**
      * The mangled name for this nullable type.
-     * 
+     *
      * The mangled name is created by appending 'N' to the end of the wrapped type's
      * mangled name, indicating that this is a nullable version of that type.
      */
     override val mangledName: String by lazy {
         "${actualType.mangledName}N"
+    }
+
+    override fun serialize(buffer: Buffer) {
+        buffer.writeByte(ABIConstants.TYPE_KIND_NULLABLE)
+        buffer.writeByte(VERSION)
+        super.serialize(buffer)
     }
 }
 

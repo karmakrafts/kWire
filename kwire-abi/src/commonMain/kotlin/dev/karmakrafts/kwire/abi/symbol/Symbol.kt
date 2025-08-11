@@ -16,6 +16,7 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.type.Type
 import kotlinx.io.Buffer
 
@@ -41,9 +42,9 @@ sealed interface Symbol {
         fun deserialize(buffer: Buffer): Symbol {
             val kind = buffer.peek().readByte() // Peek at the first byte to figure out symbol kind
             return when (kind) {
-                FunctionSymbol.KIND -> FunctionSymbol.deserialize(buffer)
-                ClassSymbol.KIND -> ClassSymbol.deserialize(buffer)
-                StructSymbol.KIND -> StructSymbol.deserialize(buffer)
+                ABIConstants.SYMBOL_KIND_FUNCTION -> FunctionSymbol.deserialize(buffer)
+                ABIConstants.SYMBOL_KIND_CLASS -> ClassSymbol.deserialize(buffer)
+                ABIConstants.SYMBOL_KIND_STRUCT -> StructSymbol.deserialize(buffer)
                 else -> error("Unknown ABI symbol kind")
             }
         }

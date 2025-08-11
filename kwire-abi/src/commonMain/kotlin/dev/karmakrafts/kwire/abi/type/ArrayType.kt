@@ -19,7 +19,6 @@ package dev.karmakrafts.kwire.abi.type
 import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
-import dev.karmakrafts.kwire.abi.type.ArrayType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -55,24 +54,24 @@ data class ArrayType( // @formatter:off
         val booleanArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.BooleanArray", "BooleanArray")
         val ptrArrayName: SymbolName = SymbolName("${ABIConstants.CTYPE_PACKAGE}.PtrArray", "PtrArray")
 
-        /**
-         * The kind byte that identifies an ArrayType during serialization/deserialization.
-         */
-        const val KIND: Byte = 1
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes an [ArrayType] from the given [buffer].
          *
          * @param buffer The buffer to read from
          * @return The deserialized [ArrayType]
-         * @throws IllegalStateException if the type kind is not [KIND]
+         * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_ARRAY]
          */
         fun deserialize(buffer: Buffer): ArrayType {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected array type kind ($KIND) while deserializing but got $kind" }
-            return ArrayType(
-                elementType = Type.deserialize(buffer), dimensions = buffer.readInt()
-            )
+            check(kind == ABIConstants.TYPE_KIND_ARRAY) { "Expected array type kind (${ABIConstants.TYPE_KIND_ARRAY}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION array type but got version $version" }
+            return ArrayType( // @formatter:off
+                elementType = Type.deserialize(buffer),
+                dimensions = buffer.readInt()
+            ) // @formatter:on
         }
     }
 
@@ -121,16 +120,11 @@ data class ArrayType( // @formatter:off
     /**
      * Serializes this array type to the given [buffer].
      *
-     * The serialization format is:
-     * 1. The kind byte ([KIND])
-     * 2. The symbol name
-     * 3. The element type
-     * 4. The number of dimensions
-     *
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.TYPE_KIND_ARRAY)
+        buffer.writeByte(VERSION)
         elementType.serialize(buffer)
         buffer.writeInt(dimensions)
     }

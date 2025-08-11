@@ -17,10 +17,10 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABI
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
-import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.KIND
-import dev.karmakrafts.kwire.abi.type.ReferenceType.Companion.PACKAGE_DELIMITER
+import dev.karmakrafts.kwire.abi.type.NullableType.Companion.VERSION
 import kotlinx.io.Buffer
 
 /**
@@ -37,25 +37,17 @@ data class ReferenceType(
 ) : Type, SymbolNameProvider {
     companion object {
         /**
-         * The kind byte that identifies a ReferenceType during serialization/deserialization.
-         */
-        const val KIND: Byte = 3
-
-        /**
-         * The delimiter used to separate package segments in the mangled name.
-         */
-        const val PACKAGE_DELIMITER: String = "_"
-
-        /**
          * Deserializes a [ReferenceType] from the given [buffer].
          *
          * @param buffer The buffer to read from
          * @return The deserialized [ReferenceType]
-         * @throws IllegalStateException if the type kind is not [KIND]
+         * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_REFERENCE]
          */
         fun deserialize(buffer: Buffer): ReferenceType {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected reference type kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.TYPE_KIND_REFERENCE) { "Expected reference type kind (${ABIConstants.TYPE_KIND_REFERENCE}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION reference type but got version $version" }
             return ReferenceType(SymbolName.deserialize(buffer))
         }
     }
@@ -75,28 +67,25 @@ data class ReferenceType(
      *
      * The mangled name is constructed by combining:
      * 1. The letter 'C'
-     * 2. The package segments joined with [PACKAGE_DELIMITER]
-     * 3. Another [PACKAGE_DELIMITER]
+     * 2. The package segments joined with [ABIConstants.PACKAGE_MANGLING_DELIMITER]
+     * 3. Another [ABIConstants.PACKAGE_MANGLING_DELIMITER]
      * 4. The short name of the symbol
      * 5. The string '$C'
      */
     override val mangledName: String by lazy {
-        val pkg = symbolName.packageSegments().joinToString(PACKAGE_DELIMITER)
+        val pkg = symbolName.packageSegments().joinToString(ABIConstants.PACKAGE_MANGLING_DELIMITER)
         val name = symbolName.shortName
-        "C\$$pkg$PACKAGE_DELIMITER$name\$C"
+        "C\$$pkg${ABIConstants.PACKAGE_MANGLING_DELIMITER}$name\$C"
     }
 
     /**
      * Serializes this reference type to the given [buffer].
      *
-     * The serialization format is:
-     * 1. The kind byte ([KIND])
-     * 2. The symbol name
-     *
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.TYPE_KIND_REFERENCE)
+        buffer.writeByte(VERSION)
         symbolName.serialize(buffer)
     }
 }

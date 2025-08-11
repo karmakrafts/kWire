@@ -16,9 +16,9 @@
 
 package dev.karmakrafts.kwire.abi.type
 
+import dev.karmakrafts.kwire.abi.ABIConstants
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
-import dev.karmakrafts.kwire.abi.type.ConeType.Companion.KIND
 import kotlinx.io.Buffer
 
 /**
@@ -38,21 +38,20 @@ data class ConeType( // @formatter:off
     val typeArguments: List<TypeArgument>
 ) : Type by genericType, SymbolNameProvider { // @formatter:on
     companion object {
-        /**
-         * The kind byte that identifies a ConeType during serialization/deserialization.
-         */
-        const val KIND: Byte = 4
+        const val VERSION: Byte = 1
 
         /**
          * Deserializes a [ConeType] from the given [buffer].
          *
          * @param buffer The buffer to read from
          * @return The deserialized [ConeType]
-         * @throws IllegalStateException if the type kind is not [KIND]
+         * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_CONE]
          */
         fun deserialize(buffer: Buffer): ConeType {
             val kind = buffer.readByte()
-            check(kind == KIND) { "Expected cone type kind ($KIND) while deserializing but got $kind" }
+            check(kind == ABIConstants.TYPE_KIND_CONE) { "Expected cone type kind (${ABIConstants.TYPE_KIND_CONE}) while deserializing but got $kind" }
+            val version = buffer.readByte()
+            check(version <= VERSION) { "Expected version $VERSION builtin type but got version $version" }
             return ConeType(
                 genericType = Type.deserialize(buffer),
                 typeArguments = (0..<buffer.readInt()).map { TypeArgument.deserialize(buffer) })
@@ -78,16 +77,11 @@ data class ConeType( // @formatter:off
     /**
      * Serializes this cone type to the given [buffer].
      *
-     * The serialization format is:
-     * 1. The kind byte ([KIND])
-     * 2. The generic type
-     * 3. The number of type arguments
-     * 4. Each type argument
-     *
      * @param buffer The buffer to write to
      */
     override fun serialize(buffer: Buffer) {
-        buffer.writeByte(KIND)
+        buffer.writeByte(ABIConstants.TYPE_KIND_CONE)
+        buffer.writeByte(VERSION)
         genericType.serialize(buffer)
         buffer.writeInt(typeArguments.size)
         for (type in typeArguments) {
