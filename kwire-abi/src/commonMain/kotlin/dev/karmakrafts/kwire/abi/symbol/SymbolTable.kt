@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
+import dev.karmakrafts.kwire.abi.serialization.BinarySerializable
 import dev.karmakrafts.kwire.abi.serialization.deflate
 import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.serialization.readList
@@ -33,8 +35,8 @@ import kotlinx.io.Buffer
 @ConsistentCopyVisibility
 data class SymbolTable internal constructor(
     val entries: List<Symbol>
-) {
-    companion object {
+) : BinarySerializable {
+    companion object : BinaryDeserializer<SymbolTable> {
         const val VERSION: Byte = 1
 
         /**
@@ -43,7 +45,7 @@ data class SymbolTable internal constructor(
          * @param buffer The buffer to read from
          * @return The deserialized SymbolTable
          */
-        fun deserialize(buffer: Buffer): SymbolTable {
+        override fun deserialize(buffer: Buffer): SymbolTable {
             val version = buffer.readByte()
             check(version <= VERSION) { "Expected version $VERSION symbol table but got version $version" }
             return SymbolTable(buffer.readList(Symbol::deserialize))
@@ -83,7 +85,7 @@ data class SymbolTable internal constructor(
      *
      * @param buffer The buffer to write to
      */
-    fun serialize(buffer: Buffer) {
+    override fun serialize(buffer: Buffer) {
         buffer.writeByte(VERSION)
         buffer.writeList(entries, Symbol::serialize)
     }

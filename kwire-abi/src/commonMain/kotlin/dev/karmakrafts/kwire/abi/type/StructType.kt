@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -35,7 +36,7 @@ open class StructType( // @formatter:off
     override val symbolName: SymbolName,
     open val fields: List<Type>
 ) : Type, SymbolNameProvider { // @formatter:on
-    companion object {
+    companion object : BinaryDeserializer<StructType> {
         const val VERSION: Byte = 1
 
         /**
@@ -45,7 +46,7 @@ open class StructType( // @formatter:off
          * @return The deserialized [StructType]
          * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_STRUCT]
          */
-        fun deserialize(buffer: Buffer): StructType {
+        override fun deserialize(buffer: Buffer): StructType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_STRUCT) { "Expected struct type kind (${ABIConstants.TYPE_KIND_STRUCT}) while deserializing but got $kind" }
             val version = buffer.readByte()

@@ -16,6 +16,8 @@
 
 package dev.karmakrafts.kwire.abi.symbol
 
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
+import dev.karmakrafts.kwire.abi.serialization.BinarySerializable
 import kotlinx.io.Buffer
 import kotlinx.io.readString
 import kotlinx.io.writeString
@@ -36,8 +38,8 @@ data class SymbolInfo( // @formatter:off
     val line: Int,
     val column: Int,
     val file: String
-) { // @formatter:on
-    companion object {
+) : BinarySerializable { // @formatter:on
+    companion object : BinaryDeserializer<SymbolInfo> {
         const val VERSION: Byte = 1
 
         /**
@@ -46,7 +48,7 @@ data class SymbolInfo( // @formatter:off
          * @param buffer The buffer to read from
          * @return The deserialized SymbolInfo
          */
-        fun deserialize(buffer: Buffer): SymbolInfo {
+        override fun deserialize(buffer: Buffer): SymbolInfo {
             val version = buffer.readByte()
             check(version <= VERSION) { "Expected version $VERSION symbol info but got version $version" }
             val name = SymbolName.deserialize(buffer)
@@ -70,7 +72,7 @@ data class SymbolInfo( // @formatter:off
      *
      * @param buffer The buffer to write to
      */
-    fun serialize(buffer: Buffer) {
+    override fun serialize(buffer: Buffer) {
         buffer.writeByte(VERSION)
         name.serialize(buffer)
         buffer.writeInt(line)

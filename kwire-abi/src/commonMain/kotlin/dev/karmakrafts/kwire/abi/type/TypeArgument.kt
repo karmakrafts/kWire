@@ -17,7 +17,11 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
+import dev.karmakrafts.kwire.abi.serialization.BinarySerializable
+import dev.karmakrafts.kwire.abi.serialization.PolymorphicBinaryDeserializer
 import kotlinx.io.Buffer
+import kotlinx.io.Source
 
 /**
  * Represents a type argument in a generic type in the ABI system.
@@ -25,24 +29,14 @@ import kotlinx.io.Buffer
  * Type arguments can be either a wildcard (*) represented by [Star],
  * or a concrete type represented by [Concrete].
  */
-sealed interface TypeArgument {
-    companion object {
-        /**
-         * Deserializes a [TypeArgument] from the given [buffer].
-         *
-         * @param buffer The buffer to read from
-         * @return The deserialized [TypeArgument] (either [Star] or [Concrete])
-         * @throws IllegalStateException if the type argument kind is unknown
-         */
-        fun deserialize(buffer: Buffer): TypeArgument {
-            val kind = buffer.peek().readByte()
-            return when (kind) {
-                ABIConstants.TYPE_ARG_KIND_STAR -> Star.deserialize(buffer)
-                ABIConstants.TYPE_ARG_KIND_CONCRETE -> Concrete.deserialize(buffer)
-                else -> error("Unknown ABI type argument kind")
-            }
-        }
-    }
+sealed interface TypeArgument : BinarySerializable {
+    companion object : PolymorphicBinaryDeserializer<TypeArgument, Byte>( // @formatter:off
+        Source::readByte,
+        mapOf(
+            ABIConstants.TYPE_ARG_KIND_STAR to Star,
+            ABIConstants.TYPE_ARG_KIND_CONCRETE to Concrete
+        )
+    ) // @formatter:on
 
     /**
      * The mangled name of this type argument, used for ABI compatibility.
@@ -50,16 +44,9 @@ sealed interface TypeArgument {
     val mangledName: String
 
     /**
-     * Serializes this type argument to the given [buffer].
-     *
-     * @param buffer The buffer to write to
-     */
-    fun serialize(buffer: Buffer)
-
-    /**
      * Represents a wildcard type argument (*) in the ABI system.
      */
-    data object Star : TypeArgument {
+    data object Star : TypeArgument, BinaryDeserializer<Star> {
         const val VERSION: Byte = 1
 
         /**
@@ -86,7 +73,7 @@ sealed interface TypeArgument {
          * @return The [Star] singleton
          * @throws IllegalStateException if the type argument kind is not [ABIConstants.TYPE_ARG_KIND_STAR]
          */
-        fun deserialize(buffer: Buffer): Star {
+        override fun deserialize(buffer: Buffer): Star {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_ARG_KIND_STAR) { "Expected star type argument kind (${ABIConstants.TYPE_ARG_KIND_STAR}) while deserializing but got $kind" }
             val version = buffer.readByte()
@@ -101,7 +88,7 @@ sealed interface TypeArgument {
      * @property type The concrete type
      */
     data class Concrete(val type: Type) : TypeArgument {
-        companion object {
+        companion object : BinaryDeserializer<Concrete> {
             const val VERSION: Byte = 1
 
             /**
@@ -111,7 +98,7 @@ sealed interface TypeArgument {
              * @return The deserialized [Concrete]
              * @throws IllegalStateException if the type argument kind is not [ABIConstants.TYPE_ARG_KIND_CONCRETE]
              */
-            fun deserialize(buffer: Buffer): Concrete {
+            override fun deserialize(buffer: Buffer): Concrete {
                 val kind = buffer.readByte()
                 check(kind == ABIConstants.TYPE_ARG_KIND_CONCRETE) { "Expected concrete type argument kind (${ABIConstants.TYPE_ARG_KIND_CONCRETE}) while deserializing but got $kind" }
                 val version = buffer.readByte()

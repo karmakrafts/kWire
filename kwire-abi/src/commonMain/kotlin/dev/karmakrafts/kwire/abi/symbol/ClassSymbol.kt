@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -41,7 +42,7 @@ data class ClassSymbol(
     override val originalInfo: SymbolInfo?,
     override val typeArguments: List<Type>
 ) : Symbol {
-    companion object {
+    companion object : BinaryDeserializer<ClassSymbol> {
         const val VERSION: Byte = 1
 
         /**
@@ -51,7 +52,7 @@ data class ClassSymbol(
          * @return The deserialized ClassSymbol
          * @throws IllegalStateException if the symbol kind is not a class symbol
          */
-        fun deserialize(buffer: Buffer): ClassSymbol {
+        override fun deserialize(buffer: Buffer): ClassSymbol {
             val kind = buffer.readByte()
             check(kind == ABIConstants.SYMBOL_KIND_CLASS) { "Expected class symbol kind (${ABIConstants.SYMBOL_KIND_CLASS}) while deserializing but got $kind" }
             val version = buffer.readByte()

@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -43,7 +44,7 @@ class StructSymbol(
     override val typeArguments: List<Type>,
     val fields: List<Type>
 ) : Symbol {
-    companion object {
+    companion object : BinaryDeserializer<StructSymbol> {
         const val VERSION: Byte = 1
 
         /**
@@ -53,7 +54,7 @@ class StructSymbol(
          * @return The deserialized StructSymbol
          * @throws IllegalStateException if the symbol kind is not a struct symbol
          */
-        fun deserialize(buffer: Buffer): StructSymbol {
+        override fun deserialize(buffer: Buffer): StructSymbol {
             val kind = buffer.readByte()
             check(kind == ABIConstants.SYMBOL_KIND_STRUCT) { "Expected struct symbol kind (${ABIConstants.SYMBOL_KIND_STRUCT}) while deserializing but got $kind" }
             val version = buffer.readByte()

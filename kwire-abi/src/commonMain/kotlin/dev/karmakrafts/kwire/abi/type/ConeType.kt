@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -37,7 +38,7 @@ data class ConeType( // @formatter:off
     val genericType: Type,
     val typeArguments: List<TypeArgument>
 ) : Type by genericType, SymbolNameProvider { // @formatter:on
-    companion object {
+    companion object : BinaryDeserializer<ConeType> {
         const val VERSION: Byte = 1
 
         /**
@@ -47,7 +48,7 @@ data class ConeType( // @formatter:off
          * @return The deserialized [ConeType]
          * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_CONE]
          */
-        fun deserialize(buffer: Buffer): ConeType {
+        override fun deserialize(buffer: Buffer): ConeType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_CONE) { "Expected cone type kind (${ABIConstants.TYPE_KIND_CONE}) while deserializing but got $kind" }
             val version = buffer.readByte()

@@ -17,10 +17,13 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinarySerializable
+import dev.karmakrafts.kwire.abi.serialization.PolymorphicBinaryDeserializer
 import dev.karmakrafts.kwire.abi.serialization.deflate
 import dev.karmakrafts.kwire.abi.serialization.inflate
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
+import kotlinx.io.Source
 
 /**
  * Base interface for all types in the ABI system.
@@ -28,28 +31,18 @@ import kotlinx.io.Buffer
  * This interface defines the common properties and methods that all types must implement,
  * including serialization and deserialization capabilities.
  */
-sealed interface Type : SymbolNameProvider {
-    companion object {
-        /**
-         * Deserializes a [Type] from the given [buffer].
-         *
-         * @param buffer The buffer to read from
-         * @return The deserialized [Type]
-         * @throws IllegalStateException if the type kind is unknown
-         */
-        fun deserialize(buffer: Buffer): Type {
-            val kind = buffer.peek().readByte()
-            return when (kind) {
-                ABIConstants.TYPE_KIND_BUILTIN -> BuiltinType.deserialize(buffer)
-                ABIConstants.TYPE_KIND_ARRAY -> ArrayType.deserialize(buffer)
-                ABIConstants.TYPE_KIND_STRUCT -> StructType.deserialize(buffer)
-                ABIConstants.TYPE_KIND_REFERENCE -> ReferenceType.deserialize(buffer)
-                ABIConstants.TYPE_KIND_CONE -> ConeType.deserialize(buffer)
-                ABIConstants.TYPE_KIND_NULLABLE -> NullableType.deserialize(buffer)
-                else -> error("Unknown ABI type kind")
-            }
-        }
-
+sealed interface Type : SymbolNameProvider, BinarySerializable {
+    companion object : PolymorphicBinaryDeserializer<Type, Byte>( // @formatter:off
+        Source::readByte,
+        mapOf(
+            ABIConstants.TYPE_KIND_BUILTIN to BuiltinType,
+            ABIConstants.TYPE_KIND_ARRAY to ArrayType,
+            ABIConstants.TYPE_KIND_STRUCT to StructType,
+            ABIConstants.TYPE_KIND_REFERENCE to ReferenceType,
+            ABIConstants.TYPE_KIND_CONE to ConeType,
+            ABIConstants.TYPE_KIND_NULLABLE to NullableType
+        )
+    ) { // @formatter:on
         /**
          * Decompresses and deserializes a [Type] from the given [buffer].
          *
@@ -85,13 +78,6 @@ sealed interface Type : SymbolNameProvider {
      * The alignment requirement of this type in bytes.
      */
     val alignment: Int
-
-    /**
-     * Serializes this type to the given [buffer].
-     *
-     * @param buffer The buffer to write to
-     */
-    fun serialize(buffer: Buffer)
 
     /**
      * Serializes and compresses this type.

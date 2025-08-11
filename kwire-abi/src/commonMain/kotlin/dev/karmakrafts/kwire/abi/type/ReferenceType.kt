@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import dev.karmakrafts.kwire.abi.type.NullableType.Companion.VERSION
@@ -35,7 +36,7 @@ import kotlinx.io.Buffer
 data class ReferenceType(
     override val symbolName: SymbolName
 ) : Type, SymbolNameProvider {
-    companion object {
+    companion object : BinaryDeserializer<ReferenceType> {
         /**
          * Deserializes a [ReferenceType] from the given [buffer].
          *
@@ -43,7 +44,7 @@ data class ReferenceType(
          * @return The deserialized [ReferenceType]
          * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_REFERENCE]
          */
-        fun deserialize(buffer: Buffer): ReferenceType {
+        override fun deserialize(buffer: Buffer): ReferenceType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_REFERENCE) { "Expected reference type kind (${ABIConstants.TYPE_KIND_REFERENCE}) while deserializing but got $kind" }
             val version = buffer.readByte()

@@ -18,6 +18,7 @@ package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABI
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -70,7 +71,7 @@ enum class BuiltinType(
     // @formatter:on
     ;
 
-    companion object {
+    companion object : BinaryDeserializer<BuiltinType> {
         const val VERSION: Byte = 1
 
         /**
@@ -80,7 +81,7 @@ enum class BuiltinType(
          * @return The deserialized [BuiltinType]
          * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_BUILTIN]
          */
-        fun deserialize(buffer: Buffer): BuiltinType {
+        override fun deserialize(buffer: Buffer): BuiltinType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_BUILTIN) { "Expected builtin type kind (${ABIConstants.TYPE_KIND_BUILTIN}) while deserializing but got $kind" }
             val version = buffer.readByte()

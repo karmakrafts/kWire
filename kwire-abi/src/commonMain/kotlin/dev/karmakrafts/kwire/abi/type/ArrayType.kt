@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.symbol.SymbolName
 import dev.karmakrafts.kwire.abi.symbol.SymbolNameProvider
 import kotlinx.io.Buffer
@@ -35,7 +36,7 @@ data class ArrayType( // @formatter:off
     val elementType: Type,
     val dimensions: Int
 ) : Type, SymbolNameProvider { // @formatter:on
-    companion object {
+    companion object : BinaryDeserializer<ArrayType> {
         val arrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.Array", "Array")
         val byteArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.ByteArray", "ByteArray")
         val shortArrayName: SymbolName = SymbolName("${ABIConstants.KOTLIN_PACKAGE}.ShortArray", "ShortArray")
@@ -63,7 +64,7 @@ data class ArrayType( // @formatter:off
          * @return The deserialized [ArrayType]
          * @throws IllegalStateException if the type kind is not [ABIConstants.TYPE_KIND_ARRAY]
          */
-        fun deserialize(buffer: Buffer): ArrayType {
+        override fun deserialize(buffer: Buffer): ArrayType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_ARRAY) { "Expected array type kind (${ABIConstants.TYPE_KIND_ARRAY}) while deserializing but got $kind" }
             val version = buffer.readByte()

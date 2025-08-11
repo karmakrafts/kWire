@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.type
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import kotlinx.io.Buffer
 
 /**
@@ -29,10 +30,10 @@ import kotlinx.io.Buffer
  * @property actualType The underlying non-nullable type
  */
 data class NullableType(val actualType: Type) : Type by actualType {
-    companion object {
+    companion object : BinaryDeserializer<NullableType> {
         const val VERSION: Byte = 1
 
-        fun deserialize(buffer: Buffer): NullableType {
+        override fun deserialize(buffer: Buffer): NullableType {
             val kind = buffer.readByte()
             check(kind == ABIConstants.TYPE_KIND_NULLABLE) { "Expected nullable type kind (${ABIConstants.TYPE_KIND_NULLABLE}) while deserializing but got $kind" }
             val version = buffer.readByte()
@@ -54,7 +55,7 @@ data class NullableType(val actualType: Type) : Type by actualType {
     override fun serialize(buffer: Buffer) {
         buffer.writeByte(ABIConstants.TYPE_KIND_NULLABLE)
         buffer.writeByte(VERSION)
-        super.serialize(buffer)
+        actualType.serialize(buffer)
     }
 }
 

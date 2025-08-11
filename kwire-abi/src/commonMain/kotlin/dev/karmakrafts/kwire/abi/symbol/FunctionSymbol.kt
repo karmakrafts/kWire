@@ -17,6 +17,7 @@
 package dev.karmakrafts.kwire.abi.symbol
 
 import dev.karmakrafts.kwire.abi.ABIConstants
+import dev.karmakrafts.kwire.abi.serialization.BinaryDeserializer
 import dev.karmakrafts.kwire.abi.serialization.readList
 import dev.karmakrafts.kwire.abi.serialization.readOptional
 import dev.karmakrafts.kwire.abi.serialization.writeList
@@ -48,7 +49,7 @@ data class FunctionSymbol(
     val extensionReceiverType: Type?,
     val contextReceiverTypes: List<Type>
 ) : Symbol {
-    companion object {
+    companion object : BinaryDeserializer<FunctionSymbol> {
         const val VERSION: Byte = 1
 
         /**
@@ -58,7 +59,7 @@ data class FunctionSymbol(
          * @return The deserialized FunctionSymbol
          * @throws IllegalStateException if the symbol kind is not a function symbol
          */
-        fun deserialize(buffer: Buffer): FunctionSymbol {
+        override fun deserialize(buffer: Buffer): FunctionSymbol {
             val kind = buffer.readByte()
             check(kind == ABIConstants.SYMBOL_KIND_FUNCTION) { "Expected function symbol kind (${ABIConstants.SYMBOL_KIND_FUNCTION}) while deserializing but got $kind" }
             val version = buffer.readByte()
