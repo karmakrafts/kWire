@@ -36,15 +36,39 @@ for non-Kotlin developers.
 
 ## 1. Types
 
-**TBA**
+The kWire ABI defines a set of primitive and builtin types which must be
+supported by the compiler implementation.
 
 ### 1.1 Primitive Types
 
-**TBA**
+The following Kotlin types are defined as supported builtins of the kWire ABI:
+
+| Type                                 | Class    | Size | Alignment |
+|--------------------------------------|----------|------|-----------|
+| `kotlin.Byte`                        | Signed   | 1    | 1         |
+| `kotlin.Short`                       | Signed   | 2    | 2         |
+| `kotlin.Int`                         | Signed   | 4    | 4         |
+| `kotlin.Long`                        | Signed   | 8    | 8         |
+| `kotlin.UByte`                       | Unsigned | 1    | 1         |
+| `kotlin.UShort`                      | Unsigned | 2    | 2         |
+| `kotlin.UInt`                        | Unsigned | 4    | 4         |
+| `kotlin.ULong`                       | Unsigned | 8    | 8         |
+| `kotlin.Float`                       | IEEE-754 | 4    | 4         |
+| `kotlin.Double`                      | IEEE-754 | 8    | 8         |
+| `kotlin.Boolean`                     | Misc     | 1    | 1         |
+| `kotlin.Char`                        | Misc     | 2    | 2         |
+| `kotlin.Unit`                        | Misc     | 0    | 0         |
 
 ### 1.2 Native Size Types
 
-**TBA**
+Additionally, kWire defines its own primitive types to model native-size types  
+so one can properly represent the C-types `ptrdiff_t`, `size_t` and `void*` respectively.
+
+| Type                                 | Class    | Size                     | Alignment                |
+|--------------------------------------|----------|--------------------------|--------------------------|
+| `dev.karmakrafts.kwire.ctype.NInt`   | Signed   | 4 on 32-bit, 8 on 64-bit | 4 on 32-bit, 8 on 64-bit |
+| `dev.karmakrafts.kwire.ctype.NUInt`  | Unsigned | 4 on 32-bit, 8 on 64-bit | 4 on 32-bit, 8 on 64-bit |
+| `dev.karmakrafts.kwire.ctype.NFloat` | IEEE-754 | 4 on 32-bit, 8 on 64-bit | 4 on 32-bit, 8 on 64-bit |
 
 ## 2. Name Mangling
 
@@ -86,7 +110,7 @@ Primitive types have fixed **single-character** encodings using
 lowercase letters from the ASCII range `97..122` in kWire.
 
 | Type                                 | Mangled Name |
-| ------------------------------------ | ------------ |
+|--------------------------------------|--------------|
 | `kotlin.Unit`                        | a            |
 | `kotlin.Byte`                        | b            |
 | `kotlin.Short`                       | c            |
@@ -115,7 +139,7 @@ Special types share their allowed character range with the primitives
 described in [this section](#11-primitive-types) of the specification.
 
 | Type                             | Mangled Name |
-| -------------------------------- | ------------ |
+|----------------------------------|--------------|
 | `kotlin.collections.ArrayList`   | r            |
 | `kotlin.collections.HashMap`     | s            |
 | `kotlin.collections.List`        | t            |
@@ -221,8 +245,56 @@ This would encode the `Pair<String, List<String>>` type.
 
 ### 3.4 Array Types
 
-**TBA**
+Arrays are encoded similar to type lists, with the addition of a dimensionality
+number which is part of the begin-sequence.  
+This allows efficiently encoding any dimensionality from 1 to 9 with the same  
+three character begin sequence, which should cover 99.9% of all use cases.
+
+If the array has more than 9 dimensions, the begin-sequence just grows,  
+while the end-sequence always stays the same.
+
+The start of an array is indicated using the begin-sequence `A<n>$`,  
+where `<n>` is the number of dimensions.
+The end of the array is always encoded as `$A`.
+
+```
+A1$C$com_example_Foo$C$A                                  
+▲▲▲▲▲▲  ▲▲      ▲▲  ▲▲▲▲                                  
+││││││  ││      ││  │││└─────── Sequence indicator (array)
+││││││  ││      ││  ││└──────── Delimiter                 
+││││││  ││      ││  │└───────── Sequence indicator (class)
+││││││  ││      ││  └────────── Delimiter                 
+││││││  ││      │└───────────── 'Foo' class               
+││││││  ││      └────────────── Package delimiter         
+││││││  │└───────────────────── 'example' package         
+││││││  └────────────────────── Package delimiter         
+│││││└───────────────────────── 'com' package             
+││││└────────────────────────── Delimiter                 
+│││└─────────────────────────── Sequence indicator (class)
+││└──────────────────────────── Delimiter                 
+│└───────────────────────────── Array dimensionality      
+└────────────────────────────── Sequence indicator (array)
+```
+
+This would encode the `Array<Foo>` type.
 
 ### 3.5 Nullable Types
 
-**TBA**
+Nullable types are denoted by the sequence suffix `N` at the end of any type.
+
+```
+C$com_example_Foo$CN                                      
+▲▲▲  ▲▲      ▲▲  ▲▲▲                                      
+│││  ││      ││  ││└─────────── Nullability suffix        
+│││  ││      ││  │└──────────── Sequence indicator (class)
+│││  ││      ││  └───────────── Delimiter                 
+│││  ││      │└──────────────── 'Foo' class               
+│││  ││      └───────────────── Package delimiter         
+│││  │└──────────────────────── 'example' package         
+│││  └───────────────────────── Package delimiter         
+││└──────────────────────────── 'com' package             
+│└───────────────────────────── Delimiter                 
+└────────────────────────────── Sequence indicator (class)
+```
+
+This would encode the `Foo?` type.
