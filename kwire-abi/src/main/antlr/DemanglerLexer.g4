@@ -19,7 +19,7 @@ lexer grammar DemanglerLexer;
 fragment DELIMITER: '$';
 
 fragment ARRAY: 'A';
-ARRAY_BEGIN: (ARRAY DELIMITER)+ -> pushMode(M_ARRAY);
+ARRAY_BEGIN: ARRAY [1-9]+ DELIMITER -> pushMode(M_ARRAY);
 ARRAY_END: DELIMITER ARRAY;
 
 fragment CLASS: 'C';

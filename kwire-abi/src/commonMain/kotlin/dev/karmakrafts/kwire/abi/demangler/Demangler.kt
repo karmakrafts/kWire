@@ -90,7 +90,8 @@ private class TypeConversionVisitor(
     }
 
     override fun visitArrayType(ctx: DemanglerParser.ArrayTypeContext): List<Type> {
-        val dimensions = ctx.ARRAY_BEGIN().text.length / 2 // Number of A$'s in the begin-marker
+        val dimensionsString = ctx.ARRAY_BEGIN().text
+        val dimensions = dimensionsString.drop(1).dropLast(1).toIntOrNull() ?: return emptyList()
         return listOf(adjustNullability(visitType(ctx.type()).first().asArray(dimensions)))
     }
 
